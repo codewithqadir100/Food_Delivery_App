@@ -24,12 +24,23 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
+                                {user.is_customer && (
+                                    <NavLink href={route('customer.dashboard')} active={route().current('customer.dashboard')}>
+                                        Dashboard
+                                    </NavLink>
+                                )}
+
+                                {user.is_restaurant_owner && (
+                                    <NavLink href={route('restaurant.dashboard')} active={route().current('restaurant.dashboard')}>
+                                        My Restaurant
+                                    </NavLink>
+                                )}
+
+                                {user.is_admin && (
+                                    <NavLink href={route('admin.dashboard')} active={route().current('admin.dashboard')}>
+                                        Admin Panel
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
@@ -128,12 +139,23 @@ export default function AuthenticatedLayout({ header, children }) {
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
+                        {user.is_customer && (
+                            <ResponsiveNavLink href={route('customer.dashboard')} active={route().current('customer.dashboard')}>
+                                Dashboard
+                            </ResponsiveNavLink>
+                        )}
+
+                        {user.is_restaurant_owner && (
+                            <ResponsiveNavLink href={route('restaurant.dashboard')} active={route().current('restaurant.dashboard')}>
+                                My Restaurant
+                            </ResponsiveNavLink>
+                        )}
+
+                        {user.is_admin && (
+                            <ResponsiveNavLink href={route('admin.dashboard')} active={route().current('admin.dashboard')}>
+                                Admin Panel
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">

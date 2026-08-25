@@ -17,9 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-        'restaurantOwnerMiddleware' => \App\Http\Middleware\RestaurantOwnerMiddleware::class,
+            'customer' => \App\Http\Middleware\EnsureCustomer::class,
+            'restaurant_owner' => \App\Http\Middleware\EnsureRestaurantOwner::class,
+            'admin' => \App\Http\Middleware\EnsureAdmin::class,
         ]);
-        
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
