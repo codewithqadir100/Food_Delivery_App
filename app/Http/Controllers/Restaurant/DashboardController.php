@@ -10,6 +10,6 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     public function index(){
-        return inertia::render('Restaurant/Dashboard');
+        return inertia::render('dashboard');
     }
 }
