@@ -1,5 +1,3 @@
-import Home from "@/Pages/home";
-
 export default function Navbar(){
     return (
             <nav className="flex justify-between items-center px-3 py-2 bg-blue-400">

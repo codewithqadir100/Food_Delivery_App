@@ -9,7 +9,7 @@ use App\Http\Controllers\Restaurant\RestaurantController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('home');
+    return Inertia::render('Home');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
