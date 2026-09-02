@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 const TextInput = forwardRef(function TextInput(
   {
@@ -69,17 +70,7 @@ const TextInput = forwardRef(function TextInput(
 
       {error && (
         <p className="text-sm text-[color:var(--color-danger-600)] mt-1.5 flex items-center gap-1">
-          <svg
-            className="w-4 h-4"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18.101 12.93a1 1 0 00-1.414-1.414L10 15.586l-6.687-6.687a1 1 0 00-1.414 1.414l8.1 8.1a1 1 0 001.414 0l8.1-8.1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <AlertCircle size={16} className="flex-shrink-0" />
           {error}
         </p>
       )}

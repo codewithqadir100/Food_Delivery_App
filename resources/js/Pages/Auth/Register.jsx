@@ -1,137 +1,206 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import GuestLayout from '@/Layouts/GuestLayout';
+import Button from '@/Components/Common/Button';
+import TextInput from '@/Components/Forms/TextInput';
+import FormLabel from '@/Components/Forms/FormLabel';
+import FormError from '@/Components/Forms/FormError';
+import Card from '@/Components/Common/Card';
+import { User, Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react';
 
 export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-        role: 'customer',
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+
+  const { data, setData, post, processing, errors, reset } = useForm({
+    name: '',
+    email: '',
+    role: 'customer',
+    password: '',
+    password_confirmation: '',
+  });
+
+  const submit = (e) => {
+    e.preventDefault();
+    post(route('register'), {
+      onFinish: () => reset('password', 'password_confirmation'),
     });
+  };
 
-    const submit = (e) => {
-        e.preventDefault();
+  return (
+    <GuestLayout>
+      <Head title="Register" />
 
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+      <Card padding="lg" className="mb-6">
+        <form onSubmit={submit} className="space-y-4">
+          {/* Name */}
+          <div>
+            <FormLabel htmlFor="name" required>
+              Full Name
+            </FormLabel>
+            <TextInput
+              id="name"
+              type="text"
+              placeholder="John Doe"
+              value={data.name}
+              onChange={(e) => setData('name', e.target.value)}
+              error={errors.name}
+              icon={<User size={16} />}
+              autoComplete="name"
+            />
+            {errors.name && <FormError message={errors.name} />}
+          </div>
 
-    return (
-        <GuestLayout>
-            <Head title="Register" />
+          {/* Email */}
+          <div>
+            <FormLabel htmlFor="email" required>
+              Email Address
+            </FormLabel>
+            <TextInput
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              value={data.email}
+              onChange={(e) => setData('email', e.target.value)}
+              error={errors.email}
+              icon={<Mail size={16} />}
+              autoComplete="email"
+            />
+            {errors.email && <FormError message={errors.email} />}
+          </div>
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
+          {/* Role */}
+          <div>
+            <FormLabel htmlFor="role" required>
+              I want to
+            </FormLabel>
+            <select
+              id="role"
+              value={data.role}
+              onChange={(e) => setData('role', e.target.value)}
+              className={`
+                w-full px-3 py-2 text-base border rounded-lg
+                bg-[color:var(--color-bg-primary)]
+                text-[color:var(--color-text-primary)]
+                transition-all duration-200
+                focus:outline-none focus:ring-2 focus:ring-offset-2
+                ${
+                  errors.role
+                    ? 'border-[color:var(--color-danger-500)] focus:ring-[color:var(--color-danger-300)]'
+                    : 'border-[color:var(--color-border)] focus:ring-[color:var(--color-primary-300)]'
+                }
+              `}
+            >
+              <option value="customer">Order delicious food</option>
+              <option value="restaurant_owner">Sell my food</option>
+            </select>
+            {errors.role && <FormError message={errors.role} />}
+          </div>
 
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
+          {/* Password */}
+          <div>
+            <FormLabel htmlFor="password" required>
+              Password
+            </FormLabel>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+                className={`
+                  w-full px-3 py-2 pl-10 pr-10
+                  text-base border rounded-lg
+                  bg-[color:var(--color-bg-primary)]
+                  text-[color:var(--color-text-primary)]
+                  placeholder-[color:var(--color-text-muted)]
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-offset-2
+                  ${
+                    errors.password
+                      ? 'border-[color:var(--color-danger-500)] focus:ring-[color:var(--color-danger-300)]'
+                      : 'border-[color:var(--color-border)] focus:ring-[color:var(--color-primary-300)]'
+                  }
+                `}
+                autoComplete="new-password"
+              />
+              <Lock size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[color:var(--color-text-muted)]" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)] transition-colors"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {errors.password && <FormError message={errors.password} />}
+          </div>
 
-                    <InputError message={errors.name} className="mt-2" />
-                </div>
+          {/* Confirm Password */}
+          <div>
+            <FormLabel htmlFor="password_confirmation" required>
+              Confirm Password
+            </FormLabel>
+            <div className="relative">
+              <input
+                id="password_confirmation"
+                type={showPasswordConfirmation ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={data.password_confirmation}
+                onChange={(e) => setData('password_confirmation', e.target.value)}
+                className={`
+                  w-full px-3 py-2 pl-10 pr-10
+                  text-base border rounded-lg
+                  bg-[color:var(--color-bg-primary)]
+                  text-[color:var(--color-text-primary)]
+                  placeholder-[color:var(--color-text-muted)]
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-offset-2
+                  ${
+                    errors.password_confirmation
+                      ? 'border-[color:var(--color-danger-500)] focus:ring-[color:var(--color-danger-300)]'
+                      : 'border-[color:var(--color-border)] focus:ring-[color:var(--color-primary-300)]'
+                  }
+                `}
+                autoComplete="new-password"
+              />
+              <Lock size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[color:var(--color-text-muted)]" />
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)] transition-colors"
+              >
+                {showPasswordConfirmation ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {errors.password_confirmation && (
+              <FormError message={errors.password_confirmation} />
+            )}
+          </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
+          {/* Submit */}
+          <Button
+            type="submit"
+            fullWidth
+            loading={processing}
+            icon={UserPlus}
+          >
+            Create Account
+          </Button>
+        </form>
+      </Card>
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="role" value="Register As" />
-                    <select
-                        id="role"
-                        name="role"
-                        value={data.role}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        onChange={(e) => setData('role', e.target.value)}
-                    >
-                        <option value="customer">Customer</option>
-                        <option value="restaurant_owner">Restaurant Owner</option>
-                    </select>
-                    <InputError message={errors.role} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
-    );
+      {/* Login Link */}
+      <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
+        <span className="text-[color:var(--color-text-secondary)]">Already have an account? </span>
+        <Link
+          href={route('login')}
+          className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
+        >
+          Sign in
+        </Link>
+      </div>
+    </GuestLayout>
+  );
 }

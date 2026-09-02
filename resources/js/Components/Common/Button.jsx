@@ -4,6 +4,8 @@ export default function Button({
   type = 'button',
   disabled = false,
   loading = false,
+  icon: Icon = null,
+  iconPosition = 'left',
   children,
   className = '',
   fullWidth = false,
@@ -97,7 +99,16 @@ export default function Button({
           />
         </svg>
       )}
+      
+      {Icon && iconPosition === 'left' && (
+        <Icon size={16} className="flex-shrink-0" />
+      )}
+      
       {children}
+      
+      {Icon && iconPosition === 'right' && (
+        <Icon size={16} className="flex-shrink-0" />
+      )}
     </button>
   );
 }

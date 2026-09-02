@@ -1,3 +1,5 @@
+import { AlertCircle } from 'lucide-react';
+
 export default function FormError({
   message,
   className = '',
@@ -16,17 +18,7 @@ export default function FormError({
       `}
       {...props}
     >
-      <svg
-        className="w-4 h-4 flex-shrink-0"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path
-          fillRule="evenodd"
-          d="M18.101 12.93a1 1 0 00-1.414-1.414L10 15.586l-6.687-6.687a1 1 0 00-1.414 1.414l8.1 8.1a1 1 0 001.414 0l8.1-8.1z"
-          clipRule="evenodd"
-        />
-      </svg>
+      <AlertCircle size={16} className="flex-shrink-0" />
       {message}
     </p>
   );
