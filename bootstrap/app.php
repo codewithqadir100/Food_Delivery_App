@@ -19,7 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'customer' => \App\Http\Middleware\EnsureCustomer::class,
             'restaurant_owner' => \App\Http\Middleware\EnsureRestaurantOwner::class,
+            'approved_restaurant' => \App\Http\Middleware\EnsureApprovedRestaurant::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'approved_admin' => \App\Http\Middleware\EnsureApprovedAdmin::class,
+            'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

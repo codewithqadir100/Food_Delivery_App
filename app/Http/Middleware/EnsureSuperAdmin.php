@@ -6,12 +6,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureAdmin
+class EnsureSuperAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user()?->isAdmin()) {
-            abort(403, 'Access denied. Admins only.');
+        if (!$request->user()?->isSuperAdmin()) {
+            abort(403, 'Access denied. Super admins only.');
         }
 
         return $next($request);

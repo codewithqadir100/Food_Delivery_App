@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
@@ -12,7 +10,7 @@ class EnsureCustomer
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user()?->isCustomer()) {
+        if (!$request->user()?->isCustomer()) {
             abort(403, 'Access denied. Customers only.');
         }
 

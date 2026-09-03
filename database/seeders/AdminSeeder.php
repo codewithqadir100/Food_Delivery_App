@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Database\Seeders;
 
@@ -19,8 +17,8 @@ class AdminSeeder extends Seeder
                 'email' => 'admin@fooddelivery.com',
                 'password' => Hash::make('admin123'),
                 'role' => User::ROLE_ADMIN,
+                'status' => User::STATUS_APPROVED,
                 'is_super_admin' => true,
-                'email_verified_at' => now(),
             ]
         );
     }

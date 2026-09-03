@@ -1,44 +1,64 @@
-<?php
+<?php declare(strict_types=1);
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminVerificationController;
+use App\Http\Controllers\Admin\RestaurantVerificationController;
+use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\RestaurantController;
-
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Home');
-});
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+})->name('home');
 
 Route::middleware(['auth', 'customer'])->group(function () {
-    Route::get('/customer/dashboard', function () {
-        return Inertia::render('Customer/Dashboard');
-    })->name('customer.dashboard');
+    Route::get('/customer/profile', [ProfileController::class, 'index'])->name('customer.profile.index');
+    Route::get('/customer/profile/edit', [ProfileController::class, 'edit'])->name('customer.profile.edit');
+    Route::patch('/customer/profile', [ProfileController::class, 'update'])->name('customer.profile.update');
+    Route::get('/customer/wishlist', [ProfileController::class, 'wishlist'])->name('customer.wishlist');
+    Route::get('/customer/history', [ProfileController::class, 'history'])->name('customer.history');
+    Route::get('/customer/addresses', [ProfileController::class, 'addresses'])->name('customer.addresses');
 });
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/profile', [RestaurantController::class, 'index'])->name('profile.index');
-    Route::get('/profile/create', [RestaurantController::class, 'create'])->name('profile.create');
-    Route::post('/profile', [RestaurantController::class, 'store'])->name('profile.store');
-    Route::get('/profile/{restaurant}', [RestaurantController::class, 'show'])->name('profile.show');
-    Route::get('/profile/{restaurant}/edit', [RestaurantController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile/{restaurant}', [RestaurantController::class, 'update'])->name('profile.update');
-    Route::delete('/profile/{restaurant}', [RestaurantController::class, 'destroy'])->name('profile.destroy');
+
+    Route::middleware(['approved_restaurant'])->group(function () {
+        Route::get('/profile', [RestaurantController::class, 'index'])->name('profile.index');
+        Route::get('/profile/create', [RestaurantController::class, 'create'])->name('profile.create');
+        Route::post('/profile', [RestaurantController::class, 'store'])->name('profile.store');
+        Route::get('/profile/{restaurant}', [RestaurantController::class, 'show'])->name('profile.show');
+        Route::get('/profile/{restaurant}/edit', [RestaurantController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile/{restaurant}', [RestaurantController::class, 'update'])->name('profile.update');
+        Route::delete('/profile/{restaurant}', [RestaurantController::class, 'destroy'])->name('profile.destroy');
+    });
 });
 
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+
+        if ($user->isSuperAdmin()) {
+            return Inertia::render('Admin/Dashboard');
+        }
+
+        if ($user->isPending()) {
+            return Inertia::render('Admin/PendingDashboard');
+        }
+
         return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+    })->name('dashboard');
+});
+
+Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
+    Route::get('/restaurants/pending', [RestaurantVerificationController::class, 'index'])->name('restaurants.pending');
+    Route::post('/restaurants/{restaurant}/approve', [RestaurantVerificationController::class, 'approve'])->name('restaurants.approve');
+    Route::post('/restaurants/{restaurant}/reject', [RestaurantVerificationController::class, 'reject'])->name('restaurants.reject');
+
+    Route::get('/admins/pending', [AdminVerificationController::class, 'index'])->name('admins.pending');
+    Route::post('/admins/{admin}/approve', [AdminVerificationController::class, 'approve'])->name('admins.approve');
+    Route::post('/admins/{admin}/reject', [AdminVerificationController::class, 'reject'])->name('admins.reject');
 });
 
 require __DIR__.'/auth.php';

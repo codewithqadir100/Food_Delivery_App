@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Policies;
 
@@ -11,31 +9,36 @@ class RestaurantPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true;
+        return false;
     }
 
     public function view(User $user, Restaurant $restaurant): bool
     {
-        return $user->isAdmin() || $user->isCustomer() || $this->owns($user, $restaurant);
+        return $user->id === $restaurant->user_id;
     }
 
     public function create(User $user): bool
     {
-        return $user->isRestaurantOwner() || $user->isAdmin();
+        return $user->isRestaurantOwner() && $user->isApproved();
     }
 
     public function update(User $user, Restaurant $restaurant): bool
     {
-        return $user->isAdmin() || $this->owns($user, $restaurant);
+        return $user->id === $restaurant->user_id && $user->isApproved();
     }
 
     public function delete(User $user, Restaurant $restaurant): bool
     {
-        return $user->isAdmin() || $this->owns($user, $restaurant);
+        return $user->id === $restaurant->user_id && $user->isApproved();
     }
 
-    private function owns(User $user, Restaurant $restaurant): bool
+    public function restore(User $user, Restaurant $restaurant): bool
     {
-        return $user->isRestaurantOwner() && $restaurant->user_id === $user->id;
+        return false;
+    }
+
+    public function forceDelete(User $user, Restaurant $restaurant): bool
+    {
+        return false;
     }
 }

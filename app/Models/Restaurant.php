@@ -1,8 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Restaurant extends Model
 {
@@ -10,23 +12,59 @@ class Restaurant extends Model
         'user_id',
         'name',
         'address',
+        'city',
         'description',
+        'phone',
+        'latitude',
+        'longitude',
+        'logo',
+        'cover_image',
+        'is_open',
+        'status',
         'restaurant_category_id',
     ];
 
-    public function user(){
+    protected function casts(): array
+    {
+        return [
+            'is_open' => 'boolean',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+        ];
+    }
+
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function restaurantCategory (){
+    public function restaurantCategory(): BelongsTo
+    {
         return $this->belongsTo(RestaurantCategory::class);
     }
 
-    public function menuCategories (){
+    public function menuCategories(): HasMany
+    {
         return $this->hasMany(MenuCategory::class);
     }
 
-    public function menuItems (){
+    public function menuItems(): HasMany
+    {
         return $this->hasMany(MenuItem::class);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
     }
 }
