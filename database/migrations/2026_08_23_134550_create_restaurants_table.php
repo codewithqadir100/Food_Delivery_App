@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('restaurant_category_id')->constrained('restaurant_categories');
+            $table->foreignId('restaurant_category_id');
             $table->text('description')->nullable();
             $table->string('phone')->nullable();
             $table->text('address');

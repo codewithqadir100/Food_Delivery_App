@@ -24,7 +24,7 @@ export default function AuthLayout({ children }) {
       <div className="bg-[color:var(--color-bg-primary)] border-t border-[color:var(--color-border-light)] py-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm text-[color:var(--color-text-muted)]">
-            © 2024 FoodHub. All rights reserved.
+            © 2026 FoodHub. All rights reserved.
           </p>
         </div>
       </div>
