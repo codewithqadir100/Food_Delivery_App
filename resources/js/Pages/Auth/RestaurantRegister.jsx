@@ -38,19 +38,29 @@ export default function RestaurantRegister({ categories }) {
     <AuthLayout>
       <Head title="Restaurant Register" />
 
-      <Card padding="lg">
+      <Card padding="lg" className="w-full max-w-2xl mx-auto">
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-1">
+            <h2 className="text-3xl font-bold text-[color:var(--color-text-primary)] mb-2">
               Become Our Partner
             </h2>
             <p className="text-sm text-[color:var(--color-text-secondary)]">
-              Register your restaurant and start selling
+              Register your restaurant and start selling food on FoodHub
             </p>
           </div>
 
-          <form onSubmit={submit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={submit} className="space-y-5">
+            <div className="grid grid-cols-1 gap-4">
+              <TextInput
+                type="text"
+                placeholder="Your Restaurant Name"
+                value={data.restaurant_name}
+                onChange={(e) => setData('restaurant_name', e.target.value)}
+                error={errors.restaurant_name}
+                icon={<Building2 size={16} />}
+                required
+              />
+
               <TextInput
                 type="email"
                 placeholder="restaurant@email.com"
@@ -61,38 +71,37 @@ export default function RestaurantRegister({ categories }) {
                 autoComplete="email"
                 required
               />
+            </div>
 
-              <TextInput
-                type="text"
-                placeholder="Your Restaurant Name"
-                value={data.restaurant_name}
-                onChange={(e) => setData('restaurant_name', e.target.value)}
-                error={errors.restaurant_name}
-                icon={<Building2 size={16} />}
-                required
+            <div>
+              <FormLabel required>Restaurant Category</FormLabel>
+              <SelectInput
+                options={categoryOptions}
+                value={data.restaurant_category_id}
+                onChange={(e) => setData('restaurant_category_id', e.target.value)}
+                error={errors.restaurant_category_id}
+                placeholder="Select a category"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FormLabel required>Restaurant Category</FormLabel>
-                <SelectInput
-                  options={categoryOptions}
-                  value={data.restaurant_category_id}
-                  onChange={(e) => setData('restaurant_category_id', e.target.value)}
-                  error={errors.restaurant_category_id}
-                  placeholder="Select a category"
-                />
-              </div>
-
               <TextInput
                 type="text"
-                placeholder="e.g., Karachi"
+                placeholder="Karachi"
                 value={data.city}
                 onChange={(e) => setData('city', e.target.value)}
                 error={errors.city}
                 icon={<MapPin size={16} />}
                 required
+              />
+
+              <TextInput
+                type="tel"
+                placeholder="Phone number"
+                value={data.phone}
+                onChange={(e) => setData('phone', e.target.value)}
+                error={errors.phone}
+                icon={<Phone size={16} />}
               />
             </div>
 
@@ -107,15 +116,6 @@ export default function RestaurantRegister({ categories }) {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextInput
-                type="tel"
-                placeholder="Phone number (optional)"
-                value={data.phone}
-                onChange={(e) => setData('phone', e.target.value)}
-                error={errors.phone}
-                icon={<Phone size={16} />}
-              />
-
               <PasswordInput
                 label="Password"
                 value={data.password}
@@ -123,9 +123,7 @@ export default function RestaurantRegister({ categories }) {
                 error={errors.password}
                 required
               />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <PasswordInput
                 label="Confirm Password"
                 value={data.password_confirmation}
@@ -133,18 +131,18 @@ export default function RestaurantRegister({ categories }) {
                 error={errors.password_confirmation}
                 required
               />
-
-              <TextArea
-                label="Description"
-                placeholder="Tell us about your restaurant (optional)"
-                value={data.description}
-                onChange={(e) => setData('description', e.target.value)}
-                error={errors.description}
-                rows={3}
-              />
             </div>
 
-            <div className="flex items-center gap-2">
+            <TextArea
+              label="Restaurant Description"
+              placeholder="Tell us about your restaurant, cuisine type, specialties, etc. (optional)"
+              value={data.description}
+              onChange={(e) => setData('description', e.target.value)}
+              error={errors.description}
+              rows={4}
+            />
+
+            <div className="flex items-center gap-2 pt-2">
               <Checkbox
                 id="remember"
                 checked={data.remember}
