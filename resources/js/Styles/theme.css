@@ -175,3 +175,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-400);
 }
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

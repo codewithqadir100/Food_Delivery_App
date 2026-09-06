@@ -5,12 +5,10 @@ import Button from '@/Components/Common/Button';
 import TextInput from '@/Components/Forms/TextInput';
 import Checkbox from '@/Components/Forms/Checkbox';
 import FormLabel from '@/Components/Forms/FormLabel';
-import FormError from '@/Components/Forms/FormError';
-import Card from '@/Components/Common/Card';
 import Alert from '@/Components/Common/Alert';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 
-export default function Login({ status, canResetPassword }) {
+export default function RestaurantLogin({ status }) {
   const [showPassword, setShowPassword] = useState(false);
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
@@ -20,14 +18,14 @@ export default function Login({ status, canResetPassword }) {
 
   const submit = (e) => {
     e.preventDefault();
-    post(route('login'), {
+    post(route('restaurant.login'), {
       onFinish: () => reset('password'),
     });
   };
 
   return (
     <AuthLayout>
-      <Head title="Login" />
+      <Head title="Restaurant Login" />
 
       {status && (
         <Alert
@@ -37,13 +35,17 @@ export default function Login({ status, canResetPassword }) {
         />
       )}
 
-      <Card padding="lg" className="mb-6">
-        <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-6">
-          Welcome Back
-        </h2>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-1">
+            Restaurant Login
+          </h2>
+          <p className="text-sm text-[color:var(--color-text-secondary)]">
+            Manage your restaurant on FoodHub
+          </p>
+        </div>
 
-        <form onSubmit={submit} className="space-y-5">
-          {/* Email */}
+        <form onSubmit={submit} className="space-y-4">
           <div>
             <FormLabel htmlFor="email" required>
               Email Address
@@ -51,17 +53,15 @@ export default function Login({ status, canResetPassword }) {
             <TextInput
               id="email"
               type="email"
-              placeholder="your@email.com"
+              placeholder="restaurant@email.com"
               value={data.email}
               onChange={(e) => setData('email', e.target.value)}
               error={errors.email}
               icon={<Mail size={16} />}
-              autoComplete="username"
+              autoComplete="email"
             />
-            {errors.email && <FormError message={errors.email} />}
           </div>
 
-          {/* Password */}
           <div>
             <FormLabel htmlFor="password" required>
               Password
@@ -98,10 +98,11 @@ export default function Login({ status, canResetPassword }) {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {errors.password && <FormError message={errors.password} />}
+            {errors.password && (
+              <p className="text-sm text-[color:var(--color-danger-600)] mt-1.5">{errors.password}</p>
+            )}
           </div>
 
-          {/* Remember Me */}
           <div className="flex items-center gap-2">
             <Checkbox
               id="remember"
@@ -113,7 +114,6 @@ export default function Login({ status, canResetPassword }) {
             </label>
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             fullWidth
@@ -123,27 +123,24 @@ export default function Login({ status, canResetPassword }) {
             Sign In
           </Button>
         </form>
-      </Card>
 
-      {/* Links */}
-      <div className="space-y-3 text-center text-sm">
-        {canResetPassword && (
+        <div className="space-y-3 text-center text-sm">
           <Link
             href={route('password.request')}
             className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium block"
           >
             Forgot password?
           </Link>
-        )}
 
-        <div className="pt-3 border-t border-[color:var(--color-border-light)]">
-          <span className="text-[color:var(--color-text-secondary)]">New here? </span>
-          <Link
-            href={route('register')}
-            className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
-          >
-            Create account
-          </Link>
+          <div className="pt-3 border-t border-[color:var(--color-border-light)]">
+            <span className="text-[color:var(--color-text-secondary)]">New restaurant? </span>
+            <Link
+              href={route('restaurant.register')}
+              className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
+            >
+              Register now
+            </Link>
+          </div>
         </div>
       </div>
     </AuthLayout>

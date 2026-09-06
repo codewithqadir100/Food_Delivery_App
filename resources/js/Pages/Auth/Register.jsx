@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import GuestLayout from '@/Layouts/GuestLayout';
+import AuthLayout from '@/Layouts/AuthenticatedLayout';
 import Button from '@/Components/Common/Button';
 import TextInput from '@/Components/Forms/TextInput';
 import FormLabel from '@/Components/Forms/FormLabel';
@@ -28,7 +28,7 @@ export default function Register() {
   };
 
   return (
-    <GuestLayout>
+    <AuthLayout>
       <Head title="Register" />
 
       <Card padding="lg" className="mb-6">
@@ -201,6 +201,6 @@ export default function Register() {
           Sign in
         </Link>
       </div>
-    </GuestLayout>
+    </AuthLayout>
   );
 }
