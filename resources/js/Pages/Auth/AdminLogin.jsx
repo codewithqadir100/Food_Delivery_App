@@ -3,13 +3,12 @@ import AuthLayout from '@/Layouts/AuthenticatedLayout';
 import Card from '@/Components/Common/Card';
 import Button from '@/Components/Common/Button';
 import TextInput from '@/Components/Forms/TextInput';
-import Checkbox from '@/Components/Forms/Checkbox';
 import PasswordInput from '@/Components/Forms/PasswordInput';
-import FormLabel from '@/Components/Forms/FormLabel';
+import Checkbox from '@/Components/Forms/Checkbox';
 import Alert from '@/Components/Common/Alert';
 import { Mail, LogIn } from 'lucide-react';
 
-export default function RestaurantLogin({ status }) {
+export default function AdminLogin({ status }) {
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
     password: '',
@@ -18,14 +17,14 @@ export default function RestaurantLogin({ status }) {
 
   const submit = (e) => {
     e.preventDefault();
-    post(route('restaurant.login'), {
+    post(route('admin.login'), {
       onFinish: () => reset('password'),
     });
   };
 
   return (
     <AuthLayout>
-      <Head title="Restaurant Login" />
+      <Head title="Admin Login" />
 
       <Card padding="lg">
         <div className="space-y-6">
@@ -38,17 +37,17 @@ export default function RestaurantLogin({ status }) {
 
           <div>
             <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-1">
-              Restaurant Login
+              Admin Login
             </h2>
             <p className="text-sm text-[color:var(--color-text-secondary)]">
-              Manage your restaurant on FoodHub
+              Access FoodHub admin dashboard
             </p>
           </div>
 
           <form onSubmit={submit} className="space-y-5">
             <TextInput
               type="email"
-              placeholder="restaurant@email.com"
+              placeholder="admin@email.com"
               value={data.email}
               onChange={(e) => setData('email', e.target.value)}
               error={errors.email}
@@ -93,19 +92,19 @@ export default function RestaurantLogin({ status }) {
             >
               Forgot password?
             </Link>
-          </div>
-        </div>
-      </Card>
-      <div className="text-center pt-5 border-t border-[color:var(--color-border-light)]">
-              <span className="text-[color:var(--color-text-secondary)]">New restaurant? </span>
+
+            <div className="pt-3 border-t border-[color:var(--color-border-light)]">
+              <span className="text-[color:var(--color-text-secondary)]">Need an account? </span>
               <Link
-                href={route('restaurant.register')}
+                href={route('admin.register')}
                 className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
               >
                 Register now
               </Link>
             </div>
-      
+          </div>
+        </div>
+      </Card>
     </AuthLayout>
   );
 }

@@ -162,8 +162,9 @@ export default function RestaurantRegister({ categories }) {
               Register Restaurant
             </Button>
           </form>
-
-          <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
+        </div>
+      </Card>
+      <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
             <span className="text-[color:var(--color-text-secondary)]">Already registered? </span>
             <Link
               href={route('restaurant.login')}
@@ -172,8 +173,6 @@ export default function RestaurantRegister({ categories }) {
               Login here
             </Link>
           </div>
-        </div>
-      </Card>
     </AuthLayout>
   );
 }

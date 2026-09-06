@@ -63,9 +63,21 @@ export default function Login({ status, canResetPassword }) {
 
           {/* Password */}
           <div>
-            <FormLabel htmlFor="password" required>
-              Password
-            </FormLabel>
+            <div className="flex items-center justify-between mb-1">
+              <FormLabel htmlFor="password" required>
+                Password
+              </FormLabel>
+
+              {canResetPassword && (
+                <Link
+                  href={route('password.request')}
+                  className="text-sm font-medium text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </div>
+                        
             <div className="relative">
               <input
                 id="password"
@@ -125,18 +137,7 @@ export default function Login({ status, canResetPassword }) {
         </form>
       </Card>
 
-      {/* Links */}
-      <div className="space-y-3 text-center text-sm">
-        {canResetPassword && (
-          <Link
-            href={route('password.request')}
-            className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium block"
-          >
-            Forgot password?
-          </Link>
-        )}
-
-        <div className="pt-3 border-t border-[color:var(--color-border-light)]">
+        <div className="pt-3 text-center border-t border-[color:var(--color-border-light)]">
           <span className="text-[color:var(--color-text-secondary)]">New here? </span>
           <Link
             href={route('register')}
@@ -145,7 +146,6 @@ export default function Login({ status, canResetPassword }) {
             Create account
           </Link>
         </div>
-      </div>
     </AuthLayout>
   );
 }

@@ -1,13 +1,13 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import GuestLayout from '@/Layouts/AuthenticatedLayout';
+import AuthLayout from '@/Layouts/AuthenticatedLayout';
+import Card from '@/Components/Common/Card';
 import Button from '@/Components/Common/Button';
 import TextInput from '@/Components/Forms/TextInput';
 import PasswordInput from '@/Components/Forms/PasswordInput';
-import Card from '@/Components/Common/Card';
-import { User, Mail, UserPlus } from 'lucide-react';
+import { User, Mail, Shield } from 'lucide-react';
 
-export default function Register() {
-  const { data, setData, post, processing, errors, reset } = useForm({
+export default function AdminRegister() {
+  const { data, setData, post, processing, errors } = useForm({
     name: '',
     email: '',
     password: '',
@@ -16,30 +16,28 @@ export default function Register() {
 
   const submit = (e) => {
     e.preventDefault();
-    post(route('register'), {
-      onFinish: () => reset('password', 'password_confirmation'),
-    });
+    post(route('admin.register'));
   };
 
   return (
-    <GuestLayout>
-      <Head title="Register" />
+    <AuthLayout>
+      <Head title="Admin Register" />
 
-      <Card padding="lg" className="mb-6">
+      <Card padding="lg">
         <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-1">
-              Create Account
+              Admin Registration
             </h2>
             <p className="text-sm text-[color:var(--color-text-secondary)]">
-              Join FoodHub and order delicious food
+              Create an admin account for FoodHub
             </p>
           </div>
 
           <form onSubmit={submit} className="space-y-4">
             <TextInput
               type="text"
-              placeholder="John Doe"
+              placeholder="Full Name"
               value={data.name}
               onChange={(e) => setData('name', e.target.value)}
               error={errors.name}
@@ -50,7 +48,7 @@ export default function Register() {
 
             <TextInput
               type="email"
-              placeholder="your@email.com"
+              placeholder="admin@email.com"
               value={data.email}
               onChange={(e) => setData('email', e.target.value)}
               error={errors.email}
@@ -79,23 +77,23 @@ export default function Register() {
               type="submit"
               fullWidth
               loading={processing}
-              icon={UserPlus}
+              icon={Shield}
             >
-              Create Account
+              Create Admin Account
             </Button>
           </form>
+
+          <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
+            <span className="text-[color:var(--color-text-secondary)]">Already have an account? </span>
+            <Link
+              href={route('admin.login')}
+              className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
+            >
+              Login here
+            </Link>
+          </div>
         </div>
       </Card>
-
-      <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
-        <span className="text-[color:var(--color-text-secondary)]">Already have an account? </span>
-        <Link
-          href={route('login')}
-          className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
-        >
-          Sign in
-        </Link>
-      </div>
-    </GuestLayout>
+    </AuthLayout>
   );
 }
