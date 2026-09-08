@@ -10,7 +10,7 @@ import Card from '@/Components/Common/Card';
 import Alert from '@/Components/Common/Alert';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status }) {
   const [showPassword, setShowPassword] = useState(false);
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
@@ -68,14 +68,12 @@ export default function Login({ status, canResetPassword }) {
                 Password
               </FormLabel>
 
-              {canResetPassword && (
                 <Link
                   href={route('password.request')}
                   className="text-sm font-medium text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] transition-colors"
                 >
                   Forgot password?
                 </Link>
-              )}
             </div>
                         
             <div className="relative">

@@ -1,55 +1,76 @@
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Card from '@/Components/Common/Card';
+import Button from '@/Components/Common/Button';
+import TextInput from '@/Components/Forms/TextInput';
+import Alert from '@/Components/Common/Alert';
+import { Mail, ArrowRight } from 'lucide-react';
 
 export default function ForgotPassword({ status }) {
-    const { data, setData, post, processing, errors } = useForm({
-        email: '',
-    });
+  const { data, setData, post, processing, errors } = useForm({
+    email: '',
+  });
 
-    const submit = (e) => {
-        e.preventDefault();
+  const submit = (e) => {
+    e.preventDefault();
+    post(route('password.email'));
+  };
 
-        post(route('password.email'));
-    };
+  return (
+    <AuthenticatedLayout>
+      <Head title="Forgot Password" />
 
-    return (
-        <GuestLayout>
-            <Head title="Forgot Password" />
+      <Card padding="lg" className="mb-6">
+        <div className="space-y-6">
+          {status && (
+            <Alert
+              type="success"
+              message={status}
+            />
+          )}
 
-            <div className="mb-4 text-sm text-gray-600">
-                Forgot your password? No problem. Just let us know your email
-                address and we will email you a password reset link that will
-                allow you to choose a new one.
-            </div>
+          <div>
+            <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-2">
+              Reset Your Password
+            </h2>
+            <p className="text-sm text-[color:var(--color-text-secondary)]">
+              Enter your email address and we'll redirect you to create a new password
+            </p>
+          </div>
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+          <form onSubmit={submit} className="space-y-5">
+            <TextInput
+              type="email"
+              placeholder="your@email.com"
+              value={data.email}
+              onChange={(e) => setData('email', e.target.value)}
+              error={errors.email}
+              icon={<Mail size={16} />}
+              autoComplete="email"
+              required
+            />
 
-            <form onSubmit={submit}>
-                <TextInput
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={data.email}
-                    className="mt-1 block w-full"
-                    isFocused={true}
-                    onChange={(e) => setData('email', e.target.value)}
-                />
+            <Button
+              type="submit"
+              fullWidth
+              loading={processing}
+              icon={ArrowRight}
+            >
+              Next
+            </Button>
+          </form>
+        </div>
+      </Card>
 
-                <InputError message={errors.email} className="mt-2" />
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Email Password Reset Link
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
-    );
+      <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
+        <span className="text-[color:var(--color-text-secondary)]">Remember your password? </span>
+        <Link
+          href={route('login')}
+          className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
+        >
+          Sign in
+        </Link>
+      </div>
+    </AuthenticatedLayout>
+  );
 }

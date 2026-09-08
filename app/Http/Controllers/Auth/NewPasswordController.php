@@ -7,9 +7,8 @@ use App\Http\Requests\Auth\NewPasswordRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,30 +25,39 @@ class NewPasswordController extends Controller
 
     public function store(NewPasswordRequest $request): RedirectResponse
     {
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        $email = $request->validated('email');
+        $token = $request->validated('token');
 
-                event(new PasswordReset($user));
-            }
-        );
+        $resetToken = DB::table('password_reset_tokens')
+            ->where('email', $email)
+            ->where('token', $token)
+            ->first();
 
-        if ($status !== Password::PASSWORD_RESET) {
-            return back()->withErrors(['email' => [__($status)]]);
+        if (!$resetToken) {
+            return back()->withErrors(['email' => 'Invalid or expired reset link']);
         }
 
-        $user = User::where('email', $request->validated('email'))->first();
+        $user = User::where('email', $email)->first();
 
-        $loginRoute = match ($user?->role) {
+        if (!$user) {
+            return back()->withErrors(['email' => 'User not found']);
+        }
+
+        $user->update([
+            'password' => $request->validated('password'),
+            'remember_token' => Str::random(60),
+        ]);
+
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        event(new PasswordReset($user));
+
+        $loginRoute = match ($user->role) {
             User::ROLE_RESTAURANT_OWNER => 'restaurant.login',
             User::ROLE_ADMIN => 'admin.login',
             default => 'login',
         };
 
-        return redirect()->route($loginRoute)->with('status', __($status));
+        return redirect()->route($loginRoute)->with('status', 'Password reset successfully');
     }
 }
