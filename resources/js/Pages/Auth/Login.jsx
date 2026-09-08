@@ -58,7 +58,6 @@ export default function Login({ status }) {
               icon={<Mail size={16} />}
               autoComplete="username"
             />
-            {errors.email && <FormError message={errors.email} />}
           </div>
 
           {/* Password */}
@@ -108,7 +107,6 @@ export default function Login({ status }) {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {errors.password && <FormError message={errors.password} />}
           </div>
 
           {/* Remember Me */}
