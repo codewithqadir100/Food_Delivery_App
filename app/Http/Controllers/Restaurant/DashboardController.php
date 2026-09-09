@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $restaurant = $user->restaurant;
 
         if ($user->isPending() || !$restaurant || $restaurant->isPending()) {
-            return Inertia::render('Restaurant/PendingDashboard', [
+            return Inertia::render('Restaurant/Dashboard', [
                 'restaurant' => $restaurant,
                 'status' => $user->status,
             ]);

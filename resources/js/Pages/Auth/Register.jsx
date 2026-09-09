@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import GuestLayout from '@/Layouts/AuthenticatedLayout';
+import AuthLayout from '@/Layouts/AuthenticatedLayout';
 import Button from '@/Components/Common/Button';
 import TextInput from '@/Components/Forms/TextInput';
 import PasswordInput from '@/Components/Forms/PasswordInput';
@@ -22,7 +22,7 @@ export default function Register() {
   };
 
   return (
-    <GuestLayout>
+    <AuthLayout>
       <Head title="Register" />
 
       <Card padding="lg" className="mb-6">
@@ -39,7 +39,7 @@ export default function Register() {
           <form onSubmit={submit} className="space-y-4">
             <TextInput
               type="text"
-              placeholder="John Doe"
+              placeholder="Hafeez"
               value={data.name}
               onChange={(e) => setData('name', e.target.value)}
               error={errors.name}
@@ -96,6 +96,6 @@ export default function Register() {
           Sign in
         </Link>
       </div>
-    </GuestLayout>
+    </AuthLayout>
   );
 }
