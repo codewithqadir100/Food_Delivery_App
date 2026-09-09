@@ -31,15 +31,15 @@ export default function StatusBadge({ status = 'pending', className = '' }) {
   return (
     <div
       className={`
-        inline-flex items-center gap-2 px-3 py-2 rounded-lg border
+        inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm
         ${config.bgColor}
         ${config.textColor}
         ${config.borderColor}
         ${className}
       `}
     >
-      <Icon size={16} />
-      <span className="text-sm font-medium">{config.label}</span>
+      <Icon size={16} className="flex-shrink-0" />
+      <span className="font-medium truncate">{config.label}</span>
     </div>
   );
 }

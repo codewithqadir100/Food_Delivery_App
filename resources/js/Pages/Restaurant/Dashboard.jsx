@@ -1,12 +1,9 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import Sidebar from '@/Components/Restaurant/Dashboard/Sidebar'
+import Sidebar from '@/Components/Restaurant/Dashboard/Sidebar';
 import { Head } from '@inertiajs/react';
 
 export default function RestaurantDashboard() {
     return (
-        <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Restaurant Dashboard</h2>}
-        >
+        <>
             <Head title="Restaurant Dashboard" />
 
             <Sidebar></Sidebar>
@@ -20,6 +17,6 @@ export default function RestaurantDashboard() {
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+            </>
     );
 }

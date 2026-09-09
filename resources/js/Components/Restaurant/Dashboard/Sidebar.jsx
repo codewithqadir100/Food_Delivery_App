@@ -1,7 +1,5 @@
 import { Link } from '@inertiajs/react';
-import {
-  LayoutDashboard,
-  Menu,
+import { LayoutDashboard, Menu,
   ShoppingCart,
   BarChart3,
   Settings,
