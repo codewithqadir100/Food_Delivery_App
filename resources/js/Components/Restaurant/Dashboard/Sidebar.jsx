@@ -1,14 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, Menu,
-  ShoppingCart,
-  BarChart3,
-  Settings,
-  User,
-  LogOut,
-  ChevronDown,
-} from 'lucide-react';
+import { LayoutDashboard, Menu, ShoppingCart, BarChart3, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { useState } from 'react';
+import Logo from '@/assets/logo.png';
 
 const MENU_ITEMS = [
   {
@@ -62,22 +56,22 @@ export default function Sidebar({ currentRoute = 'dashboard', isPending = false,
   return (
     <aside
       className={`
-        fixed left-0 top-0 h-screen bg-[color:var(--color-bg-primary)] border-r border-[color:var(--color-border)]
-        transition-all duration-300 z-40
-        ${isCollapsed ? 'w-20' : 'w-64'}
+        hidden md:fixed md:left-0 md:top-0 md:h-screen md:bg-[color:var(--color-bg-primary)] md:border-r md:border-[color:var(--color-border)]
+        md:transition-all md:duration-300 md:z-40 md:flex md:flex-col
+        ${isCollapsed ? 'md:w-20' : 'md:w-64'}
       `}
     >
       {/* Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-[color:var(--color-border)]">
         {!isCollapsed && (
-          <Link href="/restaurant/dashboard" className="text-lg font-bold text-[color:var(--color-primary-600)]">
-            FoodHub
+          <Link href="/restaurant/dashboard" className="flex items-center">
+            <img src={Logo} alt="FoodHub" className="h-8 w-auto" />
           </Link>
         )}
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 hover:bg-[color:var(--color-gray-100)] rounded-lg transition-colors"
+          className="p-2 hover:bg-[color:var(--color-gray-100)] rounded-lg transition-colors flex-shrink-0"
           title={isCollapsed ? 'Expand' : 'Collapse'}
         >
           <ChevronDown size={20} className={`transition-transform ${isCollapsed ? 'rotate-90' : ''}`} />
@@ -117,7 +111,7 @@ export default function Sidebar({ currentRoute = 'dashboard', isPending = false,
         <button
           onClick={onLogout}
           className={`
-            w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+            w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200
             text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-danger-50)]
           `}
           title={isCollapsed ? 'Logout' : ''}

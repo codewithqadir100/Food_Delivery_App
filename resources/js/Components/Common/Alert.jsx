@@ -1,4 +1,5 @@
 import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Alert({
   type = 'info',
@@ -9,6 +10,8 @@ export default function Alert({
   className = '',
   ...props
 }) {
+  const [isVisible, setIsVisible] = useState(true);
+
   const styles = {
     success: {
       bg: 'bg-[color:var(--color-success-50)]',
@@ -38,12 +41,17 @@ export default function Alert({
 
   const style = styles[type] || styles.info;
 
+  const handleClose = () => {
+    setIsVisible(false);
+    onClose?.();
+  };
+
+  if (!isVisible) return null;
+
   return (
     <div
       className={`
-        rounded-lg
-        border
-        p-4
+        rounded-lg border p-4 animate-fadeIn
         ${style.bg}
         ${style.border}
         ${style.text}
@@ -55,16 +63,19 @@ export default function Alert({
         <div className="flex-shrink-0">
           <style.Icon size={20} />
         </div>
-        <div className="flex-1">
+        
+        <div className="flex-1 min-w-0">
           {title && <h3 className="font-semibold mb-1">{title}</h3>}
-          {message && <p className="text-sm">{message}</p>}
+          {message && <p className="text-sm line-clamp-2">{message}</p>}
         </div>
+        
         {closeable && (
           <button
-            onClick={onClose}
-            className="flex-shrink-0 opacity-75 hover:opacity-100 transition-opacity"
+            onClick={handleClose}
+            className="flex-shrink-0 opacity-75 hover:opacity-100 transition-opacity p-1 -mr-1"
+            aria-label="Close alert"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         )}
       </div>
