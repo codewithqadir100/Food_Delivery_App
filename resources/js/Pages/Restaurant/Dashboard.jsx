@@ -1,4 +1,5 @@
 import Sidebar from '@/Components/Restaurant/Dashboard/Sidebar';
+import PerformanceChart from '@/Components/Restaurant/Dashboard/PerformanceChart';
 import { Head } from '@inertiajs/react';
 
 export default function RestaurantDashboard() {
@@ -17,6 +18,7 @@ export default function RestaurantDashboard() {
                     </div>
                 </div>
             </div>
+            <PerformanceChart/>
             </>
     );
 }

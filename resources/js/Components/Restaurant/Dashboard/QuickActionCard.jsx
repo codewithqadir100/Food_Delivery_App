@@ -24,24 +24,28 @@ export default function QuickActionCard({
     <Link
       href={href}
       className={`
-        block p-5 rounded-lg transition-all duration-200
+        block p-4 sm:p-5 rounded-lg transition-all duration-200 group
         ${variantStyles[variant]}
-        hover:shadow-md
+        hover:shadow-md active:scale-95
       `}
     >
-      <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-lg flex-shrink-0 ${iconBgStyles[variant]}`}>
-          <Icon size={24} />
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0 ${iconBgStyles[variant]}`}>
+          <Icon size={20} className="sm:w-6 sm:h-6" />
         </div>
 
-        <div className="flex-1">
-          <h4 className="font-semibold text-[color:var(--color-text-primary)] mb-1">{title}</h4>
-          <p className="text-sm text-[color:var(--color-text-secondary)]">{description}</p>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-[color:var(--color-text-primary)] mb-1 text-sm sm:text-base truncate">
+            {title}
+          </h4>
+          <p className="text-xs sm:text-sm text-[color:var(--color-text-secondary)] line-clamp-2">
+            {description}
+          </p>
         </div>
 
         <ArrowRight
-          size={20}
-          className="text-[color:var(--color-text-muted)] flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform"
+          size={18}
+          className="text-[color:var(--color-text-muted)] flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform sm:w-5 sm:h-5"
         />
       </div>
     </Link>

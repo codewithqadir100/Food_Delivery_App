@@ -10,9 +10,9 @@ export default function SidebarItem({
 }) {
   if (disabled) {
     return (
-      <div className="flex items-center gap-3 px-4 py-3 text-[color:var(--color-text-muted)] opacity-50 cursor-not-allowed">
-        {Icon && <Icon size={20} />}
-        <span className="text-sm font-medium">{label}</span>
+      <div className="flex items-center gap-3 px-4 py-2 sm:py-3 text-[color:var(--color-text-muted)] opacity-50 cursor-not-allowed rounded-lg">
+        {Icon && <Icon size={20} className="flex-shrink-0" />}
+        <span className="text-xs sm:text-sm font-medium truncate">{label}</span>
       </div>
     );
   }
@@ -21,7 +21,7 @@ export default function SidebarItem({
     <Link
       href={href}
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 relative
+        flex items-center gap-3 px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 relative group
         ${
           isActive
             ? 'bg-[color:var(--color-primary-100)] text-[color:var(--color-primary-600)] font-semibold'
@@ -29,11 +29,11 @@ export default function SidebarItem({
         }
       `}
     >
-      {Icon && <Icon size={20} />}
-      <span className="text-sm font-medium flex-1">{label}</span>
+      {Icon && <Icon size={20} className="flex-shrink-0" />}
+      <span className="text-xs sm:text-sm font-medium flex-1 truncate">{label}</span>
 
       {badge && (
-        <span className="bg-[color:var(--color-danger-500)] text-white text-xs rounded-full px-2 py-1">
+        <span className="bg-[color:var(--color-danger-500)] text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0">
           {badge}
         </span>
       )}
