@@ -1,133 +1,153 @@
-import { Link, router } from '@inertiajs/react';
-import { LayoutDashboard, Menu, ShoppingCart, BarChart3, Settings, User, LogOut, ChevronDown } from 'lucide-react';
-import SidebarItem from './SidebarItem';
-import { useState } from 'react';
-import Logo from '@/assets/logo.png';
+import { Link, router } from "@inertiajs/react";
+import {
+    LayoutDashboard,
+    Menu,
+    ShoppingCart,
+    BarChart3,
+    Settings,
+    User,
+    LogOut,
+    ChevronDown,
+} from "lucide-react";
+import { useMemo } from "react";
+import SidebarItem from "./SidebarItem";
+import Logo from "@/assets/logo.png";
 
 const MENU_ITEMS = [
-  {
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-    href: '/restaurant/dashboard',
-    key: 'dashboard',
-  },
-  {
-    label: 'Menu',
-    icon: Menu,
-    href: '/restaurant/menu',
-    key: 'menu',
-    disabled: false,
-  },
-  {
-    label: 'Orders',
-    icon: ShoppingCart,
-    href: '/restaurant/orders',
-    key: 'orders',
-    badge: null,
-  },
-  {
-    label: 'Analytics',
-    icon: BarChart3,
-    href: '/restaurant/analytics',
-    key: 'analytics',
-  },
+    {
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        href: "/restaurant/dashboard",
+        key: "dashboard",
+    },
+    { label: "Menu", icon: Menu, href: "/restaurant/menu", key: "menu" },
+    {
+        label: "Orders",
+        icon: ShoppingCart,
+        href: "/restaurant/orders",
+        key: "orders",
+    },
+    {
+        label: "Analytics",
+        icon: BarChart3,
+        href: "/restaurant/analytics",
+        key: "analytics",
+    },
 ];
 
 const FOOTER_ITEMS = [
-  {
-    label: 'Profile',
-    icon: User,
-    href: '/restaurant/profile',
-    key: 'profile',
-  },
-  {
-    label: 'Settings',
-    icon: Settings,
-    href: '/restaurant/settings',
-    key: 'settings',
-  },
+    {
+        label: "Restaurant Profile",
+        icon: User,
+        href: "/restaurant/profile",
+        key: "profile",
+    },
+    {
+        label: "Settings",
+        icon: Settings,
+        href: "/restaurant/settings",
+        key: "settings",
+    },
 ];
 
-export default function Sidebar({ currentRoute = 'dashboard', isPending = false, onLogout = null }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+export default function Sidebar({
+    currentRoute = "",
+    isPending = false,
+    isCollapsed = false,
+    onCollapsedChange,
+    onLogout = null,
+}) {
+    const isActive = useMemo(
+        () => (routeKey) => currentRoute.includes(routeKey),
+        [currentRoute],
+    );
 
-  const isActive = (routeKey) => currentRoute.includes(routeKey);
+    const handleLogout = () => {
+        if (onLogout) {
+            onLogout();
+            return;
+        }
+        router.post("/restaurant/logout");
+    };
 
-  const handleLogout = () =>{
-    if(onLogout){
-      onLogout();
-    }else{
-      router.post('/restaurant/logout');
-    }
-  }
+    const renderItems = (items) =>
+        items.map((item) => (
+            <div key={item.key} title={isCollapsed ? item.label : undefined}>
+                <SidebarItem
+                    href={item.href}
+                    label={isCollapsed ? "" : item.label}
+                    icon={item.icon}
+                    isActive={isActive(item.key)}
+                    badge={item.badge}
+                    disabled={isPending && item.key !== "dashboard"}
+                />
+            </div>
+        ));
 
-  return (
-    <aside
-      className={`
-        hidden md:fixed md:left-0 md:top-0 md:h-screen md:bg-[color:var(--color-bg-primary)] md:border-r md:border-[color:var(--color-border)]
-        md:transition-all md:duration-300 md:z-40 md:flex md:flex-col
-        ${isCollapsed ? 'md:w-20' : 'md:w-64'}
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-[color:var(--color-border)]">
-        {!isCollapsed && (
-          <Link href="/restaurant/dashboard" className="flex items-center">
-            <img src={Logo} alt="FoodHub" className="h-8 w-auto" />
-          </Link>
-        )}
-
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 hover:bg-[color:var(--color-gray-100)] rounded-lg transition-colors flex-shrink-0"
-          title={isCollapsed ? 'Expand' : 'Collapse'}
+    return (
+        <aside
+            className={`hidden md:flex md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-fixed)] md:flex-col md:bg-[color:var(--color-bg-primary)] md:border-r md:border-[color:var(--color-border)] md:transition-[width] md:duration-300 md:ease-in-out ${
+                isCollapsed ? "md:w-20" : "md:w-64"
+            }`}
         >
-          <ChevronDown size={20} className={`transition-transform ${isCollapsed ? 'rotate-90' : ''}`} />
-        </button>
-      </div>
+            {/* Header / Logo */}
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-[color:var(--color-border-light)] px-4">
+                <Link
+                    href="/restaurant/dashboard"
+                    className={`flex items-center overflow-hidden transition-all duration-[var(--transition-normal)] ${
+                        isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                    }`}
+                >
+                    <img
+                        src={Logo}
+                        alt="FoodHub"
+                        className="h-8 w-auto shrink-0"
+                    />
+                </Link>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
-        {MENU_ITEMS.map((item) => (
-          <div key={item.key} title={isCollapsed ? item.label : ''}>
-            <SidebarItem
-              href={item.href}
-              label={isCollapsed ? '' : item.label}
-              icon={item.icon}
-              isActive={isActive(item.key)}
-              badge={item.badge}
-              disabled={isPending && item.key !== 'dashboard'}
-            />
-          </div>
-        ))}
-      </nav>
+                <button
+                    type="button"
+                    onClick={() => onCollapsedChange?.(!isCollapsed)}
+                    className="shrink-0 rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
+                    title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    aria-label={
+                        isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                    }
+                >
+                    <ChevronDown
+                        size={20}
+                        className={`transition-transform duration-[var(--transition-normal)] ${
+                            isCollapsed ? "rotate-90" : "-rotate-90"
+                        }`}
+                    />
+                </button>
+            </div>
 
-      {/* Footer Items */}
-      <div className="border-t border-[color:var(--color-border)] px-2 py-4 space-y-2">
-        {FOOTER_ITEMS.map((item) => (
-          <div key={item.key} title={isCollapsed ? item.label : ''}>
-            <SidebarItem
-              href={item.href}
-              label={isCollapsed ? '' : item.label}
-              icon={item.icon}
-              isActive={isActive(item.key)}
-            />
-          </div>
-        ))}
+            {/* Main Navigation */}
+            <nav className="flex-1 space-y-2 overflow-y-auto px-2 py-4">
+                {renderItems(MENU_ITEMS)}
+            </nav>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className={`
-            w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200
-            text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-danger-50)]
-          `}
-          title={isCollapsed ? 'Logout' : ''}
-        >
-          <LogOut size={20} />
-          {!isCollapsed && <span className="text-sm font-medium">Logout</span>}
-        </button>
-      </div>
-    </aside>
-  );
+            {/* Footer Items & Logout */}
+            <div className="space-y-2 border-t border-[color:var(--color-border-light)] px-2 py-4">
+                {renderItems(FOOTER_ITEMS)}
+
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-4 py-2 text-[color:var(--color-danger-600)] transition-colors hover:bg-[color:var(--color-danger-50)]"
+                    title={isCollapsed ? "Logout" : undefined}
+                >
+                    <LogOut size={20} className="shrink-0" />
+                    <span
+                        className={`overflow-hidden whitespace-nowrap text-sm font-medium transition-all duration-[var(--transition-normal)] ${
+                            isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                        }`}
+                    >
+                        Logout
+                    </span>
+                </button>
+            </div>
+        </aside>
+    );
 }
