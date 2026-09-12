@@ -1,15 +1,21 @@
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import { Head } from "@inertiajs/react";
 
-export default function RestaurantDashboard({ restaurant, status = null }) {
+export default function RestaurantDashboard({ restaurant }) {
     const restaurantName = restaurant?.name ?? "Restaurant";
-    const restaurantStatus = status ?? restaurant?.status ?? "pending";
+    const pageTitle = `${restaurantName} Dashboard`;
+    const subTitle = "Manage your restaurant operations";
 
     return (
         <>
             <Head title={`${restaurantName} Dashboard`} />
 
-            <RestaurantLayout restaurant={restaurant} status={restaurantStatus}>
+            <RestaurantLayout
+                restaurantName={restaurantName}
+                restaurant={restaurant}
+                pageTitle={pageTitle}
+                pageSubtitle={subTitle}
+            >
                 {/* Dashboard content */}
             </RestaurantLayout>
         </>

@@ -1,5 +1,6 @@
 import { Link, router } from "@inertiajs/react";
 import {
+    Bell,
     LayoutDashboard,
     Menu,
     HelpCircle,
@@ -51,6 +52,8 @@ export default function MobileNav({
     currentRoute = "dashboard",
     isPending = false,
     onLogout = null,
+    notificationCount = 0,
+    onNotificationsClick,
 }) {
     const [showMore, setShowMore] = useState(false);
     const [hideLabels, setHideLabels] = useState(false);
@@ -89,10 +92,27 @@ export default function MobileNav({
                     <img src={Logo} alt="FoodHub" className="h-8 w-auto" />
                 </Link>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                    <button
+                        type="button"
+                        onClick={onNotificationsClick}
+                        className="relative rounded-[var(--radius-sm)] p-2 text-[color:var(--color-text-secondary)] transition-colors hover:bg-[color:var(--color-bg-tertiary)] hover:text-[color:var(--color-text-primary)]"
+                        aria-label="Notifications"
+                    >
+                        <Bell size={20} />
+
+                        {notificationCount > 0 && (
+                            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-danger-500)] px-1 text-[10px] font-semibold text-white">
+                                {notificationCount > 9
+                                    ? "9+"
+                                    : notificationCount}
+                            </span>
+                        )}
+                    </button>
+
                     <Link
                         href="/restaurant/settings"
-                        className="p-2 hover:bg-[color:var(--color-bg-tertiary)] rounded-[var(--radius-sm)] transition-colors"
+                        className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Settings"
                     >
                         <Settings
@@ -100,9 +120,10 @@ export default function MobileNav({
                             className="text-[color:var(--color-text-secondary)]"
                         />
                     </Link>
+
                     <Link
                         href="/restaurant/profile"
-                        className="p-2 hover:bg-[color:var(--color-bg-tertiary)] rounded-[var(--radius-sm)] transition-colors"
+                        className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Profile"
                     >
                         <User

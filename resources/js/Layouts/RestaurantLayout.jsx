@@ -3,9 +3,13 @@ import { usePage } from "@inertiajs/react";
 import { Sidebar, MobileNav, Header } from "@/Components/Restaurant/Dashboard";
 
 export default function RestaurantLayout({
+    restaurantName,
     children,
     restaurant = null,
-    status = null,
+    pageTitle,
+    pageSubtitle,
+    notificationCount = 8,
+    onNotificationsClick,
     isPending = false,
     onLogout = null,
 }) {
@@ -13,11 +17,11 @@ export default function RestaurantLayout({
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     const currentRoute = url;
-    const restaurantStatus = status ?? restaurant?.status ?? "pending";
 
     return (
         <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
             <Sidebar
+                restaurantName={restaurantName}
                 currentRoute={currentRoute}
                 isPending={isPending}
                 isCollapsed={isSidebarCollapsed}
@@ -29,6 +33,8 @@ export default function RestaurantLayout({
                 currentRoute={currentRoute}
                 isPending={isPending}
                 onLogout={onLogout}
+                notificationCount={notificationCount}
+                onNotificationsClick={onNotificationsClick}
             />
 
             <main
@@ -38,8 +44,11 @@ export default function RestaurantLayout({
             >
                 <div className="flex min-h-screen flex-col pt-[var(--restaurant-mobile-top-nav)] pb-[var(--restaurant-mobile-bottom-nav)] md:pt-0 md:pb-0">
                     <Header
-                        restaurantName={restaurant?.name}
-                        status={restaurantStatus}
+                        title={pageTitle}
+                        subtitle={pageSubtitle}
+                        isRestaurantOpen={restaurant?.is_open ?? false}
+                        notificationCount={notificationCount}
+                        onNotificationsClick={onNotificationsClick}
                     />
 
                     <div className="flex-1 p-4 sm:p-6 md:p-8">{children}</div>

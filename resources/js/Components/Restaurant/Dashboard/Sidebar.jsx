@@ -13,6 +13,8 @@ import { useMemo } from "react";
 import SidebarItem from "./SidebarItem";
 import Logo from "@/assets/logo.png";
 
+const name = "GGGG";
+
 const MENU_ITEMS = [
     {
         label: "Dashboard",
@@ -20,7 +22,12 @@ const MENU_ITEMS = [
         href: "/restaurant/dashboard",
         key: "dashboard",
     },
-    { label: "Menu", icon: Menu, href: "/restaurant/menu", key: "menu" },
+    {
+        label: "Menu",
+        icon: Menu,
+        href: "/restaurant/menu",
+        key: "menu",
+    },
     {
         label: "Orders",
         icon: ShoppingCart,
@@ -35,22 +42,8 @@ const MENU_ITEMS = [
     },
 ];
 
-const FOOTER_ITEMS = [
-    {
-        label: "Restaurant Profile",
-        icon: User,
-        href: "/restaurant/profile",
-        key: "profile",
-    },
-    {
-        label: "Settings",
-        icon: Settings,
-        href: "/restaurant/settings",
-        key: "settings",
-    },
-];
-
 export default function Sidebar({
+    restaurantName,
     currentRoute = "",
     isPending = false,
     isCollapsed = false,
@@ -69,6 +62,21 @@ export default function Sidebar({
         }
         router.post("/restaurant/logout");
     };
+
+    const FOOTER_ITEMS = [
+        {
+            label: restaurantName,
+            icon: User,
+            href: "/restaurant/profile",
+            key: "profile",
+        },
+        {
+            label: "Settings",
+            icon: Settings,
+            href: "/restaurant/settings",
+            key: "settings",
+        },
+    ];
 
     const renderItems = (items) =>
         items.map((item) => (
