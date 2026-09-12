@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { LayoutDashboard, Menu, ShoppingCart, BarChart3, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { useState } from 'react';
@@ -52,6 +52,14 @@ export default function Sidebar({ currentRoute = 'dashboard', isPending = false,
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isActive = (routeKey) => currentRoute.includes(routeKey);
+
+  const handleLogout = () =>{
+    if(onLogout){
+      onLogout();
+    }else{
+      router.post('/restaurant/logout');
+    }
+  }
 
   return (
     <aside
@@ -109,7 +117,7 @@ export default function Sidebar({ currentRoute = 'dashboard', isPending = false,
 
         {/* Logout */}
         <button
-          onClick={onLogout}
+          onClick={handleLogout}
           className={`
             w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200
             text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-danger-50)]
