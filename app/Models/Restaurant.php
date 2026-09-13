@@ -19,8 +19,6 @@ class Restaurant extends Model
         'city',
         'description',
         'phone',
-        'latitude',
-        'longitude',
         'logo',
         'cover_image',
         'is_open',
@@ -32,8 +30,6 @@ class Restaurant extends Model
     {
         return [
             'is_open' => 'boolean',
-            'latitude' => 'decimal:7',
-            'longitude' => 'decimal:7',
         ];
     }
 
