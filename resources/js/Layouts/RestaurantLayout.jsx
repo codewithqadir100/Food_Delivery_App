@@ -3,9 +3,7 @@ import { usePage } from "@inertiajs/react";
 import { Sidebar, MobileNav, Header } from "@/Components/Restaurant/Dashboard";
 
 export default function RestaurantLayout({
-    restaurantName,
     children,
-    restaurant = null,
     pageTitle,
     pageSubtitle,
     notificationCount = 8,
@@ -15,13 +13,13 @@ export default function RestaurantLayout({
 }) {
     const { url } = usePage();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
+    const { restaurant } = usePage().props;
     const currentRoute = url;
 
     return (
         <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
             <Sidebar
-                restaurantName={restaurantName}
+                restaurantName={restaurant.name}
                 currentRoute={currentRoute}
                 isPending={isPending}
                 isCollapsed={isSidebarCollapsed}

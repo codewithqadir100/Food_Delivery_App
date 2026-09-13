@@ -10,12 +10,7 @@ export default function RestaurantDashboard({ restaurant }) {
         <>
             <Head title={`${restaurantName} Dashboard`} />
 
-            <RestaurantLayout
-                restaurantName={restaurantName}
-                restaurant={restaurant}
-                pageTitle={pageTitle}
-                pageSubtitle={subTitle}
-            >
+            <RestaurantLayout pageTitle={pageTitle} pageSubtitle={subTitle}>
                 {/* Dashboard content */}
             </RestaurantLayout>
         </>

@@ -1,9 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\Admin\RestaurantVerificationController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Restaurant\DashboardController;
+use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,6 +25,9 @@ Route::middleware(['auth', 'customer'])->group(function () {
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -50,4 +56,4 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-a
     Route::post('/admins/{admin}/reject', [AdminVerificationController::class, 'reject'])->name('admins.reject');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

@@ -13,8 +13,6 @@ import { useMemo } from "react";
 import SidebarItem from "./SidebarItem";
 import Logo from "@/assets/logo.png";
 
-const name = "GGGG";
-
 const MENU_ITEMS = [
     {
         label: "Dashboard",
