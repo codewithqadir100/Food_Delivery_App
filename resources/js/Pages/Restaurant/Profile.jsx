@@ -13,6 +13,20 @@ export default function RestaurantProfile() {
         logoImage: restaurant.logo_url,
     });
 
+    const getCsrfToken = () => {
+        const token = document.querySelector(
+            'meta[name="csrf-token"]',
+        )?.content;
+        if (!token) {
+            const cookieValue = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("XSRF-TOKEN="))
+                ?.split("=")[1];
+            return cookieValue || "";
+        }
+        return token;
+    };
+
     const handleCoverUpload = async (file) => {
         setLoading(true);
         try {
@@ -24,6 +38,7 @@ export default function RestaurantProfile() {
                 {
                     method: "POST",
                     headers: {
+                        "X-CSRF-TOKEN": getCsrfToken(),
                         "X-Requested-With": "XMLHttpRequest",
                     },
                     body: formData,
@@ -59,6 +74,7 @@ export default function RestaurantProfile() {
                 {
                     method: "POST",
                     headers: {
+                        "X-CSRF-TOKEN": getCsrfToken(),
                         "X-Requested-With": "XMLHttpRequest",
                     },
                     body: formData,
