@@ -12,37 +12,29 @@ export default function RestaurantProfile() {
         logoImage: restaurant.logo_url,
     });
 
-    const getCsrfToken = () => {
-        return document.querySelector('meta[name="csrf-token"]')?.content || "";
-    };
-
-    const uploadImage = async (url, fieldName, file, errorMessage) => {
+    const uploadImage = async (url, fieldName, file) => {
         const formData = new FormData();
         formData.append(fieldName, file);
-        const response = await fetch(url, {
-            method: "POST",
+
+        const { data } = await axios.post(url, formData, {
             headers: {
-                "X-CSRF-TOKEN": getCsrfToken(),
                 Accept: "application/json",
-                "X-Requested-With": "XMLHttpRequest",
             },
-            body: formData,
         });
-        const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || errorMessage);
-        }
+
         return data;
     };
+
     const handleCoverUpload = async (file) => {
         setLoading(true);
+
         try {
             const data = await uploadImage(
                 route("restaurant.profile.update-cover"),
                 "cover_image",
                 file,
-                "Failed to upload cover image",
             );
+
             setImages((prev) => ({
                 ...prev,
                 coverImage: data.cover_image_url,
@@ -51,16 +43,21 @@ export default function RestaurantProfile() {
             setLoading(false);
         }
     };
+
     const handleLogoUpload = async (file) => {
         setLoading(true);
+
         try {
             const data = await uploadImage(
                 route("restaurant.profile.update-logo"),
                 "logo",
                 file,
-                "Failed to upload logo",
             );
-            setImages((prev) => ({ ...prev, logoImage: data.logo_url }));
+
+            setImages((prev) => ({
+                ...prev,
+                logoImage: data.logo_url,
+            }));
         } finally {
             setLoading(false);
         }
