@@ -18,14 +18,6 @@ class RestaurantProfileRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($this->user()->id),
-            ],
             'city' => ['required', 'string', 'max:100'],
             'address' => ['required', 'string', 'max:500'],
             'phone' => ['nullable', 'string', 'max:20'],

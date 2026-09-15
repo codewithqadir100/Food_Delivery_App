@@ -55,6 +55,7 @@ class RestaurantProfileController extends Controller
 
             $restaurantData = [
                 'name' => $validated['name'],
+                'category' => $validated['restaurant_category_id'],
                 'city' => $validated['city'],
                 'address' => $validated['address'],
                 'phone' => $validated['phone'] ?? null,
