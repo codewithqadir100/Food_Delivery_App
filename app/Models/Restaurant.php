@@ -28,6 +28,11 @@ class Restaurant extends Model
         'restaurant_category_id',
     ];
 
+    protected $appends = [
+        'logo_url',
+        'cover_image_url',
+    ];
+
     protected function casts(): array
     {
         return [

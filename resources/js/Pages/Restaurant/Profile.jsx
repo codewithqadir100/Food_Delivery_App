@@ -29,6 +29,14 @@ export default function RestaurantProfile() {
         logoImage: restaurant.logo_url,
     });
 
+    const axiosInstance = axios.create({
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                ?.content,
+            Accept: "application/json",
+        },
+    });
+
     const [isOpen, setIsOpen] = useState(Boolean(restaurant.is_open));
     const [imageLoading, setImageLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
@@ -43,8 +51,13 @@ export default function RestaurantProfile() {
     const isDirty = JSON.stringify(data) !== JSON.stringify(initialFormData);
 
     const handleChange = (field, value) => {
+        if (field === "is_open") {
+            setPendingStatus(value);
+            setStatusModalOpen(true);
+            return;
+        }
+
         setData(field, value);
-        setFeedback("");
     };
 
     const handleSubmit = (event) => {
@@ -64,11 +77,7 @@ export default function RestaurantProfile() {
         const formData = new FormData();
         formData.append(fieldName, file);
 
-        const { data: response } = await axios.post(url, formData, {
-            headers: {
-                Accept: "application/json",
-            },
-        });
+        const { data: response } = await axiosInstance.post(url, formData);
 
         return response;
     };
@@ -117,16 +126,7 @@ export default function RestaurantProfile() {
         }
     };
 
-    const handleStatusChange = (value) => {
-        if (value === isOpen) {
-            return;
-        }
-
-        setPendingStatus(value);
-        setStatusModalOpen(true);
-    };
-
-    const confirmStatusChange = async () => {
+    const handleStatusChange = async () => {
         if (pendingStatus === null) {
             return;
         }
@@ -134,20 +134,21 @@ export default function RestaurantProfile() {
         setStatusLoading(true);
 
         try {
-            const { data: response } = await axios.patch(
+            const { data: response } = await axiosInstance.patch(
                 route("restaurant.profile.update-status"),
                 {
                     is_open: pendingStatus,
                 },
-                {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                },
             );
 
-            setIsOpen(Boolean(response.is_open));
-            setFeedback(response.message);
+            if (response.success) {
+                setIsOpen(response.is_open);
+                setFeedback(response.message);
+                setStatusModalOpen(false);
+                setPendingStatus(null);
+            }
+        } catch (error) {
+            setFeedback("Failed to update restaurant status.");
             setStatusModalOpen(false);
             setPendingStatus(null);
         } finally {
@@ -208,6 +209,10 @@ export default function RestaurantProfile() {
         setPendingVisit(null);
     };
 
+    const saveChanges = () => {
+        handleSubmit({ preventDefault: () => {} });
+    };
+
     const stayOnPage = () => {
         setUnsavedModalOpen(false);
         setPendingVisit(null);
@@ -252,7 +257,8 @@ export default function RestaurantProfile() {
                         errors={errors}
                         onChange={(field, value) => {
                             if (field === "is_open") {
-                                handleStatusChange(value);
+                                setPendingStatus(value);
+                                setStatusModalOpen(true);
                                 return;
                             }
 
@@ -298,7 +304,7 @@ export default function RestaurantProfile() {
                         <Button
                             variant={pendingStatus ? "primary" : "danger"}
                             loading={statusLoading}
-                            onClick={confirmStatusChange}
+                            onClick={handleStatusChange}
                         >
                             {pendingStatus
                                 ? "Open Restaurant"
@@ -328,19 +334,26 @@ export default function RestaurantProfile() {
                 title="Unsaved Changes"
                 footer={
                     <>
-                        <Button variant="secondary" onClick={stayOnPage}>
-                            Stay on Page
+                        <Button
+                            variant="secondary"
+                            onClick={leaveWithoutSaving}
+                        >
+                            Discard Changes
                         </Button>
 
-                        <Button variant="danger" onClick={leaveWithoutSaving}>
-                            Leave Without Saving
+                        <Button
+                            variant="primary"
+                            onClick={saveChanges}
+                            loading={processing}
+                        >
+                            Save Changes
                         </Button>
                     </>
                 }
             >
                 <p className="text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                    You have unsaved changes. If you leave this page now, your
-                    changes will be lost.
+                    You have unsaved changes. Do you want to save them before
+                    leaving?
                 </p>
             </Modal>
         </RestaurantLayout>

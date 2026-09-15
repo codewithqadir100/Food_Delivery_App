@@ -51,6 +51,7 @@ export default function RestaurantInformation({
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <TextInput
                     label="Restaurant Name"
+                    placeholder="Restuarant Name"
                     value={data.name}
                     onChange={(event) => onChange("name", event.target.value)}
                     error={errors.name}
@@ -70,6 +71,7 @@ export default function RestaurantInformation({
 
                 <TextInput
                     label="Phone Number"
+                    placeholder="Phone No."
                     type="tel"
                     value={data.phone}
                     onChange={(event) => onChange("phone", event.target.value)}
@@ -78,6 +80,7 @@ export default function RestaurantInformation({
 
                 <TextInput
                     label="City"
+                    placeholder="City"
                     value={data.city}
                     onChange={(event) => onChange("city", event.target.value)}
                     error={errors.city}
@@ -87,6 +90,7 @@ export default function RestaurantInformation({
                 <div className="sm:col-span-2">
                     <TextArea
                         label="Address"
+                        placeholder="Address"
                         value={data.address}
                         onChange={(event) =>
                             onChange("address", event.target.value)
@@ -100,6 +104,7 @@ export default function RestaurantInformation({
                 <div className="sm:col-span-2">
                     <TextArea
                         label="Description"
+                        placeholder="Tell Customers about your restaurant..."
                         value={data.description}
                         onChange={(event) =>
                             onChange("description", event.target.value)
