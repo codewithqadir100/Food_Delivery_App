@@ -47,44 +47,22 @@ class RestaurantProfileController extends Controller
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($request, $user, $restaurant, $validated) {
+        DB::transaction(function () use ($user, $restaurant, $validated) {
             $user->update([
                 'name' => $validated['name'],
-                'email' => $validated['email'],
             ]);
 
-            $restaurantData = [
+            $restaurant->update([
                 'name' => $validated['name'],
-                'category' => $validated['restaurant_category_id'],
+                'restaurant_category_id' => $validated['restaurant_category_id'],
                 'city' => $validated['city'],
                 'address' => $validated['address'],
                 'phone' => $validated['phone'] ?? null,
                 'description' => $validated['description'] ?? null,
-                'is_open' => $validated['is_open'],
-            ];
-
-            if ($request->hasFile('logo')) {
-                if ($restaurant->logo) {
-                    Storage::disk('public')->delete($restaurant->logo);
-                }
-
-                $restaurantData['logo'] = $request->file('logo')
-                    ->store('restaurants/logos', 'public');
-            }
-
-            if ($request->hasFile('cover_image')) {
-                if ($restaurant->cover_image) {
-                    Storage::disk('public')->delete($restaurant->cover_image);
-                }
-
-                $restaurantData['cover_image'] = $request->file('cover_image')
-                    ->store('restaurants/covers', 'public');
-            }
-
-            $restaurant->update($restaurantData);
+            ]);
         });
 
-        return back()->with('success', 'Restaurant profile updated successfully.');
+        return back()->with('success', 'Restaurant information updated successfully.');
     }
 
     public function updateCoverImage(UpdateRestaurantCoverImageRequest $request): JsonResponse
@@ -153,5 +131,27 @@ class RestaurantProfileController extends Controller
                 'message' => 'Failed to update logo',
             ], 500);
         }
+    }
+
+    public function updateStatus(UpdateRestaurantStatusRequest $request): JsonResponse
+    {
+        $user = Auth::user();
+        $restaurant = $user->restaurant;
+
+        abort_unless($restaurant, 404);
+
+        $this->authorize('update', $restaurant);
+
+        $restaurant->update([
+            'is_open' => $request->boolean('is_open'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $restaurant->is_open
+                ? 'Restaurant is now open.'
+                : 'Restaurant is now closed.',
+            'is_open' => $restaurant->is_open,
+        ]);
     }
 }

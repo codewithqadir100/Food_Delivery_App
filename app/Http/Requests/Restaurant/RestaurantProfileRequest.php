@@ -19,12 +19,10 @@ class RestaurantProfileRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
+            'restaurant_category_id' => ['required', 'integer', 'exists:restaurant_categories,id'],
             'address' => ['required', 'string', 'max:500'],
             'phone' => ['nullable', 'string', 'max:20'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'is_open' => ['required', 'boolean'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'cover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
 }
