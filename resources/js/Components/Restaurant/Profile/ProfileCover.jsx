@@ -131,6 +131,7 @@ export default function ProfileCover({
                 title="Update Cover Image"
                 subtitle="Upload a new cover image for your restaurant"
                 loading={uploadLoading}
+                previewShape="rectangular"
             />
 
             <ImageUploadModal
@@ -140,6 +141,7 @@ export default function ProfileCover({
                 title="Update Restaurant Logo"
                 subtitle="Upload your restaurant logo"
                 loading={uploadLoading}
+                previewShape="circular"
             />
         </>
     );

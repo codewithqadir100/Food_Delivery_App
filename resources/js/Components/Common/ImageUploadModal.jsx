@@ -9,7 +9,7 @@ export default function ImageUploadModal({
     onUpload,
     title = "Upload Image",
     subtitle = null,
-    imageType = "image",
+    previewShape = "rectangular",
     loading = false,
 }) {
     const [selectedFile, setSelectedFile] = useState(null);
@@ -51,6 +51,8 @@ export default function ImageUploadModal({
         onClose();
     };
 
+    const isCircular = previewShape === "circular";
+
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title={title} size="md">
             <div className="space-y-4">
@@ -74,13 +76,25 @@ export default function ImageUploadModal({
                         <p className="text-xs font-medium text-[color:var(--color-text-muted)] mb-2">
                             Preview
                         </p>
-                        <div className="rounded-lg overflow-hidden bg-[color:var(--color-bg-secondary)] flex items-center justify-center max-h-48">
-                            <img
-                                src={preview}
-                                alt="Preview"
-                                className="w-full h-full object-contain"
-                            />
-                        </div>
+                        {isCircular ? (
+                            <div className="flex justify-center">
+                                <div className="h-40 w-40 rounded-full border-4 border-[color:var(--color-border-light)] bg-[color:var(--color-bg-secondary)] flex items-center justify-center overflow-hidden">
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rounded-lg overflow-hidden bg-[color:var(--color-bg-secondary)] flex items-center justify-center max-h-48">
+                                <img
+                                    src={preview}
+                                    alt="Preview"
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
