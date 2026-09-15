@@ -185,3 +185,11 @@ input::-ms-reveal,
 input::-ms-clear {
     display: none;
 }
+
+.toggle-indicator {
+    transition: transform var(--transition-normal);
+}
+
+.toggle-option {
+    transition: color var(--transition-normal);
+}

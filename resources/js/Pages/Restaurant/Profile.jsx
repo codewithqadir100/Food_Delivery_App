@@ -2,15 +2,32 @@ import { useState } from "react";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import { Head, usePage } from "@inertiajs/react";
 import ProfileCover from "@/Components/Restaurant/Profile/ProfileCover";
+import RestaurantInformation from "@/Components/Restaurant/Profile/RestaurantInformation";
 
 export default function RestaurantProfile() {
-    const { restaurant } = usePage().props;
+    const { restaurant, categories } = usePage().props;
 
     const [loading, setLoading] = useState(false);
     const [images, setImages] = useState({
         coverImage: restaurant.cover_image_url,
         logoImage: restaurant.logo_url,
     });
+
+    const [formData, setFormData] = useState({
+        name: restaurant.name ?? "",
+        restaurant_category_id: restaurant.restaurant_category_id ?? "",
+        phone: restaurant.phone ?? "",
+        city: restaurant.city ?? "",
+        address: restaurant.address ?? "",
+        description: restaurant.description ?? "",
+    });
+
+    const handleChange = (field, value) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
 
     const uploadImage = async (url, fieldName, file) => {
         const formData = new FormData();
@@ -70,7 +87,7 @@ export default function RestaurantProfile() {
         >
             <Head title="Restaurant Profile" />
 
-            <div className="space-y-6">
+            <div className="space-y-10">
                 <ProfileCover
                     restaurantName={restaurant.name}
                     approvedDate={restaurant.approved_at}
@@ -79,6 +96,13 @@ export default function RestaurantProfile() {
                     onCoverUpload={handleCoverUpload}
                     onLogoUpload={handleLogoUpload}
                     loading={loading}
+                />
+
+                <RestaurantInformation
+                    data={formData}
+                    categories={categories}
+                    errors={{}}
+                    onChange={handleChange}
                 />
             </div>
         </RestaurantLayout>
