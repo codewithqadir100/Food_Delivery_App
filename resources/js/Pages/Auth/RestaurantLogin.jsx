@@ -41,16 +41,23 @@ export default function RestaurantLogin({ status }) {
                     </div>
 
                     <form onSubmit={submit} className="space-y-5">
-                        <TextInput
-                            type="email"
-                            placeholder="restaurant@email.com"
-                            value={data.email}
-                            onChange={(e) => setData("email", e.target.value)}
-                            error={errors.email}
-                            icon={<Mail size={16} />}
-                            autoComplete="email"
-                            required
-                        />
+                        <div>
+                            <FormLabel htmlFor="email" required>
+                                Email Address
+                            </FormLabel>
+                            <TextInput
+                                type="email"
+                                placeholder="restaurant@email.com"
+                                value={data.email}
+                                onChange={(e) =>
+                                    setData("email", e.target.value)
+                                }
+                                error={errors.email}
+                                icon={<Mail size={16} />}
+                                autoComplete="email"
+                                required
+                            />
+                        </div>
 
                         <PasswordInput
                             label="Password"

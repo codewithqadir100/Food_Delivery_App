@@ -28,6 +28,8 @@ Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('res
 
     Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/update-cover', [RestaurantProfileController::class, 'updateCoverImage'])->name('profile.update-cover');
+    Route::post('/profile/update-logo', [RestaurantProfileController::class, 'updateLogoImage'])->name('profile.update-logo');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
