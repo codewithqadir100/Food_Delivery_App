@@ -88,6 +88,7 @@ export default function RestaurantProfile() {
             }));
 
             setFeedback("Cover image updated successfully.");
+            router.reload({ only: ["restaurant"] });
         } catch (error) {
             setFeedback("Failed to upload cover image.");
             console.error("Cover upload error:", error);
