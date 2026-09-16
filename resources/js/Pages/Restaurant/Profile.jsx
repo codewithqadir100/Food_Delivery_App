@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, useForm, usePage } from "@inertiajs/react";
+import { Head, useForm, usePage, router } from "@inertiajs/react";
 import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import ProfileCover from "@/Components/Restaurant/Profile/ProfileCover";
@@ -113,6 +113,7 @@ export default function RestaurantProfile() {
             }));
 
             setFeedback("Restaurant logo updated successfully.");
+            router.reload({ only: ["restaurant"] });
         } catch (error) {
             setFeedback("Failed to upload logo.");
             console.error("Logo upload error:", error);
@@ -149,6 +150,7 @@ export default function RestaurantProfile() {
             setFeedback(response.message);
             setStatusModalOpen(false);
             setPendingStatus(null);
+            router.reload({ only: ["restaurant"] });
         } catch (error) {
             setFeedback("Failed to update restaurant status.");
             console.error("Status update error:", error);
