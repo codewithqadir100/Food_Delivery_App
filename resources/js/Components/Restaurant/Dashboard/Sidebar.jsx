@@ -47,6 +47,7 @@ export default function Sidebar({
     isCollapsed = false,
     onCollapsedChange,
     onLogout = null,
+    Restaurantlogo,
 }) {
     const isActive = useMemo(
         () => (routeKey) => currentRoute.includes(routeKey),
@@ -64,7 +65,7 @@ export default function Sidebar({
     const FOOTER_ITEMS = [
         {
             label: restaurantName,
-            icon: User,
+            image: Restaurantlogo,
             href: "/restaurant/profile",
             key: "profile",
         },
@@ -83,6 +84,7 @@ export default function Sidebar({
                     href={item.href}
                     label={isCollapsed ? "" : item.label}
                     icon={item.icon}
+                    image={item.image}
                     isActive={isActive(item.key)}
                     badge={item.badge}
                     disabled={isPending && item.key !== "dashboard"}

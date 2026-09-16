@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Restaurant\RestaurantProfileRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantCoverImageRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantLogoRequest;
+use App\Http\Requests\Restaurant\UpdateRestaurantStatusRequest;
 use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use Illuminate\Http\JsonResponse;

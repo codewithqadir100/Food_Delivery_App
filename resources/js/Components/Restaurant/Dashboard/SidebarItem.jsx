@@ -1,42 +1,63 @@
-import { Link } from '@inertiajs/react';
+import { Link } from "@inertiajs/react";
 
 export default function SidebarItem({
-  href,
-  label,
-  icon: Icon,
-  isActive = false,
-  badge = null,
-  disabled = false,
+    href,
+    label,
+    icon: Icon,
+    isActive = false,
+    badge = null,
+    disabled = false,
+    image,
 }) {
-  if (disabled) {
-    return (
-      <div className="flex items-center gap-3 px-4 py-2 sm:py-3 text-[color:var(--color-text-muted)] opacity-50 cursor-not-allowed rounded-lg">
-        {Icon && <Icon size={20} className="flex-shrink-0" />}
-        <span className="text-xs sm:text-sm font-medium truncate">{label}</span>
-      </div>
-    );
-  }
+    if (disabled) {
+        return (
+            <div className="flex items-center gap-3 px-4 py-2 sm:py-3 text-[color:var(--color-text-muted)] opacity-50 cursor-not-allowed rounded-lg">
+                {image ? (
+                    <img
+                        src={image}
+                        className="h-8 rounded-[var(--radius-full)]"
+                        alt="Restaurant Logo"
+                    />
+                ) : (
+                    Icon && <Icon size={20} className="flex-shrink-0" />
+                )}
+                <span className="text-xs sm:text-sm font-medium truncate">
+                    {label}
+                </span>
+            </div>
+        );
+    }
 
-  return (
-    <Link
-      href={href}
-      className={`
+    return (
+        <Link
+            href={href}
+            className={`
         flex items-center gap-3 px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 relative group
         ${
-          isActive
-            ? 'bg-[color:var(--color-primary-100)] text-[color:var(--color-primary-600)] font-semibold'
-            : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-gray-100)]'
+            isActive
+                ? "bg-[color:var(--color-primary-100)] text-[color:var(--color-primary-600)] font-semibold"
+                : "text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-gray-100)]"
         }
       `}
-    >
-      {Icon && <Icon size={20} className="flex-shrink-0" />}
-      <span className="text-xs sm:text-sm font-medium flex-1 truncate">{label}</span>
+        >
+            {image ? (
+                <img
+                    src={image}
+                    className="h-8 rounded-[var(--radius-full)]"
+                    alt=""
+                />
+            ) : (
+                Icon && <Icon size={20} className="flex-shrink-0" />
+            )}
+            <span className="text-xs sm:text-sm font-medium flex-1 truncate">
+                {label}
+            </span>
 
-      {badge && (
-        <span className="bg-[color:var(--color-danger-500)] text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0">
-          {badge}
-        </span>
-      )}
-    </Link>
-  );
+            {badge && (
+                <span className="bg-[color:var(--color-danger-500)] text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0">
+                    {badge}
+                </span>
+            )}
+        </Link>
+    );
 }

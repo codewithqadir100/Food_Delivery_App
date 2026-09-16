@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Head, router, useForm, usePage } from "@inertiajs/react";
+import { useState } from "react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import ProfileCover from "@/Components/Restaurant/Profile/ProfileCover";
@@ -8,6 +8,14 @@ import Modal from "@/Components/Common/Modal";
 import Button from "@/Components/Common/Button";
 import Alert from "@/Components/Common/Alert";
 import { AlertTriangle } from "lucide-react";
+
+const axiosInstance = axios.create({
+    headers: {
+        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+            ?.content,
+        Accept: "application/json",
+    },
+});
 
 export default function RestaurantProfile() {
     const { restaurant, categories } = usePage().props;
@@ -29,40 +37,22 @@ export default function RestaurantProfile() {
         logoImage: restaurant.logo_url,
     });
 
-    const axiosInstance = axios.create({
-        headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
-                ?.content,
-            Accept: "application/json",
-        },
-    });
-
     const [isOpen, setIsOpen] = useState(Boolean(restaurant.is_open));
     const [imageLoading, setImageLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
     const [feedback, setFeedback] = useState("");
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [pendingStatus, setPendingStatus] = useState(null);
-    const [unsavedModalOpen, setUnsavedModalOpen] = useState(false);
-    const [pendingVisit, setPendingVisit] = useState(null);
-
-    const allowNavigationRef = useRef(false);
 
     const isDirty = JSON.stringify(data) !== JSON.stringify(initialFormData);
 
     const handleChange = (field, value) => {
-        if (field === "is_open") {
-            setPendingStatus(value);
-            setStatusModalOpen(true);
-            return;
-        }
-
         setData(field, value);
+        setFeedback("");
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-
         clearErrors();
 
         put(route("restaurant.profile.update"), {
@@ -78,7 +68,6 @@ export default function RestaurantProfile() {
         formData.append(fieldName, file);
 
         const { data: response } = await axiosInstance.post(url, formData);
-
         return response;
     };
 
@@ -99,6 +88,9 @@ export default function RestaurantProfile() {
             }));
 
             setFeedback("Cover image updated successfully.");
+        } catch (error) {
+            setFeedback("Failed to upload cover image.");
+            console.error("Cover upload error:", error);
         } finally {
             setImageLoading(false);
         }
@@ -121,12 +113,24 @@ export default function RestaurantProfile() {
             }));
 
             setFeedback("Restaurant logo updated successfully.");
+        } catch (error) {
+            setFeedback("Failed to upload logo.");
+            console.error("Logo upload error:", error);
         } finally {
             setImageLoading(false);
         }
     };
 
-    const handleStatusChange = async () => {
+    const handleStatusChange = (value) => {
+        if (value === isOpen) {
+            return;
+        }
+
+        setPendingStatus(value);
+        setStatusModalOpen(true);
+    };
+
+    const confirmStatusChange = async () => {
         if (pendingStatus === null) {
             return;
         }
@@ -141,81 +145,18 @@ export default function RestaurantProfile() {
                 },
             );
 
-            if (response.success) {
-                setIsOpen(response.is_open);
-                setFeedback(response.message);
-                setStatusModalOpen(false);
-                setPendingStatus(null);
-            }
+            setIsOpen(Boolean(response.is_open));
+            setFeedback(response.message);
+            setStatusModalOpen(false);
+            setPendingStatus(null);
         } catch (error) {
             setFeedback("Failed to update restaurant status.");
+            console.error("Status update error:", error);
             setStatusModalOpen(false);
             setPendingStatus(null);
         } finally {
             setStatusLoading(false);
         }
-    };
-
-    useEffect(() => {
-        const removeBeforeListener = router.on("before", (event) => {
-            if (!isDirty || allowNavigationRef.current) {
-                return;
-            }
-
-            setPendingVisit(event.detail.visit);
-            setUnsavedModalOpen(true);
-
-            return false;
-        });
-
-        return () => {
-            removeBeforeListener();
-        };
-    }, [isDirty]);
-
-    useEffect(() => {
-        const handleBeforeUnload = (event) => {
-            if (!isDirty) {
-                return;
-            }
-
-            event.preventDefault();
-            event.returnValue = "";
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [isDirty]);
-
-    const leaveWithoutSaving = () => {
-        if (!pendingVisit) {
-            return;
-        }
-
-        allowNavigationRef.current = true;
-        setUnsavedModalOpen(false);
-
-        router.visit(pendingVisit.url, {
-            method: pendingVisit.method,
-            data: pendingVisit.data,
-            replace: pendingVisit.replace,
-            preserveScroll: pendingVisit.preserveScroll,
-            preserveState: pendingVisit.preserveState,
-        });
-
-        setPendingVisit(null);
-    };
-
-    const saveChanges = () => {
-        handleSubmit({ preventDefault: () => {} });
-    };
-
-    const stayOnPage = () => {
-        setUnsavedModalOpen(false);
-        setPendingVisit(null);
     };
 
     const statusAction = pendingStatus ? "open" : "close";
@@ -231,9 +172,9 @@ export default function RestaurantProfile() {
                 {feedback && (
                     <Alert
                         type="success"
-                        title="Changes Saved"
-                        message="Restaurant information updated successfully."
-                        onClose={() => setFeedback(null)}
+                        title="Success"
+                        message={feedback}
+                        onClose={() => setFeedback("")}
                     />
                 )}
 
@@ -257,8 +198,7 @@ export default function RestaurantProfile() {
                         errors={errors}
                         onChange={(field, value) => {
                             if (field === "is_open") {
-                                setPendingStatus(value);
-                                setStatusModalOpen(true);
+                                handleStatusChange(value);
                                 return;
                             }
 
@@ -304,7 +244,7 @@ export default function RestaurantProfile() {
                         <Button
                             variant={pendingStatus ? "primary" : "danger"}
                             loading={statusLoading}
-                            onClick={handleStatusChange}
+                            onClick={confirmStatusChange}
                         >
                             {pendingStatus
                                 ? "Open Restaurant"
@@ -326,35 +266,6 @@ export default function RestaurantProfile() {
                             : "Customers will no longer be able to place new orders."}
                     </p>
                 </div>
-            </Modal>
-
-            <Modal
-                isOpen={unsavedModalOpen}
-                onClose={stayOnPage}
-                title="Unsaved Changes"
-                footer={
-                    <>
-                        <Button
-                            variant="secondary"
-                            onClick={leaveWithoutSaving}
-                        >
-                            Discard Changes
-                        </Button>
-
-                        <Button
-                            variant="primary"
-                            onClick={saveChanges}
-                            loading={processing}
-                        >
-                            Save Changes
-                        </Button>
-                    </>
-                }
-            >
-                <p className="text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                    You have unsaved changes. Do you want to save them before
-                    leaving?
-                </p>
             </Modal>
         </RestaurantLayout>
     );

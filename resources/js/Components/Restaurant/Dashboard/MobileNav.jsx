@@ -54,6 +54,7 @@ export default function MobileNav({
     onLogout = null,
     notificationCount = 0,
     onNotificationsClick,
+    Restaurantlogo,
 }) {
     const [showMore, setShowMore] = useState(false);
     const [hideLabels, setHideLabels] = useState(false);
@@ -126,9 +127,10 @@ export default function MobileNav({
                         className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Profile"
                     >
-                        <User
-                            size={20}
-                            className="text-[color:var(--color-text-secondary)]"
+                        <img
+                            src={Restaurantlogo}
+                            className="h-10 rounded-[var(--radius-full)]"
+                            alt="Profile Pic"
                         />
                     </Link>
                 </div>
