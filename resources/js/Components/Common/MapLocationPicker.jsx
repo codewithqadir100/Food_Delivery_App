@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Loader } from "lucide-react";
+import { Search, MapPin, Loader, X } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -18,6 +18,26 @@ L.Icon.Default.mergeOptions({
 const MAP_DEFAULT_CENTER = [25.3548, 68.3711];
 const MAP_DEFAULT_ZOOM = 12;
 
+const parseAddress = (addressData) => {
+    const addr = addressData.address;
+    const name = addr.name || addr.road || addr.suburb || addr.village || "";
+    const area = addr.suburb || addr.village || "";
+    const city = addr.city || addr.town || "";
+    const postcode = addr.postcode || "";
+
+    const shortAddress =
+        name && postcode
+            ? `${name}, ${postcode}`
+            : name || postcode || "Selected Location";
+
+    return {
+        name: name || "Location",
+        area: area,
+        city: city,
+        address: shortAddress,
+    };
+};
+
 export default function MapLocationPicker({
     onLocationSelect,
     initialLocation,
@@ -29,8 +49,9 @@ export default function MapLocationPicker({
         initialLocation || null,
     );
     const [map, setMap] = useState(null);
-    const [marker, setMarker] = useState(null);
+    const markerRef = useRef(null);
     const mapContainer = useRef(null);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     useEffect(() => {
         if (!mapContainer.current) return;
@@ -49,41 +70,75 @@ export default function MapLocationPicker({
             handleMapClick(e.latlng.lat, e.latlng.lng),
         );
 
-        if (initialLocation) {
-            const initialMarker = L.marker([
+        setMap(leafletMap);
+
+        if (initialLocation?.latitude && initialLocation?.longitude) {
+            addMarker(
+                leafletMap,
                 initialLocation.latitude,
                 initialLocation.longitude,
-            ])
-                .addTo(leafletMap)
-                .bindPopup(initialLocation.fullAddress || "Selected Location");
+                initialLocation.name,
+            );
             leafletMap.setView(
                 [initialLocation.latitude, initialLocation.longitude],
                 15,
             );
-            setMarker(initialMarker);
         }
-
-        setMap(leafletMap);
 
         return () => leafletMap.remove();
     }, []);
 
+    const addMarker = (mapInstance, lat, lon, title) => {
+        if (markerRef.current) {
+            mapInstance.removeLayer(markerRef.current);
+        }
+
+        const marker = L.marker([lat, lon], {
+            icon: L.icon({
+                iconUrl: new URL(
+                    "leaflet/dist/images/marker-icon.png",
+                    import.meta.url,
+                ).href,
+                iconRetinaUrl: new URL(
+                    "leaflet/dist/images/marker-icon-2x.png",
+                    import.meta.url,
+                ).href,
+                shadowUrl: new URL(
+                    "leaflet/dist/images/marker-shadow.png",
+                    import.meta.url,
+                ).href,
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41],
+            }),
+        }).addTo(mapInstance);
+
+        marker
+            .bindPopup(`<div class="font-medium text-sm">${title}</div>`)
+            .openPopup();
+        markerRef.current = marker;
+    };
+
     const handleSearch = async (query) => {
-        if (!query || query.length < 3) {
+        if (!query || query.length < 2) {
             setSearchResults([]);
+            setShowDropdown(false);
             return;
         }
 
         setIsSearching(true);
+        setShowDropdown(true);
 
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pk&limit=5`,
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pk&limit=8`,
             );
             const results = await response.json();
-            setSearchResults(results);
+            setSearchResults(results || []);
         } catch (error) {
             console.error("Search failed:", error);
+            setSearchResults([]);
         }
 
         setIsSearching(false);
@@ -96,9 +151,9 @@ export default function MapLocationPicker({
     const handleSelectResult = async (result) => {
         const lat = parseFloat(result.lat);
         const lon = parseFloat(result.lon);
+        setSearchQuery(result.name || "");
+        setShowDropdown(false);
         await processLocation(lat, lon);
-        setSearchQuery("");
-        setSearchResults([]);
     };
 
     const processLocation = async (lat, lon) => {
@@ -107,26 +162,23 @@ export default function MapLocationPicker({
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
             );
             const addressData = await reverseResponse.json();
+            const parsed = parseAddress(addressData);
 
             const locationData = {
                 latitude: lat,
                 longitude: lon,
-                city: addressData.address.city || addressData.address.town,
-                area: addressData.address.suburb || addressData.address.town,
-                fullAddress: addressData.display_name,
+                city: parsed.city,
+                area: parsed.area,
+                address: parsed.address,
+                name: parsed.name,
             };
 
             setSelectedLocation(locationData);
             onLocationSelect(locationData);
+            setShowDropdown(false);
 
             if (map) {
-                if (marker) {
-                    map.removeLayer(marker);
-                }
-                const newMarker = L.marker([lat, lon])
-                    .addTo(map)
-                    .bindPopup(locationData.fullAddress);
-                setMarker(newMarker);
+                addMarker(map, lat, lon, parsed.name);
                 map.setView([lat, lon], 15);
             }
         } catch (error) {
@@ -134,35 +186,56 @@ export default function MapLocationPicker({
         }
     };
 
+    const clearSearch = () => {
+        setSearchQuery("");
+        setSearchResults([]);
+        setShowDropdown(false);
+    };
+
     return (
         <div className="w-full space-y-4">
             <div className="relative">
-                <div className="flex items-center gap-2 border border-[color:var(--color-border)] rounded-[var(--radius-md)] px-3 py-2 bg-[color:var(--color-bg-primary)]">
+                <div className="flex items-center gap-2 border border-[color:var(--color-border)] rounded-[var(--radius-md)] px-3 py-2.5 bg-[color:var(--color-bg-primary)] transition-all focus-within:border-[color:var(--color-primary-500)] focus-within:ring-1 focus-within:ring-[color:var(--color-primary-100)]">
                     {isSearching ? (
                         <Loader
                             size={18}
-                            className="text-[color:var(--color-text-muted)] animate-spin"
+                            className="text-[color:var(--color-primary-500)] animate-spin flex-shrink-0"
                         />
                     ) : (
                         <Search
                             size={18}
-                            className="text-[color:var(--color-text-muted)]"
+                            className="text-[color:var(--color-text-muted)] flex-shrink-0"
                         />
                     )}
                     <input
                         type="text"
-                        placeholder="Search your location..."
+                        placeholder="Search location or click on map..."
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
                             handleSearch(e.target.value);
                         }}
+                        onFocus={() =>
+                            searchResults.length > 0 && setShowDropdown(true)
+                        }
                         className="flex-1 outline-none bg-transparent text-[color:var(--color-text-primary)] placeholder-[color:var(--color-text-muted)]"
                     />
+                    {searchQuery && (
+                        <button
+                            type="button"
+                            onClick={clearSearch}
+                            className="p-1 hover:bg-[color:var(--color-bg-secondary)] rounded transition-colors"
+                        >
+                            <X
+                                size={18}
+                                className="text-[color:var(--color-text-muted)]"
+                            />
+                        </button>
+                    )}
                 </div>
 
-                {searchResults.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] z-50 max-h-64 overflow-y-auto">
+                {showDropdown && searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] z-50 max-h-72 overflow-y-auto">
                         {searchResults.map((result, idx) => (
                             <button
                                 key={idx}
@@ -170,16 +243,16 @@ export default function MapLocationPicker({
                                 onClick={() => handleSelectResult(result)}
                                 className="w-full text-left px-4 py-3 hover:bg-[color:var(--color-bg-secondary)] border-b border-[color:var(--color-border-light)] last:border-b-0 transition-colors"
                             >
-                                <div className="flex items-start gap-2">
+                                <div className="flex items-start gap-3">
                                     <MapPin
                                         size={16}
-                                        className="text-[color:var(--color-primary-500)] mt-1 flex-shrink-0"
+                                        className="text-[color:var(--color-primary-500)] mt-0.5 flex-shrink-0"
                                     />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-[color:var(--color-text-primary)] truncate">
                                             {result.name}
                                         </p>
-                                        <p className="text-xs text-[color:var(--color-text-muted)] line-clamp-2">
+                                        <p className="text-xs text-[color:var(--color-text-muted)] line-clamp-2 mt-0.5">
                                             {result.display_name}
                                         </p>
                                     </div>
@@ -192,34 +265,57 @@ export default function MapLocationPicker({
 
             <div
                 ref={mapContainer}
-                className="w-full h-96 rounded-[var(--radius-md)] border border-[color:var(--color-border)] overflow-hidden"
+                className="w-full h-96 rounded-[var(--radius-md)] border border-[color:var(--color-border)] overflow-hidden shadow-[var(--shadow-sm)]"
             />
 
             {selectedLocation && (
-                <div className="bg-[color:var(--color-bg-secondary)] p-4 rounded-[var(--radius-md)] border border-[color:var(--color-border)] space-y-2">
-                    <h3 className="font-semibold text-[color:var(--color-text-primary)]">
-                        Selected Location
-                    </h3>
-                    <div className="space-y-1 text-sm">
-                        <p className="text-[color:var(--color-text-secondary)]">
-                            {selectedLocation.fullAddress}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-[color:var(--color-border-light)]">
-                            <div>
-                                <span className="text-[color:var(--color-text-muted)]">
-                                    City:{" "}
-                                </span>
-                                <span className="text-[color:var(--color-text-primary)]">
-                                    {selectedLocation.city}
-                                </span>
+                <div className="bg-gradient-to-br from-[color:var(--color-primary-50)] to-[color:var(--color-bg-secondary)] p-4 rounded-[var(--radius-md)] border border-[color:var(--color-primary-200)]">
+                    <div className="space-y-3">
+                        <div className="flex items-start gap-2">
+                            <MapPin
+                                size={18}
+                                className="text-[color:var(--color-primary-600)] mt-0.5 flex-shrink-0"
+                            />
+                            <div className="flex-1">
+                                <p className="font-semibold text-[color:var(--color-text-primary)] text-sm">
+                                    {selectedLocation.name}
+                                </p>
+                                <p className="text-xs text-[color:var(--color-text-muted)] mt-1">
+                                    {selectedLocation.address}
+                                </p>
                             </div>
-                            <div>
-                                <span className="text-[color:var(--color-text-muted)]">
-                                    Area:{" "}
-                                </span>
-                                <span className="text-[color:var(--color-text-primary)]">
-                                    {selectedLocation.area}
-                                </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[color:var(--color-primary-200)]">
+                            <div className="bg-[color:var(--color-bg-primary)] p-2.5 rounded-md">
+                                <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wide">
+                                    City
+                                </p>
+                                <p className="text-sm font-bold text-[color:var(--color-primary-600)] mt-1">
+                                    {selectedLocation.city || "—"}
+                                </p>
+                            </div>
+                            <div className="bg-[color:var(--color-bg-primary)] p-2.5 rounded-md">
+                                <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wide">
+                                    Area
+                                </p>
+                                <p className="text-sm font-bold text-[color:var(--color-primary-600)] mt-1">
+                                    {selectedLocation.area || "—"}
+                                </p>
+                            </div>
+                            <div className="bg-[color:var(--color-bg-primary)] p-2.5 rounded-md">
+                                <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wide">
+                                    Coords
+                                </p>
+                                <p className="text-xs font-mono font-bold text-[color:var(--color-primary-600)] mt-1">
+                                    {Number(selectedLocation.latitude).toFixed(
+                                        4,
+                                    )}
+                                    <br />
+                                    {Number(selectedLocation.longitude).toFixed(
+                                        4,
+                                    )}
+                                </p>
                             </div>
                         </div>
                     </div>
