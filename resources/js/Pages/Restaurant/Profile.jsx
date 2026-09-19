@@ -189,7 +189,7 @@ export default function RestaurantProfile() {
 
                 <ProfileCover
                     restaurantName={restaurant.name}
-                    approvedDate={restaurant.approved_at}
+                    approvedDate={restaurant.approved_since}
                     coverImage={images.coverImage}
                     logoImage={images.logoImage}
                     onCoverUpload={handleCoverUpload}

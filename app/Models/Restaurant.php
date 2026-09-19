@@ -30,6 +30,7 @@ class Restaurant extends Model
         'is_open',
         'status',
         'restaurant_category_id',
+        'approved_since',
     ];
 
     protected $appends = [
@@ -41,6 +42,7 @@ class Restaurant extends Model
     {
         return [
             'is_open' => 'boolean',
+            'approved_since' => 'datetime',
         ];
     }
 
