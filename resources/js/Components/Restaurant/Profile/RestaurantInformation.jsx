@@ -78,15 +78,6 @@ export default function RestaurantInformation({
                     error={errors.phone}
                 />
 
-                <TextInput
-                    label="City"
-                    placeholder="City"
-                    value={data.city}
-                    onChange={(event) => onChange("city", event.target.value)}
-                    error={errors.city}
-                    required
-                />
-
                 <div className="sm:col-span-2">
                     <TextArea
                         label="Address"

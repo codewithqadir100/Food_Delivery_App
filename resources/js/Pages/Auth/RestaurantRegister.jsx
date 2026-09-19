@@ -17,7 +17,6 @@ export default function RestaurantRegister({ categories }) {
         password_confirmation: "",
         restaurant_name: "",
         restaurant_category_id: "",
-        city: "",
         address: "",
         phone: "",
         description: "",
@@ -94,19 +93,7 @@ export default function RestaurantRegister({ categories }) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <TextInput
-                                type="text"
-                                placeholder="City"
-                                value={data.city}
-                                onChange={(e) =>
-                                    setData("city", e.target.value)
-                                }
-                                error={errors.city}
-                                icon={<MapPin size={16} />}
-                                required
-                            />
-
+                        <div className="grid grid-cols-1 gap-4">
                             <TextInput
                                 type="tel"
                                 placeholder="Phone number"

@@ -4,6 +4,7 @@ import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import ProfileCover from "@/Components/Restaurant/Profile/ProfileCover";
 import RestaurantInformation from "@/Components/Restaurant/Profile/RestaurantInformation";
+import DeliverySettings from "@/Components/Restaurant/Profile/DeliverySettings";
 import Modal from "@/Components/Common/Modal";
 import Button from "@/Components/Common/Button";
 import Alert from "@/Components/Common/Alert";
@@ -27,6 +28,11 @@ export default function RestaurantProfile() {
         city: restaurant.city ?? "",
         address: restaurant.address ?? "",
         description: restaurant.description ?? "",
+        latitude: restaurant.latitude ?? null,
+        longitude: restaurant.longitude ?? null,
+        service_radius_km: restaurant.service_radius_km ?? 5,
+        city_name: restaurant.city_name ?? "",
+        area_name: restaurant.area_name ?? "",
     };
 
     const { data, setData, put, processing, errors, clearErrors } =
@@ -207,6 +213,12 @@ export default function RestaurantProfile() {
 
                             handleChange(field, value);
                         }}
+                    />
+
+                    <DeliverySettings
+                        data={data}
+                        errors={errors}
+                        onChange={handleChange}
                     />
 
                     <div className="flex justify-end">

@@ -56,10 +56,14 @@ class RestaurantProfileController extends Controller
             $restaurant->update([
                 'name' => $validated['name'],
                 'restaurant_category_id' => $validated['restaurant_category_id'],
-                'city' => $validated['city'],
                 'address' => $validated['address'],
                 'phone' => $validated['phone'] ?? null,
                 'description' => $validated['description'] ?? null,
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
+                'service_radius_km' => $validated['service_radius_km'],
+                'city_name' => $validated['city_name'],
+                'area_name' => $validated['area_name'] ?? null,
             ]);
         });
 

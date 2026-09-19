@@ -19,10 +19,10 @@ class RestaurantRegisterRequest extends FormRequest
             'password' => ['required', 'confirmed', Password::defaults()],
             'restaurant_name' => ['required', 'string', 'max:255'],
             'restaurant_category_id' => ['required', 'exists:restaurant_categories,id'],
-            'city' => ['required', 'string', 'max:100'],
             'address' => ['required', 'string', 'max:500'],
             'phone' => ['nullable', 'string', 'max:20'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
+
     }
 }
