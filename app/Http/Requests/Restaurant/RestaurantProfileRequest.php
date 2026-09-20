@@ -27,6 +27,7 @@ class RestaurantProfileRequest extends FormRequest
             'service_radius_km' => ['required', 'numeric', 'min:1', 'max:100'],
             'city_name' => ['required', 'string', 'max:100'],
             'area_name' => ['nullable', 'string', 'max:100'],
+            'street_address' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

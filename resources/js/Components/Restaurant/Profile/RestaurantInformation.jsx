@@ -86,14 +86,19 @@ export default function RestaurantInformation({
                     required={true}
                 />
 
-                <div className="sm:col-span-2">
-                    <ReadOnlyTextInput
-                        label="Address"
-                        placeHolder="Select Address from Map"
-                        value={data.address || "-"}
-                        required={true}
-                    />
-                </div>
+                <ReadOnlyTextInput
+                    label="Address"
+                    placeHolder="Select Address from Map"
+                    value={data.address || "-"}
+                    required={true}
+                />
+
+                <TextInput
+                    label="Street Address"
+                    placeHolder="House 123, Green Gate, Beside Parks"
+                    value={data.street_address || ""}
+                    onChange={(e) => onChange("street_address", e.target.value)}
+                />
 
                 <div className="sm:col-span-2">
                     <TextArea

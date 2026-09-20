@@ -23,6 +23,7 @@ class Restaurant extends Model
         'area_name',
         'address',
         'city_name',
+        'street_address',
         'description',
         'phone',
         'logo',

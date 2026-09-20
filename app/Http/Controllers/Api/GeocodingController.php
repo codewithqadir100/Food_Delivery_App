@@ -8,22 +8,23 @@ use Illuminate\Http\Request;
 class GeocodingController extends Controller
 {
     public function search(Request $request)
-    {
-        $query = $request->query('q');
-        
-        if (!$query || strlen($query) < 2) {
-            return response()->json([], 200);
-        }
-
-        try {
-            $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode($query) . '&countrycodes=pk&limit=8';
-            $response = $this->fetchFromNominatim($url);
-            
-            return response()->json($response ?? [], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Search failed'], 500);
-        }
+{
+    $query = $request->query('q');
+    $country = $request->query('country', 'pk');
+    
+    if (!$query || strlen($query) < 2) {
+        return response()->json([], 200);
     }
+
+    try {
+        $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode($query) . '&countrycodes=' . urlencode($country) . '&limit=8';
+        $response = $this->fetchFromNominatim($url);
+        
+        return response()->json($response ?? [], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Search failed'], 500);
+    }
+}
 
     public function reverse(Request $request)
     {

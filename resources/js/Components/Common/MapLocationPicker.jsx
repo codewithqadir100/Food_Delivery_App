@@ -29,15 +29,23 @@ const parseAddress = (addressData) => {
     }
 
     const addr = addressData.address;
-    const name = addr.name || addr.road || addr.suburb || addr.village || "";
-    const area = addr.suburb || addr.village || "";
-    const city = addr.city || addr.town || "";
+
+    const name = addr.house_number
+        ? `${addr.house_number} ${addr.road || ""}`.trim()
+        : addr.road || addr.neighbourhood || addr.suburb || addr.village || "";
+
+    const area = addr.suburb || addr.neighbourhood || addr.village || "";
+
+    let city = addr.city || addr.town || "";
+    city = city.replace(/\s+(Division|ڈویژن|تقسیم)\s*$/i, "").trim();
+
     const postcode = addr.postcode || "";
 
-    const shortAddress =
-        name && postcode
-            ? `${name}, ${postcode}`
-            : name || postcode || "Selected Location";
+    const shortAddress = name
+        ? area
+            ? `${name}, ${area}`
+            : name
+        : area || postcode || "Selected Location";
 
     return {
         name: name || "Location",
@@ -72,7 +80,7 @@ export default function MapLocationPicker({
         );
 
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "© OpenStreetMap contributors",
+            attribution: "© FoodHub",
             maxZoom: 19,
         }).addTo(leafletMap);
 
@@ -201,16 +209,12 @@ export default function MapLocationPicker({
         return () => clearTimeout(timeoutId);
     }, [searchQuery]);
 
-    const handleMapClick = async (lat, lon) => {
-        await processLocation(lat, lon);
-    };
-
     const handleSelectResult = async (result) => {
         const lat = parseFloat(result.lat);
         const lon = parseFloat(result.lon);
         setSearchQuery(result.name || "");
         setShowDropdown(false);
-        await processLocation(lat, lon);
+        await processLocation(lat, lon, map);
     };
 
     const handleKeyPress = (e) => {

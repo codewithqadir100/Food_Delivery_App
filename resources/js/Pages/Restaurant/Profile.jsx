@@ -28,6 +28,7 @@ export default function RestaurantProfile() {
         city: restaurant.city ?? "",
         address: restaurant.address ?? "",
         description: restaurant.description ?? "",
+        street_address: restaurant.street_address ?? "",
         latitude: restaurant.latitude ?? null,
         longitude: restaurant.longitude ?? null,
         service_radius_km: restaurant.service_radius_km ?? 5,
