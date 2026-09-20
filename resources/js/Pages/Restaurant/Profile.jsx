@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Head, useForm, usePage, router } from "@inertiajs/react";
 import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
@@ -21,7 +21,7 @@ const axiosInstance = axios.create({
 export default function RestaurantProfile() {
     const { restaurant, categories } = usePage().props;
 
-    const [initialFormData, setInitialFormData] = useState({
+    const initialFormData = {
         name: restaurant.name ?? "",
         restaurant_category_id: restaurant.restaurant_category_id ?? "",
         phone: restaurant.phone ?? "",
@@ -34,27 +34,10 @@ export default function RestaurantProfile() {
         service_radius_km: restaurant.service_radius_km ?? 5,
         city_name: restaurant.city_name ?? "",
         area_name: restaurant.area_name ?? "",
-    });
+    };
 
-    const { data, setData, put, processing, errors, clearErrors } =
+    const { data, setData, put, processing, errors, clearErrors, isDirty } =
         useForm(initialFormData);
-
-    useEffect(() => {
-        setInitialFormData({
-            name: restaurant.name ?? "",
-            restaurant_category_id: restaurant.restaurant_category_id ?? "",
-            phone: restaurant.phone ?? "",
-            city: restaurant.city ?? "",
-            address: restaurant.address ?? "",
-            street_address: restaurant.street_address ?? "",
-            description: restaurant.description ?? "",
-            latitude: restaurant.latitude ?? null,
-            longitude: restaurant.longitude ?? null,
-            service_radius_km: restaurant.service_radius_km ?? 5,
-            city_name: restaurant.city_name ?? "",
-            area_name: restaurant.area_name ?? "",
-        });
-    }, [restaurant]);
 
     const [images, setImages] = useState({
         coverImage: restaurant.cover_image_url,
@@ -68,8 +51,6 @@ export default function RestaurantProfile() {
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [pendingStatus, setPendingStatus] = useState(null);
 
-    const isDirty = JSON.stringify(data) !== JSON.stringify(initialFormData);
-
     const handleChange = (field, value) => {
         setData(field, value);
         setFeedback("");
@@ -82,7 +63,6 @@ export default function RestaurantProfile() {
         put(route("restaurant.profile.update"), {
             preserveScroll: true,
             onSuccess: () => {
-                reset();
                 setFeedback("Restaurant information updated successfully.");
             },
         });

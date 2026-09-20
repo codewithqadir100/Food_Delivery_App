@@ -1,7 +1,5 @@
 import { useState } from "react";
-import FormLabel from "@/Components/Forms/FormLabel";
 import MapLocationPicker from "@/Components/Common/MapLocationPicker";
-import { Radius } from "lucide-react";
 
 export default function DeliverySettings({ data, errors = {}, onChange }) {
     const handleLocationSelect = (location) => {
@@ -38,7 +36,6 @@ export default function DeliverySettings({ data, errors = {}, onChange }) {
 
             <div className="space-y-6">
                 <div>
-                    <FormLabel label="Restaurant Location" required />
                     <p className="text-xs text-[color:var(--color-text-muted)] mb-4">
                         Click on the map or search to select your restaurant
                         location
@@ -59,64 +56,48 @@ export default function DeliverySettings({ data, errors = {}, onChange }) {
                     )}
                 </div>
 
-                <div className="bg-gradient-to-br from-[color:var(--color-primary-50)] to-[color:var(--color-bg-secondary)] p-6 rounded-[var(--radius-md)] border border-[color:var(--color-primary-200)]">
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-[color:var(--color-primary-100)] rounded-[var(--radius-md)] flex-shrink-0">
-                            <Radius
-                                size={24}
-                                className="text-[color:var(--color-primary-600)]"
-                            />
-                        </div>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center">
+                    <div>
+                        <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                            Delivery Radius
+                        </h2>
 
-                        <div className="flex-1 min-w-0">
-                            <FormLabel label="Service Radius" required />
-                            <p className="text-xs text-[color:var(--color-text-muted)] mt-1 mb-4">
-                                How far do you deliver? Set the maximum distance
-                                in kilometers
-                            </p>
-
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="100"
-                                    step="0.5"
-                                    value={data.service_radius_km || ""}
-                                    onChange={(e) =>
-                                        onChange(
-                                            "service_radius_km",
-                                            parseFloat(e.target.value),
-                                        )
-                                    }
-                                    className="w-full px-4 py-3 border border-[color:var(--color-border)] rounded-[var(--radius-md)] bg-[color:var(--color-bg-primary)] text-[color:var(--color-text-primary)] focus:outline-none focus:border-[color:var(--color-primary-500)] focus:ring-1 focus:ring-[color:var(--color-primary-100)] transition-all"
-                                    placeholder="e.g., 5"
-                                    required
-                                />
-                                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[color:var(--color-text-muted)] font-semibold pointer-events-none">
-                                    km
-                                </span>
-                            </div>
-
-                            {errors.service_radius_km && (
-                                <p className="text-xs text-[color:var(--color-danger-500)] mt-2">
-                                    {errors.service_radius_km}
-                                </p>
-                            )}
-
-                            <div className="mt-3 pt-3 border-t border-[color:var(--color-primary-200)]">
-                                <p className="text-xs font-medium text-[color:var(--color-text-muted)]">
-                                    📍 Service Area:{" "}
-                                    <span className="font-bold text-[color:var(--color-primary-600)]">
-                                        {data.service_radius_km || 0} km radius
-                                    </span>
-                                </p>
-                                <p className="text-xs text-[color:var(--color-text-muted)] mt-1">
-                                    Customers within this distance can place
-                                    orders
-                                </p>
-                            </div>
-                        </div>
+                        <p className="mt-1 text-sm text-[color:var(--color-text-muted)]">
+                            Set the maximum distance your restaurant delivers.
+                        </p>
                     </div>
+
+                    <div className="relative mt-3 sm:min-w-96">
+                        <input
+                            id="service_radius_km"
+                            type="number"
+                            min="1"
+                            max="100"
+                            step="0.5"
+                            value={data.service_radius_km ?? ""}
+                            onChange={(e) =>
+                                onChange(
+                                    "service_radius_km",
+                                    e.target.value === ""
+                                        ? ""
+                                        : Number(e.target.value),
+                                )
+                            }
+                            className="w-full rounded-[var(--radius-md)] border border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)] px-4 py-3 pr-14 text-sm text-[color:var(--color-text-primary)] outline-none transition-[border-color,box-shadow] duration-[var(--transition-normal)] placeholder:text-[color:var(--color-text-muted)] focus:border-[color:var(--color-primary-500)] focus:ring-2 focus:ring-[color:var(--color-primary-100)]"
+                            placeholder="e.g. 5"
+                            required
+                        />
+
+                        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium uppercase text-[color:var(--color-text-muted)]">
+                            KM
+                        </span>
+                    </div>
+
+                    {errors.service_radius_km && (
+                        <p className="mt-2 text-xs text-[color:var(--color-danger-500)]">
+                            {errors.service_radius_km}
+                        </p>
+                    )}
                 </div>
             </div>
         </section>

@@ -81,21 +81,21 @@ export default function RestaurantInformation({
 
                 <ReadOnlyTextInput
                     label="City"
-                    placeHolder="Select City from Map"
+                    placeholder="Select City from Map"
                     value={data.city_name || "-"}
                     required={true}
                 />
 
                 <ReadOnlyTextInput
                     label="Address"
-                    placeHolder="Select Address from Map"
+                    placeholder="Select Address from Map"
                     value={data.address || "-"}
                     required={true}
                 />
 
                 <TextInput
                     label="Street Address"
-                    placeHolder="House 123, Green Gate, Beside Parks"
+                    placeholder="House 123, Green Gate, Beside Parks"
                     value={data.street_address || ""}
                     onChange={(e) => onChange("street_address", e.target.value)}
                 />

@@ -64,6 +64,7 @@ class RestaurantProfileController extends Controller
                 'service_radius_km' => $validated['service_radius_km'],
                 'city_name' => $validated['city_name'],
                 'area_name' => $validated['area_name'] ?? null,
+                'street_address' => $validated['street_address'] ?? null,
             ]);
         });
 
