@@ -121,39 +121,73 @@ export default function MapLocationPicker({
         markerRef.current = marker;
     };
 
-    const handleSearch = async (query) => {
-        setError("");
+    const searchRequestRef = useRef(null);
 
-        if (!query || query.length < 2) {
+    useEffect(() => {
+        const query = searchQuery.trim();
+
+        if (query.length < 2) {
             setSearchResults([]);
             setShowDropdown(false);
+            setIsSearching(false);
+            setError("");
             return;
         }
 
-        setIsSearching(true);
-        setShowDropdown(true);
+        const timeoutId = setTimeout(async () => {
+            setError("");
+            setIsSearching(true);
+            setShowDropdown(true);
 
-        try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pk&limit=8`,
-            );
-            const results = await response.json();
-
-            if (!results || results.length === 0) {
-                setError("No locations found. Try a different search.");
-                setSearchResults([]);
-            } else {
-                setSearchResults(results);
-                setError("");
+            if (searchRequestRef.current) {
+                searchRequestRef.current.abort();
             }
-        } catch (err) {
-            console.error("Search failed:", err);
-            setError("Search failed. Please try again.");
-            setSearchResults([]);
-        }
 
-        setIsSearching(false);
-    };
+            const controller = new AbortController();
+            searchRequestRef.current = controller;
+
+            try {
+                const response = await fetch(
+                    `/api/geocoding/search?q=${encodeURIComponent(query)}`,
+                    {
+                        signal: controller.signal,
+                    },
+                );
+
+                if (!response.ok) {
+                    throw new Error("Search request failed.");
+                }
+
+                const results = await response.json();
+
+                if (controller.signal.aborted) {
+                    return;
+                }
+
+                if (!results || results.length === 0) {
+                    setError("No locations found. Try a different search.");
+                    setSearchResults([]);
+                } else {
+                    setSearchResults(results);
+                    setError("");
+                }
+            } catch (err) {
+                if (err.name === "AbortError") {
+                    return;
+                }
+
+                console.error("Search failed:", err);
+                setError("Search failed. Please try again.");
+                setSearchResults([]);
+            } finally {
+                if (!controller.signal.aborted) {
+                    setIsSearching(false);
+                }
+            }
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
 
     const handleMapClick = async (lat, lon) => {
         await processLocation(lat, lon);
@@ -183,7 +217,7 @@ export default function MapLocationPicker({
     const processLocation = async (lat, lon) => {
         try {
             const reverseResponse = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
+                `/api/geocoding/reverse?lat=${lat}&lon=${lon}`,
             );
             const addressData = await reverseResponse.json();
             const parsed = parseAddress(addressData);
@@ -240,7 +274,6 @@ export default function MapLocationPicker({
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
-                            handleSearch(e.target.value);
                         }}
                         onKeyPress={handleKeyPress}
                         onFocus={() =>
