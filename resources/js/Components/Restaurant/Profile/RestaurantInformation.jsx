@@ -3,6 +3,7 @@ import SelectInput from "@/Components/Forms/SelectInput";
 import TextArea from "@/Components/Forms/TextArea";
 import TextInput from "@/Components/Forms/TextInput";
 import Toggle from "@/Components/Common/Toggle";
+import ReadOnlyTextInput from "@/Components/Forms/ReadOnlyTextInput";
 import { Check, X } from "lucide-react";
 
 export default function RestaurantInformation({
@@ -78,45 +79,20 @@ export default function RestaurantInformation({
                     error={errors.phone}
                 />
 
+                <ReadOnlyTextInput
+                    label="City"
+                    placeHolder="Select City from Map"
+                    value={data.city_name || "-"}
+                    required={true}
+                />
+
                 <div className="sm:col-span-2">
-                    <FormLabel label="Address" required />
-                    <div className="mt-2 p-4 bg-[color:var(--color-bg-secondary)] border border-[color:var(--color-border)] rounded-[var(--radius-md)] text-[color:var(--color-text-primary)]">
-                        <p className="text-sm leading-relaxed">
-                            {data.address ||
-                                "Select location from map in Delivery & Service Area section"}
-                        </p>
-                    </div>
-                    {errors.address && (
-                        <p className="text-xs text-[color:var(--color-danger-500)] mt-2">
-                            {errors.address}
-                        </p>
-                    )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 sm:col-span-2">
-                    <div className="bg-gradient-to-br from-[color:var(--color-primary-50)] to-[color:var(--color-bg-secondary)] p-4 rounded-[var(--radius-md)] border border-[color:var(--color-primary-200)]">
-                        <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wide mb-2">
-                            City
-                        </p>
-                        <p className="text-lg font-bold text-[color:var(--color-primary-600)]">
-                            {data.city_name || "—"}
-                        </p>
-                        <p className="text-xs text-[color:var(--color-text-muted)] mt-2">
-                            Auto-filled from map
-                        </p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-[color:var(--color-primary-50)] to-[color:var(--color-bg-secondary)] p-4 rounded-[var(--radius-md)] border border-[color:var(--color-primary-200)]">
-                        <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wide mb-2">
-                            Area
-                        </p>
-                        <p className="text-lg font-bold text-[color:var(--color-primary-600)]">
-                            {data.area_name || "—"}
-                        </p>
-                        <p className="text-xs text-[color:var(--color-text-muted)] mt-2">
-                            Auto-filled from map
-                        </p>
-                    </div>
+                    <ReadOnlyTextInput
+                        label="Address"
+                        placeHolder="Select Address from Map"
+                        value={data.address || "-"}
+                        required={true}
+                    />
                 </div>
 
                 <div className="sm:col-span-2">

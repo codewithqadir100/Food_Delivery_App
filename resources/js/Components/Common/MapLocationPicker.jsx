@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Loader, X } from "lucide-react";
+import { Search, MapPin, Loader, X, AlertCircle } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -48,6 +48,7 @@ export default function MapLocationPicker({
     const [selectedLocation, setSelectedLocation] = useState(
         initialLocation || null,
     );
+    const [error, setError] = useState("");
     const [map, setMap] = useState(null);
     const markerRef = useRef(null);
     const mapContainer = useRef(null);
@@ -121,6 +122,8 @@ export default function MapLocationPicker({
     };
 
     const handleSearch = async (query) => {
+        setError("");
+
         if (!query || query.length < 2) {
             setSearchResults([]);
             setShowDropdown(false);
@@ -135,9 +138,17 @@ export default function MapLocationPicker({
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=pk&limit=8`,
             );
             const results = await response.json();
-            setSearchResults(results || []);
-        } catch (error) {
-            console.error("Search failed:", error);
+
+            if (!results || results.length === 0) {
+                setError("No locations found. Try a different search.");
+                setSearchResults([]);
+            } else {
+                setSearchResults(results);
+                setError("");
+            }
+        } catch (err) {
+            console.error("Search failed:", err);
+            setError("Search failed. Please try again.");
             setSearchResults([]);
         }
 
@@ -154,6 +165,19 @@ export default function MapLocationPicker({
         setSearchQuery(result.name || "");
         setShowDropdown(false);
         await processLocation(lat, lon);
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (searchResults.length > 0) {
+                handleSelectResult(searchResults[0]);
+            } else if (searchQuery.trim()) {
+                setError(
+                    "No results found. Please select from dropdown or click on map.",
+                );
+            }
+        }
     };
 
     const processLocation = async (lat, lon) => {
@@ -176,13 +200,15 @@ export default function MapLocationPicker({
             setSelectedLocation(locationData);
             onLocationSelect(locationData);
             setShowDropdown(false);
+            setError("");
 
             if (map) {
                 addMarker(map, lat, lon, parsed.name);
                 map.setView([lat, lon], 15);
             }
-        } catch (error) {
-            console.error("Location processing failed:", error);
+        } catch (err) {
+            console.error("Location processing failed:", err);
+            setError("Failed to process location. Please try again.");
         }
     };
 
@@ -190,6 +216,7 @@ export default function MapLocationPicker({
         setSearchQuery("");
         setSearchResults([]);
         setShowDropdown(false);
+        setError("");
     };
 
     return (
@@ -215,6 +242,7 @@ export default function MapLocationPicker({
                             setSearchQuery(e.target.value);
                             handleSearch(e.target.value);
                         }}
+                        onKeyPress={handleKeyPress}
                         onFocus={() =>
                             searchResults.length > 0 && setShowDropdown(true)
                         }
@@ -234,8 +262,26 @@ export default function MapLocationPicker({
                     )}
                 </div>
 
+                {error && (
+                    <div
+                        className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-danger-50)] border border-[color:var(--color-danger-200)] rounded-[var(--radius-md)] p-3 flex items-start gap-2"
+                        style={{ zIndex: "var(--z-dropdown)" }}
+                    >
+                        <AlertCircle
+                            size={16}
+                            className="text-[color:var(--color-danger-500)] mt-0.5 flex-shrink-0"
+                        />
+                        <p className="text-xs text-[color:var(--color-danger-600)]">
+                            {error}
+                        </p>
+                    </div>
+                )}
+
                 {showDropdown && searchResults.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] z-50 max-h-72 overflow-y-auto">
+                    <div
+                        className="absolute top-full left-0 right-0 mt-2 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] overflow-y-auto max-h-72"
+                        style={{ zIndex: "var(--z-dropdown)" }}
+                    >
                         {searchResults.map((result, idx) => (
                             <button
                                 key={idx}
