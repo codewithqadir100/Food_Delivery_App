@@ -9,6 +9,7 @@ use App\Http\Requests\Restaurant\RestaurantProfileRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantCoverImageRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantLogoRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantStatusRequest;
+use App\Events\RestaurantLocationUpdated;
 use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use Illuminate\Http\JsonResponse;
@@ -43,15 +44,20 @@ class RestaurantProfileController extends Controller
         $restaurant = $user->restaurant;
 
         abort_unless($restaurant, 404);
-
         $this->authorize('update', $restaurant);
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($user, $restaurant, $validated) {
-            $user->update([
-                'name' => $validated['name'],
-            ]);
+        // Capture old location for event
+        $oldLocation = [
+            'latitude' => $restaurant->latitude,
+            'longitude' => $restaurant->longitude,
+            'city_name' => $restaurant->city_name,
+            'area_name' => $restaurant->area_name,
+        ];
+
+        DB::transaction(function () use ($user, $restaurant, $validated, $oldLocation) {
+            $user->update(['name' => $validated['name']]);
 
             $restaurant->update([
                 'name' => $validated['name'],
@@ -64,8 +70,22 @@ class RestaurantProfileController extends Controller
                 'service_radius_km' => $validated['service_radius_km'],
                 'city_name' => $validated['city_name'],
                 'area_name' => $validated['area_name'] ?? null,
-                'street_address' => $validated['street_address'] ?? null,
             ]);
+
+            // Dispatch event if location changed
+            if ($oldLocation['latitude'] !== $validated['latitude'] || 
+                $oldLocation['longitude'] !== $validated['longitude']) {
+                RestaurantLocationUpdated::dispatch(
+                    $restaurant,
+                    $oldLocation,
+                    [
+                        'latitude' => $validated['latitude'],
+                        'longitude' => $validated['longitude'],
+                        'city_name' => $validated['city_name'],
+                        'area_name' => $validated['area_name'],
+                    ]
+                );
+            }
         });
 
         return back()->with('success', 'Restaurant information updated successfully.');
