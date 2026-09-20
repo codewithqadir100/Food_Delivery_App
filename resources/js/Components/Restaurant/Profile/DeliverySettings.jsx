@@ -3,11 +3,13 @@ import MapLocationPicker from "@/Components/Common/MapLocationPicker";
 
 export default function DeliverySettings({ data, errors = {}, onChange }) {
     const handleLocationSelect = (location) => {
-        onChange("latitude", location.latitude);
-        onChange("longitude", location.longitude);
-        onChange("city_name", location.city);
-        onChange("area_name", location.area);
-        onChange("address", location.address);
+        onChange("location_data", {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            city_name: location.city,
+            area_name: location.area,
+            address: location.address,
+        });
     };
 
     const initialLocation =
