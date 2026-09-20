@@ -19,6 +19,15 @@ const MAP_DEFAULT_CENTER = [25.3548, 68.3711];
 const MAP_DEFAULT_ZOOM = 12;
 
 const parseAddress = (addressData) => {
+    if (!addressData || !addressData.address) {
+        return {
+            name: "Location",
+            area: "",
+            city: "",
+            address: "Selected Location",
+        };
+    }
+
     const addr = addressData.address;
     const name = addr.name || addr.road || addr.suburb || addr.village || "";
     const area = addr.suburb || addr.village || "";
@@ -67,9 +76,12 @@ export default function MapLocationPicker({
             maxZoom: 19,
         }).addTo(leafletMap);
 
-        leafletMap.on("click", (e) =>
-            handleMapClick(e.latlng.lat, e.latlng.lng),
-        );
+        leafletMap.on("click", (e) => {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+
+            processLocation(lat, lon, leafletMap);
+        });
 
         setMap(leafletMap);
 
@@ -214,7 +226,7 @@ export default function MapLocationPicker({
         }
     };
 
-    const processLocation = async (lat, lon) => {
+    const processLocation = async (lat, lon, mapInstance) => {
         try {
             const reverseResponse = await fetch(
                 `/api/geocoding/reverse?lat=${lat}&lon=${lon}`,
@@ -236,9 +248,9 @@ export default function MapLocationPicker({
             setShowDropdown(false);
             setError("");
 
-            if (map) {
-                addMarker(map, lat, lon, parsed.name);
-                map.setView([lat, lon], 15);
+            if (mapInstance) {
+                addMarker(mapInstance, lat, lon, parsed.name);
+                mapInstance.setView([lat, lon], 15);
             }
         } catch (err) {
             console.error("Location processing failed:", err);
