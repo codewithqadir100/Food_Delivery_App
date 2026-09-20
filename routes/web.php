@@ -59,7 +59,7 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-a
     Route::post('/admins/{admin}/reject', [AdminVerificationController::class, 'reject'])->name('admins.reject');
 });
 
-Route::prefix('api')->name('api.')->middleware('throttle:60,1')->group(function () {
+Route::prefix('api')->name('api.')->group(function () {
     Route::get('/geocoding/search', [\App\Http\Controllers\Api\GeocodingController::class, 'search'])->name('geocoding.search');
     Route::get('/geocoding/reverse', [\App\Http\Controllers\Api\GeocodingController::class, 'reverse'])->name('geocoding.reverse');
 });

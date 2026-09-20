@@ -37,7 +37,12 @@ const parseAddress = (addressData) => {
     const area = addr.suburb || addr.neighbourhood || addr.village || "";
 
     let city = addr.city || addr.town || "";
-    city = city.replace(/\s+(Division|ڈویژن|تقسیم)\s*$/i, "").trim();
+    city = city
+        .replace(
+            /\s+(District|Division|Tehsil|Taluka|ڈسٹرکٹ|ڈویژن|تحصیل|تعلقہ)\s*$/i,
+            "",
+        )
+        .trim();
 
     const postcode = addr.postcode || "";
 

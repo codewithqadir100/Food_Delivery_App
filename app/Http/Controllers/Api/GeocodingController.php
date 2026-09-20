@@ -4,35 +4,27 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class GeocodingController extends Controller
 {
-    private const CACHE_TTL = 86400;
-    private const CACHE_PREFIX = 'geocoding:';
-
     public function search(Request $request)
-    {
-        $query = $request->query('q');
-        $country = $request->query('country', 'pk');
-        
-        if (!$query || strlen($query) < 2) {
-            return response()->json([], 200);
-        }
-
-        $cacheKey = self::CACHE_PREFIX . 'search:' . md5($query . $country);
-
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($query, $country) {
-            try {
-                $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode($query) . '&countrycodes=' . urlencode($country) . '&limit=8';
-                $response = $this->fetchFromNominatim($url);
-                
-                return response()->json($response ?? [], 200);
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Search failed'], 500);
-            }
-        });
+{
+    $query = $request->query('q');
+    $country = $request->query('country', 'pk');
+    
+    if (!$query || strlen($query) < 2) {
+        return response()->json([], 200);
     }
+
+    try {
+        $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode($query) . '&countrycodes=' . urlencode($country) . '&limit=8';
+        $response = $this->fetchFromNominatim($url);
+        
+        return response()->json($response ?? [], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Search failed'], 500);
+    }
+}
 
     public function reverse(Request $request)
     {
@@ -43,18 +35,14 @@ class GeocodingController extends Controller
             return response()->json(['error' => 'Invalid coordinates'], 400);
         }
 
-        $cacheKey = self::CACHE_PREFIX . 'reverse:' . md5($lat . $lon);
-
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($lat, $lon) {
-            try {
-                $url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' . $lat . '&lon=' . $lon;
-                $response = $this->fetchFromNominatim($url);
-                
-                return response()->json($response ?? [], 200);
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Reverse geocoding failed'], 500);
-            }
-        });
+        try {
+            $url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' . $lat . '&lon=' . $lon;
+            $response = $this->fetchFromNominatim($url);
+            
+            return response()->json($response ?? [], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Reverse geocoding failed'], 500);
+        }
     }
 
     private function fetchFromNominatim($url)
