@@ -8,11 +8,19 @@ use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Customer\RestaurantController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
+
+Route::get('/restaurants', function () {
+    return Inertia::render('Customer/Restaurants', [
+        'categories' => \App\Models\RestaurantCategory::orderBy('name')->get(['id', 'name']),
+    ]);
+})->name('restaurants.index');
+
 
 Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/customer/profile', [ProfileController::class, 'index'])->name('customer.profile.index');
@@ -62,6 +70,12 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-a
 Route::prefix('api')->name('api.')->middleware('throttle:60,1')->group(function () {
     Route::get('/geocoding/search', [\App\Http\Controllers\Api\GeocodingController::class, 'search']);
     Route::get('/geocoding/reverse', [\App\Http\Controllers\Api\GeocodingController::class, 'reverse']);
+});
+
+Route::prefix('api')->name('api.')->group(function () {
+    Route::get('/restaurants', [RestaurantController::class, 'index']);
+    Route::get('/restaurants/search', [RestaurantController::class, 'search']);
+    Route::get('/restaurants/{id}', [RestaurantController::class, 'show']);
 });
 
 require __DIR__ . '/auth.php';

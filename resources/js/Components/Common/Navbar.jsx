@@ -179,6 +179,22 @@ export default function Navbar({ categories = [] }) {
                                 )}
                             </div>
 
+                            {/* Browse Restaurants - Only when logged in as customer */}
+                            {user && user.role === "customer" && (
+                                <Link
+                                    href={route("restaurants.index")}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                >
+                                    <Store
+                                        size={18}
+                                        className="text-[color:var(--color-primary-600)]"
+                                    />
+                                    <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                        Restaurants
+                                    </span>
+                                </Link>
+                            )}
+
                             {/* For Restaurants - Only when NOT logged in */}
                             {!user && (
                                 <div className="relative" ref={restaurantRef}>

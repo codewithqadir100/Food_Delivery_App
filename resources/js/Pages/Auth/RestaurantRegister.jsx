@@ -8,7 +8,7 @@ import SelectInput from "@/Components/Forms/SelectInput";
 import Checkbox from "@/Components/Forms/Checkbox";
 import PasswordInput from "@/Components/Forms/PasswordInput";
 import FormLabel from "@/Components/Forms/FormLabel";
-import { Mail, Building2, MapPin, Phone, Store } from "lucide-react";
+import { Mail, Building2, Phone, Store } from "lucide-react";
 
 export default function RestaurantRegister({ categories }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -17,7 +17,6 @@ export default function RestaurantRegister({ categories }) {
         password_confirmation: "",
         restaurant_name: "",
         restaurant_category_id: "",
-        address: "",
         phone: "",
         description: "",
         remember: false,
@@ -105,16 +104,6 @@ export default function RestaurantRegister({ categories }) {
                                 icon={<Phone size={16} />}
                             />
                         </div>
-
-                        <TextInput
-                            type="text"
-                            placeholder="Full address"
-                            value={data.address}
-                            onChange={(e) => setData("address", e.target.value)}
-                            error={errors.address}
-                            icon={<MapPin size={16} />}
-                            required
-                        />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <PasswordInput
