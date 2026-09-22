@@ -129,7 +129,7 @@ export default function MobileNav({
                     >
                         <img
                             src={Restaurantlogo}
-                            className="h-10 rounded-[var(--radius-full)]"
+                            className="h-10 aspect-square object-cover rounded-[var(--radius-full)]"
                             alt="Profile Pic"
                         />
                     </Link>

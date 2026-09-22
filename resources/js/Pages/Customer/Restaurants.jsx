@@ -6,7 +6,7 @@ import Card from "@/Components/Common/Card";
 import Spinner from "@/Components/Common/Spinner";
 import TextInput from "@/Components/Forms/TextInput";
 import SelectInput from "@/Components/Forms/SelectInput";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Star } from "lucide-react";
 import axios from "axios";
 
 export default function Restaurants({ categories = [], user = null }) {
@@ -189,22 +189,53 @@ export default function Restaurants({ categories = [], user = null }) {
                                         {/* Content */}
                                         <div className="p-[var(--spacing-4)] space-y-[var(--spacing-3)]">
                                             {/* Name */}
-                                            <h3 className="text-[var(--font-size-lg)] font-semibold text-[color:var(--color-text-primary)] line-clamp-2">
-                                                {restaurant.name}
-                                            </h3>
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="text-[var(--font-size-lg)] font-semibold text-[color:var(--color-text-primary)] line-clamp-2">
+                                                    {restaurant.name}
+                                                </h3>
 
-                                            {/* Rating & Reviews */}
-                                            <div className="flex items-center gap-[var(--spacing-2)]">
-                                                <span className="text-[var(--font-size-sm)] font-medium text-[color:var(--color-text-primary)]">
-                                                    ★ {restaurant.rating}
-                                                </span>
-                                                <span className="text-[var(--font-size-sm)] text-[color:var(--color-text-muted)]">
-                                                    ({restaurant.review_count})
-                                                </span>
+                                                {/* Rating & Reviews */}
+                                                <div className="flex items-center gap-[var(--spacing-2)]">
+                                                    <span
+                                                        className="flex items-center gap-[var(--spacing-1)] font-medium"
+                                                        style={{
+                                                            gap: "var(--spacing-1)",
+                                                            fontSize:
+                                                                "var(--font-size-sm)",
+                                                            color: "var(--color-text-primary)",
+                                                        }}
+                                                    >
+                                                        <Star
+                                                            size={14}
+                                                            fill="var(--color-primary-300)"
+                                                            stroke="var(--color-primary-500)"
+                                                        />
+                                                        {restaurant.rating}
+                                                    </span>
+                                                    <span
+                                                        className="text-[color:var(--color-text-muted)]"
+                                                        style={{
+                                                            fontSize:
+                                                                "var(--font-size-xs)",
+                                                        }}
+                                                    >
+                                                        (
+                                                        {
+                                                            restaurant.review_count
+                                                        }
+                                                        )
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {/* Category */}
-                                            <p className="text-[var(--font-size-sm)] text-[color:var(--color-text-muted)]">
+                                            <p
+                                                className="text-[color:var(--color-text-muted)]"
+                                                style={{
+                                                    marginTop:
+                                                        "var(--spacing-0)",
+                                                }}
+                                            >
                                                 {restaurant.category?.name ||
                                                     "Restaurant"}
                                             </p>
@@ -226,7 +257,6 @@ export default function Restaurants({ categories = [], user = null }) {
                                             )}
 
                                             {user ? (
-                                                // Authenticated customer - can order
                                                 <Button
                                                     variant="primary"
                                                     size="md"
@@ -240,7 +270,6 @@ export default function Restaurants({ categories = [], user = null }) {
                                                     View Menu
                                                 </Button>
                                             ) : (
-                                                // Guest - show login button
                                                 <Button
                                                     variant="secondary"
                                                     size="md"
