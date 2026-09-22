@@ -9,7 +9,7 @@ import SelectInput from "@/Components/Forms/SelectInput";
 import { Search, MapPin } from "lucide-react";
 import axios from "axios";
 
-export default function Restaurants({ categories = [] }) {
+export default function Restaurants({ categories = [], user = null }) {
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -112,7 +112,7 @@ export default function Restaurants({ categories = [] }) {
                     {/* Filters Section */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-[var(--spacing-4)]">
                         <TextInput
-                            icon={Search}
+                            icon={<Search size={18} />}
                             placeholder="Search restaurants..."
                             value={filters.search}
                             onChange={(e) =>

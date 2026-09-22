@@ -21,76 +21,45 @@ class RestaurantController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-
-        if (!$user) {
-            $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
-                ->with('restaurantCategory')
-                ->get()
-                ->map(function($restaurant) {
-                    return [
-                        'restaurant' => $restaurant,
-                        'distance_km' => null,           
-                        'delivery_charge' => null,
-                    ];
-                });
-            
-            $page = $request->get('page', 1);
-            $paginated = $restaurants->forPage($page, self::PER_PAGE);
-            $total = $restaurants->count();
-
-            return response()->json([
-                'data' => RestaurantResource::collection($paginated),
-                'meta' => [
-                    'current_page' => $page,
-                    'per_page' => self::PER_PAGE,
-                    'total' => $total,
-                    'last_page' => ceil($total / self::PER_PAGE),
-                ]
-            ]);
-        }
-
         
-        if (!$user || !$user->latitude || !$user->longitude) {
-            return response()->json([
-                'message' => 'Customer location not set',
-                'data' => []
-            ], 400);
-        }
-
         $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
             ->with('restaurantCategory')
-            ->get()
-            ->filter(function($restaurant) use ($user) {
-                $distance = $this->deliveryService->calculateDistance(
-                    $restaurant->latitude,
-                    $restaurant->longitude,
-                    $user->latitude,
-                    $user->longitude
-                );
-                
-                return $distance <= $restaurant->service_radius_km;
-            })
-            ->values()
-            ->map(function($restaurant) use ($user) {
-                $distance = $this->deliveryService->calculateDistance(
-                    $restaurant->latitude,
-                    $restaurant->longitude,
-                    $user->latitude,
-                    $user->longitude
-                );
-                
-                $deliveryCharge = $this->deliveryService->calculateDeliveryCharge(
-                    $distance,
-                    self::BASE_DELIVERY_FEE,
-                    self::PER_KM_FEE
-                );
+            ->get();
 
-                return [
-                    'restaurant' => $restaurant,
-                    'distance_km' => round($distance, 2),
-                    'delivery_charge' => $deliveryCharge,
-                ];
+        if ($user && $user->latitude && $user->longitude) {
+            $restaurants = $restaurants
+                ->filter(function($restaurant) use ($user) {
+                    $distance = $this->deliveryService->calculateDistance(
+                        $restaurant->latitude,
+                        $restaurant->longitude,
+                        $user->latitude,
+                        $user->longitude
+                    );
+                    
+                    return $distance <= $restaurant->service_radius_km;
+                })
+                ->values()
+                ->each(function($restaurant) use ($user) {
+                    $distance = $this->deliveryService->calculateDistance(
+                        $restaurant->latitude,
+                        $restaurant->longitude,
+                        $user->latitude,
+                        $user->longitude
+                    );
+                    
+                    $restaurant->distance_km = round($distance, 2);
+                    $restaurant->delivery_charge = $this->deliveryService->calculateDeliveryCharge(
+                        $distance,
+                        self::BASE_DELIVERY_FEE,
+                        self::PER_KM_FEE
+                    );
+                });
+        } else {
+            $restaurants = $restaurants->each(function($restaurant) {
+                $restaurant->distance_km = null;
+                $restaurant->delivery_charge = null;
             });
+        }
 
         $page = $request->get('page', 1);
         $paginated = $restaurants->forPage($page, self::PER_PAGE);
@@ -117,7 +86,7 @@ class RestaurantController extends Controller
 
         if (!$user || !$user->latitude || !$user->longitude) {
             return response()->json([
-                'message' => 'Customer location not set',
+                'message' => 'Please set your delivery location in profile',
             ], 400);
         }
 
@@ -149,12 +118,11 @@ class RestaurantController extends Controller
             self::PER_KM_FEE
         );
 
+        $restaurant->distance_km = round($distance, 2);
+        $restaurant->delivery_charge = $deliveryCharge;
+
         return response()->json([
             'data' => RestaurantResource::make($restaurant)
-                ->additional([
-                    'distance_km' => round($distance, 2),
-                    'delivery_charge' => $deliveryCharge,
-                ])
         ]);
     }
 
@@ -163,20 +131,34 @@ class RestaurantController extends Controller
         $query = $request->get('q', '');
         $user = auth()->user();
 
-        if (!$user || !$user->latitude || !$user->longitude) {
-            return response()->json([
-                'message' => 'Customer location not set',
-                'data' => []
-            ], 400);
-        }
-
         $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
             ->where('name', 'LIKE', "%{$query}%")
             ->orWhereHas('restaurantCategory', function($q) use ($query) {
                 $q->where('name', 'LIKE', "%{$query}%");
             })
             ->with('restaurantCategory')
-            ->get()
+            ->get();
+
+        if (!$user) {
+            $restaurants = $restaurants->each(function($restaurant) {
+                $restaurant->distance_km = null;
+                $restaurant->delivery_charge = null;
+            });
+
+            return response()->json([
+                'data' => RestaurantResource::collection($restaurants->take(12))
+            ]);
+        }
+
+        if (!$user->latitude || !$user->longitude) {
+            return response()->json([
+                'message' => 'Please set your delivery location in profile',
+                'data' => []
+            ], 400);
+        }
+
+        // Filter by radius and attach distance/charge
+        $restaurants = $restaurants
             ->filter(function($restaurant) use ($user) {
                 $distance = $this->deliveryService->calculateDistance(
                     $restaurant->latitude,
@@ -188,7 +170,7 @@ class RestaurantController extends Controller
                 return $distance <= $restaurant->service_radius_km;
             })
             ->values()
-            ->map(function($restaurant) use ($user) {
+            ->each(function($restaurant) use ($user) {
                 $distance = $this->deliveryService->calculateDistance(
                     $restaurant->latitude,
                     $restaurant->longitude,
@@ -196,17 +178,12 @@ class RestaurantController extends Controller
                     $user->longitude
                 );
                 
-                $deliveryCharge = $this->deliveryService->calculateDeliveryCharge(
+                $restaurant->distance_km = round($distance, 2);
+                $restaurant->delivery_charge = $this->deliveryService->calculateDeliveryCharge(
                     $distance,
                     self::BASE_DELIVERY_FEE,
                     self::PER_KM_FEE
                 );
-
-                return [
-                    'restaurant' => $restaurant,
-                    'distance_km' => round($distance, 2),
-                    'delivery_charge' => $deliveryCharge,
-                ];
             });
 
         return response()->json([

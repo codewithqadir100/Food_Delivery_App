@@ -15,14 +15,15 @@ Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
 
+
 Route::get('/restaurants', function () {
-    return Inertia::render('Customer/Restaurants', [
-        'categories' => \App\Models\RestaurantCategory::orderBy('name')->get(['id', 'name']),
-    ]);
-})->name('restaurants.index');
+        return Inertia::render('Customer/Restaurants', [
+            'categories' => \App\Models\RestaurantCategory::orderBy('name')->get(['id', 'name']),
+            'user' => auth()->user(),
+        ]);
+    })->name('restaurants.index');
 
-
-Route::middleware(['auth', 'customer'])->group(function () {
+Route::middleware(['auth', 'customer'])->group(function () {    
     Route::get('/customer/profile', [ProfileController::class, 'index'])->name('customer.profile.index');
     Route::get('/customer/profile/edit', [ProfileController::class, 'edit'])->name('customer.profile.edit');
     Route::patch('/customer/profile', [ProfileController::class, 'update'])->name('customer.profile.update');
