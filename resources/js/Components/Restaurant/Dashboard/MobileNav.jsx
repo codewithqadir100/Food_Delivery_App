@@ -86,10 +86,7 @@ export default function MobileNav({
         <>
             {/* Top Bar */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] flex items-center justify-between px-4 z-[var(--z-fixed)]">
-                <Link
-                    href="/restaurant/dashboard"
-                    className="flex items-center"
-                >
+                <Link href={route("home")} className="flex items-center">
                     <img src={Logo} alt="FoodHub" className="h-8 w-auto" />
                 </Link>
 

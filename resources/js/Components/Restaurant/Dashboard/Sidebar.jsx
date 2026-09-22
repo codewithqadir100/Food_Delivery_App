@@ -101,7 +101,7 @@ export default function Sidebar({
             {/* Header / Logo */}
             <div className="flex h-16 shrink-0 items-center justify-between border-b border-[color:var(--color-border-light)] px-4">
                 <Link
-                    href="/restaurant/dashboard"
+                    href={route("home")}
                     className={`flex items-center overflow-hidden transition-all duration-[var(--transition-normal)] ${
                         isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                     }`}

@@ -24,6 +24,7 @@ import TextInput from "../Forms/TextInput";
 export default function Navbar({ categories = [] }) {
     const { auth } = usePage().props;
     const user = auth?.user;
+    const isRestaurant = auth?.user?.role === "restaurant_owner";
 
     const [menuAnimating, setMenuAnimating] = useState(false);
     const [searchAnimating, setSearchAnimating] = useState(false);
@@ -121,7 +122,10 @@ export default function Navbar({ categories = [] }) {
                                 />
                             </button>
 
-                            <Link href="/" className="flex-shrink-0">
+                            <Link
+                                href={route("home")}
+                                className="flex-shrink-0"
+                            >
                                 <img
                                     src={Logo}
                                     alt="FoodHub"
@@ -179,23 +183,6 @@ export default function Navbar({ categories = [] }) {
                                 )}
                             </div>
 
-                            {/* Browse Restaurants - Only when logged in as customer */}
-                            {user && user.role === "customer" && (
-                                <Link
-                                    href={route("restaurants.index")}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                >
-                                    <Store
-                                        size={18}
-                                        className="text-[color:var(--color-primary-600)]"
-                                    />
-                                    <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                        Restaurants
-                                    </span>
-                                </Link>
-                            )}
-
-                            {/* For Restaurants - Only when NOT logged in */}
                             {!user && (
                                 <div className="relative" ref={restaurantRef}>
                                     <button
@@ -276,175 +263,202 @@ export default function Navbar({ categories = [] }) {
                             {/* Desktop Auth */}
                             <div className="hidden md:flex items-center gap-2">
                                 {user ? (
-                                    <>
+                                    isRestaurant ? (
                                         <Link
-                                            href="/cart"
-                                            className="relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                            href={route("restaurant.dashboard")}
+                                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                         >
-                                            <ShoppingCart
-                                                size={20}
-                                                className="text-[color:var(--color-text-secondary)]"
+                                            <Store
+                                                size={18}
+                                                className="text-[color:var(--color-primary-600)]"
                                             />
-                                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                                0
+                                            <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                                Restaurant Dashboard
                                             </span>
                                         </Link>
-
-                                        <Link
-                                            href={route("customer.wishlist")}
-                                            className="p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                        >
-                                            <Heart
-                                                size={20}
-                                                className="text-[color:var(--color-text-secondary)]"
-                                            />
-                                        </Link>
-
-                                        <div
-                                            className="relative"
-                                            ref={profileRef}
-                                        >
-                                            <button
-                                                onClick={() =>
-                                                    setProfileDropdown(
-                                                        !profileDropdown,
-                                                    )
-                                                }
-                                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    ) : (
+                                        <>
+                                            <Link
+                                                href="/cart"
+                                                className="relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                             >
-                                                <div className="w-8 h-8 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
-                                                    {user.name
-                                                        .charAt(0)
-                                                        .toUpperCase()}
-                                                </div>
-                                                <ChevronDown
-                                                    size={14}
-                                                    className={`text-[color:var(--color-text-muted)] transition-transform ${
-                                                        profileDropdown
-                                                            ? "rotate-180"
-                                                            : ""
-                                                    }`}
+                                                <ShoppingCart
+                                                    size={20}
+                                                    className="text-[color:var(--color-text-secondary)]"
                                                 />
-                                            </button>
+                                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                                    0
+                                                </span>
+                                            </Link>
 
-                                            {profileDropdown && (
-                                                <div className="absolute right-0 mt-2 w-56 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-xl shadow-lg overflow-hidden z-50">
-                                                    <div className="px-4 py-3 border-b border-[color:var(--color-border-light)]">
-                                                        <p className="text-sm font-semibold text-[color:var(--color-text-primary)] truncate">
-                                                            {user.name}
-                                                        </p>
-                                                        <p className="text-xs text-[color:var(--color-text-muted)] truncate">
-                                                            {user.email}
-                                                        </p>
+                                            <Link
+                                                href={route(
+                                                    "customer.wishlist",
+                                                )}
+                                                className="p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                            >
+                                                <Heart
+                                                    size={20}
+                                                    className="text-[color:var(--color-text-secondary)]"
+                                                />
+                                            </Link>
+
+                                            <div
+                                                className="relative"
+                                                ref={profileRef}
+                                            >
+                                                <button
+                                                    onClick={() =>
+                                                        setProfileDropdown(
+                                                            !profileDropdown,
+                                                        )
+                                                    }
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
+                                                        {user.name
+                                                            .charAt(0)
+                                                            .toUpperCase()}
                                                     </div>
-                                                    <div className="py-1">
-                                                        <Link
-                                                            href={route(
-                                                                "customer.profile.index",
-                                                            )}
-                                                            className={
-                                                                dropdownItemClass
-                                                            }
-                                                            onClick={() =>
-                                                                setProfileDropdown(
-                                                                    false,
-                                                                )
-                                                            }
-                                                        >
-                                                            <span className="flex items-center gap-2">
-                                                                <User
-                                                                    size={16}
-                                                                />
-                                                                My Profile
-                                                            </span>
-                                                        </Link>
-                                                        <Link
-                                                            href={route(
-                                                                "customer.history",
-                                                            )}
-                                                            className={
-                                                                dropdownItemClass
-                                                            }
-                                                            onClick={() =>
-                                                                setProfileDropdown(
-                                                                    false,
-                                                                )
-                                                            }
-                                                        >
-                                                            <span className="flex items-center gap-2">
-                                                                <ClipboardList
-                                                                    size={16}
-                                                                />
-                                                                My Orders
-                                                            </span>
-                                                        </Link>
-                                                        <Link
-                                                            href={route(
-                                                                "customer.wishlist",
-                                                            )}
-                                                            className={
-                                                                dropdownItemClass
-                                                            }
-                                                            onClick={() =>
-                                                                setProfileDropdown(
-                                                                    false,
-                                                                )
-                                                            }
-                                                        >
-                                                            <span className="flex items-center gap-2">
-                                                                <Heart
-                                                                    size={16}
-                                                                />
-                                                                My Wishlist
-                                                            </span>
-                                                        </Link>
-                                                        <Link
-                                                            href={route(
-                                                                "customer.addresses",
-                                                            )}
-                                                            className={
-                                                                dropdownItemClass
-                                                            }
-                                                            onClick={() =>
-                                                                setProfileDropdown(
-                                                                    false,
-                                                                )
-                                                            }
-                                                        >
-                                                            <span className="flex items-center gap-2">
-                                                                <MapPin
-                                                                    size={16}
-                                                                />
-                                                                My Addresses
-                                                            </span>
-                                                        </Link>
+                                                    <ChevronDown
+                                                        size={14}
+                                                        className={`text-[color:var(--color-text-muted)] transition-transform ${
+                                                            profileDropdown
+                                                                ? "rotate-180"
+                                                                : ""
+                                                        }`}
+                                                    />
+                                                </button>
+
+                                                {profileDropdown && (
+                                                    <div className="absolute right-0 mt-2 w-56 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-xl shadow-lg overflow-hidden z-50">
+                                                        <div className="px-4 py-3 border-b border-[color:var(--color-border-light)]">
+                                                            <p className="text-sm font-semibold text-[color:var(--color-text-primary)] truncate">
+                                                                {user.name}
+                                                            </p>
+                                                            <p className="text-xs text-[color:var(--color-text-muted)] truncate">
+                                                                {user.email}
+                                                            </p>
+                                                        </div>
+                                                        <div className="py-1">
+                                                            <Link
+                                                                href={route(
+                                                                    "customer.profile.index",
+                                                                )}
+                                                                className={
+                                                                    dropdownItemClass
+                                                                }
+                                                                onClick={() =>
+                                                                    setProfileDropdown(
+                                                                        false,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <User
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    My Profile
+                                                                </span>
+                                                            </Link>
+                                                            <Link
+                                                                href={route(
+                                                                    "customer.history",
+                                                                )}
+                                                                className={
+                                                                    dropdownItemClass
+                                                                }
+                                                                onClick={() =>
+                                                                    setProfileDropdown(
+                                                                        false,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <ClipboardList
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    My Orders
+                                                                </span>
+                                                            </Link>
+                                                            <Link
+                                                                href={route(
+                                                                    "customer.wishlist",
+                                                                )}
+                                                                className={
+                                                                    dropdownItemClass
+                                                                }
+                                                                onClick={() =>
+                                                                    setProfileDropdown(
+                                                                        false,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <Heart
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    My Wishlist
+                                                                </span>
+                                                            </Link>
+                                                            <Link
+                                                                href={route(
+                                                                    "customer.addresses",
+                                                                )}
+                                                                className={
+                                                                    dropdownItemClass
+                                                                }
+                                                                onClick={() =>
+                                                                    setProfileDropdown(
+                                                                        false,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <MapPin
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    My Addresses
+                                                                </span>
+                                                            </Link>
+                                                        </div>
+                                                        <div className="border-t border-[color:var(--color-border-light)] py-1">
+                                                            <Link
+                                                                href={route(
+                                                                    "logout",
+                                                                )}
+                                                                method="post"
+                                                                as="button"
+                                                                className={`${dropdownItemClass} text-[color:var(--color-danger-600)]`}
+                                                                onClick={() =>
+                                                                    setProfileDropdown(
+                                                                        false,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <LogOut
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    Logout
+                                                                </span>
+                                                            </Link>
+                                                        </div>
                                                     </div>
-                                                    <div className="border-t border-[color:var(--color-border-light)] py-1">
-                                                        <Link
-                                                            href={route(
-                                                                "logout",
-                                                            )}
-                                                            method="post"
-                                                            as="button"
-                                                            className={`${dropdownItemClass} text-[color:var(--color-danger-600)]`}
-                                                            onClick={() =>
-                                                                setProfileDropdown(
-                                                                    false,
-                                                                )
-                                                            }
-                                                        >
-                                                            <span className="flex items-center gap-2">
-                                                                <LogOut
-                                                                    size={16}
-                                                                />
-                                                                Logout
-                                                            </span>
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
+                                                )}
+                                            </div>
+                                        </>
+                                    )
                                 ) : (
                                     <>
                                         <Link href={route("login")}>
@@ -466,18 +480,30 @@ export default function Navbar({ categories = [] }) {
 
                             {/* Mobile - Profile or Cart */}
                             {user ? (
-                                <Link
-                                    href="/cart"
-                                    className="md:hidden relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                >
-                                    <ShoppingCart
-                                        size={20}
-                                        className="text-[color:var(--color-text-secondary)]"
-                                    />
-                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                        0
-                                    </span>
-                                </Link>
+                                isRestaurant ? (
+                                    <Link
+                                        href={route("restaurant.dashboard")}
+                                        className="flex md:hidden items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    >
+                                        <Store
+                                            size={18}
+                                            className="text-[color:var(--color-primary-600)]"
+                                        />
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href="/cart"
+                                        className="md:hidden relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    >
+                                        <ShoppingCart
+                                            size={20}
+                                            className="text-[color:var(--color-text-secondary)]"
+                                        />
+                                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                            0
+                                        </span>
+                                    </Link>
+                                )
                             ) : (
                                 <Link
                                     href={route("login")}
@@ -499,7 +525,7 @@ export default function Navbar({ categories = [] }) {
                         <div className="flex items-center justify-between h-12">
                             <div className="flex items-center gap-6">
                                 <Link
-                                    href="/"
+                                    href={route("home")}
                                     className={navLinkClass(
                                         route().current("home"),
                                     )}
@@ -685,7 +711,7 @@ export default function Navbar({ categories = [] }) {
                         <div className="px-4 py-4 space-y-1">
                             {/* Main Nav */}
                             <Link
-                                href="/"
+                                href={route("home")}
                                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
@@ -804,99 +830,118 @@ export default function Navbar({ categories = [] }) {
                             {/* User Section */}
                             <div className="border-t border-[color:var(--color-border-light)] pt-3 mt-3">
                                 {user ? (
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-3 px-3 py-2">
-                                            <div className="w-9 h-9 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
-                                                {user.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                    isRestaurant ? (
+                                        <Link
+                                            href={route("restaurant.dashboard")}
+                                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                        >
+                                            <Store
+                                                size={18}
+                                                className="text-[color:var(--color-primary-600)]"
+                                            />
+                                            <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                                Restaurant Dashboard
+                                            </span>
+                                        </Link>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-3 px-3 py-2">
+                                                <div className="w-9 h-9 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
+                                                    {user.name
+                                                        .charAt(0)
+                                                        .toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                                        {user.name}
+                                                    </p>
+                                                    <p className="text-xs text-[color:var(--color-text-muted)]">
+                                                        {user.email}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                    {user.name}
-                                                </p>
-                                                <p className="text-xs text-[color:var(--color-text-muted)]">
-                                                    {user.email}
-                                                </p>
-                                            </div>
+                                            <Link
+                                                href={route(
+                                                    "customer.profile.index",
+                                                )}
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <User
+                                                    size={18}
+                                                    className="text-[color:var(--color-text-muted)]"
+                                                />
+                                                <span className="text-sm font-medium">
+                                                    My Profile
+                                                </span>
+                                            </Link>
+                                            <Link
+                                                href="/cart"
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <ShoppingCart
+                                                    size={18}
+                                                    className="text-[color:var(--color-text-muted)]"
+                                                />
+                                                <span className="text-sm font-medium">
+                                                    My Cart
+                                                </span>
+                                            </Link>
+                                            <Link
+                                                href={route(
+                                                    "customer.wishlist",
+                                                )}
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <Heart
+                                                    size={18}
+                                                    className="text-[color:var(--color-text-muted)]"
+                                                />
+                                                <span className="text-sm font-medium">
+                                                    My Wishlist
+                                                </span>
+                                            </Link>
+                                            <Link
+                                                href={route(
+                                                    "customer.addresses",
+                                                )}
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <MapPin
+                                                    size={18}
+                                                    className="text-[color:var(--color-text-muted)]"
+                                                />
+                                                <span className="text-sm font-medium">
+                                                    My Addresses
+                                                </span>
+                                            </Link>
+                                            <Link
+                                                href={route("logout")}
+                                                method="post"
+                                                as="button"
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-bg-secondary)] transition-colors w-full text-left"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <LogOut size={18} />
+                                                <span className="text-sm font-medium">
+                                                    Logout
+                                                </span>
+                                            </Link>
                                         </div>
-                                        <Link
-                                            href={route(
-                                                "customer.profile.index",
-                                            )}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <User
-                                                size={18}
-                                                className="text-[color:var(--color-text-muted)]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                My Profile
-                                            </span>
-                                        </Link>
-                                        <Link
-                                            href="/cart"
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <ShoppingCart
-                                                size={18}
-                                                className="text-[color:var(--color-text-muted)]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                My Cart
-                                            </span>
-                                        </Link>
-                                        <Link
-                                            href={route("customer.wishlist")}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <Heart
-                                                size={18}
-                                                className="text-[color:var(--color-text-muted)]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                My Wishlist
-                                            </span>
-                                        </Link>
-                                        <Link
-                                            href={route("customer.addresses")}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <MapPin
-                                                size={18}
-                                                className="text-[color:var(--color-text-muted)]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                My Addresses
-                                            </span>
-                                        </Link>
-                                        <Link
-                                            href={route("logout")}
-                                            method="post"
-                                            as="button"
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-bg-secondary)] transition-colors w-full text-left"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <LogOut size={18} />
-                                            <span className="text-sm font-medium">
-                                                Logout
-                                            </span>
-                                        </Link>
-                                    </div>
+                                    )
                                 ) : (
                                     <div className="flex items-center gap-3 px-3 pt-2">
                                         <Link

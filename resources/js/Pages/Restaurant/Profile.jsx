@@ -10,14 +10,6 @@ import Button from "@/Components/Common/Button";
 import Alert from "@/Components/Common/Alert";
 import { AlertTriangle } from "lucide-react";
 
-const axiosInstance = axios.create({
-    headers: {
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
-            ?.content,
-        Accept: "application/json",
-    },
-});
-
 export default function RestaurantProfile() {
     const { restaurant, categories } = usePage().props;
 
@@ -72,7 +64,7 @@ export default function RestaurantProfile() {
         const formData = new FormData();
         formData.append(fieldName, file);
 
-        const { data: response } = await axiosInstance.post(url, formData);
+        const { data: response } = await axios.post(url, formData);
         return response;
     };
 
@@ -145,7 +137,7 @@ export default function RestaurantProfile() {
         setStatusLoading(true);
 
         try {
-            const { data: response } = await axiosInstance.patch(
+            const { data: response } = await axios.patch(
                 route("restaurant.profile.update-status"),
                 {
                     is_open: pendingStatus,

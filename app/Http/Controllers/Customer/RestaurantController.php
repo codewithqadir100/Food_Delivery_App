@@ -23,7 +23,7 @@ class RestaurantController extends Controller
         $user = auth()->user();
         $categoryId = $request->get('category_id');
         
-        $query = Restaurant::where('status', Restaurant::STATUS_APPROVED)
+        $query = Restaurant::where('status', Restaurant::STATUS_APPROVED)->where('is_open', true)
             ->with('restaurantCategory');
         
         if ($categoryId) {

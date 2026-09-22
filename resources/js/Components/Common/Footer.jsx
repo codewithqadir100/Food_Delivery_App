@@ -131,24 +131,32 @@ export default function Footer() {
                             For Restaurants
                         </h3>
                         <ul className="mt-5 space-y-3">
-                            <li>
-                                <Link
-                                    href={route("restaurant.register")}
-                                    className="inline-flex items-center gap-1 text-sm text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-primary-600)]"
-                                >
-                                    Add Your Restaurant
-                                    <ArrowUpRight className="h-3.5 w-3.5" />
-                                </Link>
-                            </li>
-                            <li>
-                                <FooterLink href={route("restaurant.login")}>
-                                    Restaurant Login
-                                </FooterLink>
-                            </li>
+                            {!isRestaurantLoggedIn && (
+                                <>
+                                    <li>
+                                        <Link
+                                            href={route("restaurant.register")}
+                                            className="inline-flex items-center gap-1 text-sm text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-primary-600)]"
+                                        >
+                                            Add Your Restaurant
+                                            <ArrowUpRight size={16} />
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <FooterLink
+                                            href={route("restaurant.login")}
+                                        >
+                                            Restaurant Login
+                                        </FooterLink>
+                                    </li>
+                                </>
+                            )}
 
                             {isRestaurantLoggedIn && (
                                 <li>
-                                    <FooterLink href="/restaurant/dashboard">
+                                    <FooterLink
+                                        href={route("restaurant.dashboard")}
+                                    >
                                         Restaurant Dashboard
                                     </FooterLink>
                                 </li>
