@@ -1,0 +1,65 @@
+.restaurant-main-heading {
+    font-size: var(--font-size-3xl);
+    font-weight: bold;
+    color: var(--color-text-primary);
+}
+
+.restaurant-card-title {
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+    color: var(--color-text-primary);
+}
+
+.restaurant-card-rating {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.restaurant-card-review-count {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+.restaurant-card-category {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    padding: 2px 8px;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.restaurant-card-distance {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+.restaurant-card-delivery-charges {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-600);
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.restaurant-grid {
+    display: grid;
+    gap: var(--spacing-6);
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media screen and (max-width: 930px) {
+    .restaurant-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media screen and (max-width: 640px) {
+    .restaurant-main-heading {
+        font-size: var(--font-size-2xl);
+    }
+    .restaurant-grid {
+        grid-template-columns: 1fr;
+    }
+}

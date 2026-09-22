@@ -1,12 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
-import Button from "@/Components/Common/Button";
-import Card from "@/Components/Common/Card";
 import Spinner from "@/Components/Common/Spinner";
-import TextInput from "@/Components/Forms/TextInput";
-import SelectInput from "@/Components/Forms/SelectInput";
-import { Search, MapPin, Star } from "lucide-react";
+import RestaurantCard from "@/Components/Customer/RestaurantCard";
+import RestaurantFilters from "@/Components/Customer/RestaurantFilters";
+import RestaurantPagination from "@/Components/Customer/RestaurantPagination";
 import axios from "axios";
 
 export default function Restaurants({ categories = [], user = null }) {
@@ -43,11 +41,12 @@ export default function Restaurants({ categories = [], user = null }) {
 
             const params = new URLSearchParams({
                 page: filters.page,
+                category_id: filters.category_id,
             });
 
             if (debouncedSearch) {
                 const response = await axios.get(
-                    `/api/restaurants/search?q=${encodeURIComponent(debouncedSearch)}`,
+                    `/api/restaurants/search?q=${encodeURIComponent(debouncedSearch)}&category_id=${filters.category_id}`,
                 );
                 setRestaurants(response.data.data);
                 setPagination({
@@ -101,42 +100,26 @@ export default function Restaurants({ categories = [], user = null }) {
                 <div className="space-y-[var(--spacing-8)]">
                     {/* Header */}
                     <div className="space-y-[var(--spacing-4)]">
-                        <h1 className="text-[var(--font-size-3xl)] font-bold text-[color:var(--color-text-primary)]">
+                        <h1 className="restaurant-main-heading">
                             Browse Restaurants
                         </h1>
-                        <p className="text-[var(--font-size-lg)] text-[color:var(--color-text-muted)]">
+                        <p
+                            className="-mt-1 text-[color:var(--color-text-muted)]"
+                            style={{
+                                fontSize: "var(--font-size-md)",
+                                marginTop: "var(--spacing-1)",
+                            }}
+                        >
                             Order food from your favorite restaurants
                         </p>
                     </div>
 
-                    {/* Filters Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[var(--spacing-4)]">
-                        <TextInput
-                            icon={<Search size={18} />}
-                            placeholder="Search restaurants..."
-                            value={filters.search}
-                            onChange={(e) =>
-                                handleFilterChange("search", e.target.value)
-                            }
-                        />
-
-                        <SelectInput
-                            value={filters.category_id}
-                            onChange={(e) =>
-                                handleFilterChange(
-                                    "category_id",
-                                    e.target.value,
-                                )
-                            }
-                        >
-                            <option value="">All Categories</option>
-                            {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </SelectInput>
-                    </div>
+                    {/* Filters */}
+                    <RestaurantFilters
+                        filters={filters}
+                        categories={categories}
+                        onFilterChange={handleFilterChange}
+                    />
 
                     {/* Error State */}
                     {error && (
@@ -155,199 +138,31 @@ export default function Restaurants({ categories = [], user = null }) {
                     ) : restaurants.length > 0 ? (
                         <>
                             {/* Restaurant Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--spacing-6)]">
+                            <div className="restaurant-grid">
                                 {restaurants.map((restaurant) => (
-                                    <Card
+                                    <RestaurantCard
                                         key={restaurant.id}
-                                        shadow={true}
-                                        padding="none"
-                                        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                                        onClick={() =>
+                                        restaurant={restaurant}
+                                        user={user}
+                                        onCardClick={() =>
                                             handleRestaurantClick(restaurant.id)
                                         }
-                                    >
-                                        {/* Cover Image */}
-                                        <div className="w-full h-[200px] overflow-hidden bg-[color:var(--color-bg-tertiary)]">
-                                            {restaurant.cover_image_url ? (
-                                                <img
-                                                    src={
-                                                        restaurant.cover_image_url
-                                                    }
-                                                    alt={restaurant.name}
-                                                    className="w-full h-full object-cover hover:scale-105 transition-transform"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <MapPin
-                                                        size={48}
-                                                        className="text-[color:var(--color-text-muted)]"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="p-[var(--spacing-4)] space-y-[var(--spacing-3)]">
-                                            {/* Name */}
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="text-[var(--font-size-lg)] font-semibold text-[color:var(--color-text-primary)] line-clamp-2">
-                                                    {restaurant.name}
-                                                </h3>
-
-                                                {/* Rating & Reviews */}
-                                                <div className="flex items-center gap-[var(--spacing-2)]">
-                                                    <span
-                                                        className="flex items-center gap-[var(--spacing-1)] font-medium"
-                                                        style={{
-                                                            gap: "var(--spacing-1)",
-                                                            fontSize:
-                                                                "var(--font-size-sm)",
-                                                            color: "var(--color-text-primary)",
-                                                        }}
-                                                    >
-                                                        <Star
-                                                            size={14}
-                                                            fill="var(--color-primary-300)"
-                                                            stroke="var(--color-primary-500)"
-                                                        />
-                                                        {restaurant.rating}
-                                                    </span>
-                                                    <span
-                                                        className="text-[color:var(--color-text-muted)]"
-                                                        style={{
-                                                            fontSize:
-                                                                "var(--font-size-xs)",
-                                                        }}
-                                                    >
-                                                        (
-                                                        {
-                                                            restaurant.review_count
-                                                        }
-                                                        )
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Category */}
-                                            <p
-                                                className="text-[color:var(--color-text-muted)]"
-                                                style={{
-                                                    marginTop:
-                                                        "var(--spacing-0)",
-                                                }}
-                                            >
-                                                {restaurant.category?.name ||
-                                                    "Restaurant"}
-                                            </p>
-
-                                            {restaurant.distance_km !==
-                                                null && (
-                                                <div className="flex justify-between items-center text-[var(--font-size-sm)]">
-                                                    <span className="text-[color:var(--color-text-muted)]">
-                                                        {restaurant.distance_km}{" "}
-                                                        km
-                                                    </span>
-                                                    <span className="font-semibold text-[color:var(--color-primary-600)]">
-                                                        $
-                                                        {
-                                                            restaurant.delivery_charge
-                                                        }
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            {user ? (
-                                                <Button
-                                                    variant="primary"
-                                                    size="md"
-                                                    fullWidth
-                                                    onClick={() =>
-                                                        handleRestaurantClick(
-                                                            restaurant.id,
-                                                        )
-                                                    }
-                                                >
-                                                    View Menu
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="secondary"
-                                                    size="md"
-                                                    fullWidth
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("login"),
-                                                        )
-                                                    }
-                                                >
-                                                    Login to Order
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </Card>
+                                    />
                                 ))}
                             </div>
 
                             {/* Pagination */}
-                            {pagination.last_page > 1 && (
-                                <div className="flex items-center justify-center gap-[var(--spacing-3)] pt-[var(--spacing-8)]">
-                                    <Button
-                                        variant="secondary"
-                                        size="md"
-                                        disabled={pagination.current_page === 1}
-                                        onClick={() =>
-                                            handlePaginationChange(
-                                                pagination.current_page - 1,
-                                            )
-                                        }
-                                    >
-                                        Previous
-                                    </Button>
-
-                                    {Array.from(
-                                        { length: pagination.last_page },
-                                        (_, i) => i + 1,
-                                    ).map((page) => (
-                                        <Button
-                                            key={page}
-                                            variant={
-                                                page === pagination.current_page
-                                                    ? "primary"
-                                                    : "secondary"
-                                            }
-                                            size="md"
-                                            onClick={() =>
-                                                handlePaginationChange(page)
-                                            }
-                                        >
-                                            {page}
-                                        </Button>
-                                    ))}
-
-                                    <Button
-                                        variant="secondary"
-                                        size="md"
-                                        disabled={
-                                            pagination.current_page ===
-                                            pagination.last_page
-                                        }
-                                        onClick={() =>
-                                            handlePaginationChange(
-                                                pagination.current_page + 1,
-                                            )
-                                        }
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
-                            )}
+                            <RestaurantPagination
+                                pagination={pagination}
+                                onPageChange={handlePaginationChange}
+                            />
                         </>
                     ) : (
                         <div className="text-center py-[var(--spacing-20)]">
-                            <p className="text-[var(--font-size-lg)] text-[color:var(--color-text-muted)]">
+                            <p className="text-[color:var(--color-text-muted)]">
                                 No restaurants found in your delivery area
                             </p>
-                            <p className="text-[var(--font-size-sm)] text-[color:var(--color-text-muted)] mt-[var(--spacing-2)]">
+                            <p className="text-[color:var(--color-text-muted)] mt-[var(--spacing-2)]">
                                 Please check your location or try adjusting your
                                 search
                             </p>
