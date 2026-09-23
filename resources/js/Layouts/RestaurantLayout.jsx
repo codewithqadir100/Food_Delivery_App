@@ -19,7 +19,7 @@ export default function RestaurantLayout({
     return (
         <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
             <Sidebar
-                Restaurantlogo={restaurant.logo_url}
+                Restaurantlogo={restaurant?.logo_url}
                 restaurantName={restaurant.name}
                 currentRoute={currentRoute}
                 isPending={isPending}
@@ -29,7 +29,7 @@ export default function RestaurantLayout({
             />
 
             <MobileNav
-                Restaurantlogo={restaurant.logo_url}
+                Restaurantlogo={restaurant?.logo_url}
                 currentRoute={currentRoute}
                 isPending={isPending}
                 onLogout={onLogout}

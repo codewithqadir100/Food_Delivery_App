@@ -15,7 +15,7 @@ export default function SidebarItem({
                 {image ? (
                     <img
                         src={image}
-                        className="h-8 rounded-[var(--radius-full)]"
+                        className="h-8 aspect-square object-cover rounded-[var(--radius-full)]"
                         alt="Restaurant Logo"
                     />
                 ) : (

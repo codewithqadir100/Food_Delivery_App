@@ -16,15 +16,34 @@ import {
     Package,
     ClipboardList,
     ChevronRight,
+    LayoutDashboard,
 } from "lucide-react";
 import Logo from "@/assets/logo.png";
 import Button from "./Button";
 import TextInput from "../Forms/TextInput";
 
-export default function Navbar({ categories = [] }) {
+export default function Navbar({ categories = [], RestaurantLogo }) {
     const { auth } = usePage().props;
     const user = auth?.user;
     const isRestaurant = auth?.user?.role === "restaurant_owner";
+    const restaurant = auth?.restaurant;
+    const customer = auth?.customer;
+
+    const restaurantLocation = [
+        restaurant?.street_address,
+        restaurant?.area_name,
+        restaurant?.city_name,
+    ]
+        .filter(Boolean)
+        .join(", ");
+
+    const customerLocation = customer?.location || "";
+
+    const location = user?.is_restaurant_owner
+        ? restaurantLocation
+        : user?.is_customer
+          ? customerLocation
+          : "";
 
     const [menuAnimating, setMenuAnimating] = useState(false);
     const [searchAnimating, setSearchAnimating] = useState(false);
@@ -137,48 +156,60 @@ export default function Navbar({ categories = [] }) {
                         {/* Center - Desktop Only */}
                         <div className="hidden md:flex items-center gap-4">
                             {/* Address Selector */}
-                            <div className="relative" ref={addressRef}>
-                                <button
-                                    onClick={() =>
-                                        setAddressDropdown(!addressDropdown)
-                                    }
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                >
-                                    <MapPin
-                                        size={18}
-                                        className="text-[color:var(--color-primary-600)]"
-                                    />
-                                    <span className="text-sm text-[color:var(--color-text-primary)] font-medium max-w-[140px] truncate">
-                                        Select Address
-                                    </span>
-                                    <ChevronDown
-                                        size={14}
-                                        className={`text-[color:var(--color-text-muted)] transition-transform ${
-                                            addressDropdown ? "rotate-180" : ""
-                                        }`}
-                                    />
-                                </button>
+                            <div className="hidden md:flex items-center gap-4">
+                                {!user ? (
+                                    <Link
+                                        href={route("login")}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    >
+                                        <MapPin
+                                            size={18}
+                                            className="text-[color:var(--color-primary-600)]"
+                                        />
 
-                                {addressDropdown && (
-                                    <div className="absolute left-0 mt-2 w-64 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-xl shadow-lg overflow-hidden z-50">
-                                        <div className="px-4 py-3 border-b border-[color:var(--color-border-light)]">
-                                            <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wider">
-                                                Delivery Location
-                                            </p>
-                                        </div>
-                                        <div className="py-1">
-                                            <button
-                                                className={dropdownItemClass}
-                                            >
-                                                <span className="flex items-center gap-2">
-                                                    <MapPin
-                                                        size={14}
-                                                        className="text-[color:var(--color-primary-600)]"
-                                                    />
-                                                    Add New Address
-                                                </span>
-                                            </button>
-                                        </div>
+                                        <span className="text-sm text-[color:var(--color-text-primary)] font-medium max-w-[180px] truncate">
+                                            Add Address
+                                        </span>
+                                    </Link>
+                                ) : user.is_restaurant_owner &&
+                                  !restaurantLocation ? (
+                                    <Link
+                                        href={route("restaurant.profile.edit")}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    >
+                                        <MapPin
+                                            size={18}
+                                            className="text-[color:var(--color-primary-600)]"
+                                        />
+
+                                        <span className="text-sm text-[color:var(--color-text-primary)] font-medium max-w-[180px] truncate">
+                                            Add Address
+                                        </span>
+                                    </Link>
+                                ) : user.is_customer && !customerLocation ? (
+                                    <Link
+                                        href={route("restaurants.index")}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    >
+                                        <MapPin
+                                            size={18}
+                                            className="text-[color:var(--color-primary-600)]"
+                                        />
+
+                                        <span className="text-sm text-[color:var(--color-text-primary)] font-medium max-w-[180px] truncate">
+                                            Add Address
+                                        </span>
+                                    </Link>
+                                ) : (
+                                    <div className="flex items-center gap-2 px-3 py-2">
+                                        <MapPin
+                                            size={18}
+                                            className="text-[color:var(--color-primary-600)]"
+                                        />
+
+                                        <span className="text-sm text-[color:var(--color-text-primary)] font-medium max-w-[180px] truncate">
+                                            {location}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -264,18 +295,31 @@ export default function Navbar({ categories = [] }) {
                             <div className="hidden md:flex items-center gap-2">
                                 {user ? (
                                     isRestaurant ? (
-                                        <Link
-                                            href={route("restaurant.dashboard")}
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                        >
-                                            <Store
-                                                size={18}
-                                                className="text-[color:var(--color-primary-600)]"
-                                            />
-                                            <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                Restaurant Dashboard
-                                            </span>
-                                        </Link>
+                                        <div className="flex gap-[var(--spacing-4)] items-center">
+                                            <Link
+                                                href={route(
+                                                    "restaurant.dashboard",
+                                                )}
+                                            >
+                                                <Button size="sm">
+                                                    <LayoutDashboard
+                                                        size={16}
+                                                    />
+                                                    Restaurant Dashboard
+                                                </Button>
+                                            </Link>
+                                            <Link
+                                                href={route(
+                                                    "restaurant.profile.edit",
+                                                )}
+                                            >
+                                                <img
+                                                    src={RestaurantLogo}
+                                                    className="rounded-[var(--radius-full)] aspect-square object-cover h-8"
+                                                    alt="Restaurant Logo"
+                                                />
+                                            </Link>
+                                        </div>
                                     ) : (
                                         <>
                                             <Link
@@ -481,15 +525,19 @@ export default function Navbar({ categories = [] }) {
                             {/* Mobile - Profile or Cart */}
                             {user ? (
                                 isRestaurant ? (
-                                    <Link
-                                        href={route("restaurant.dashboard")}
-                                        className="flex md:hidden items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                    >
-                                        <Store
-                                            size={18}
-                                            className="text-[color:var(--color-primary-600)]"
-                                        />
-                                    </Link>
+                                    <>
+                                        <Link
+                                            href={route(
+                                                "restaurant.profile.edit",
+                                            )}
+                                        >
+                                            <img
+                                                src={RestaurantLogo}
+                                                className="flex md:hidden rounded-[var(--radius-full)] aspect-square object-cover h-8"
+                                                alt="Restaurant Logo"
+                                            />
+                                        </Link>
+                                    </>
                                 ) : (
                                     <Link
                                         href="/cart"
