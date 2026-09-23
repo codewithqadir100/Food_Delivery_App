@@ -81,4 +81,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Restaurant::class);
     }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(CustomerAddress::class, 'customer_id');
+    }
+ 
+    public function primaryAddress(): HasOne
+    {
+        return $this->hasOne(CustomerAddress::class, 'customer_id')->where('is_primary', true);
+    }
 }
