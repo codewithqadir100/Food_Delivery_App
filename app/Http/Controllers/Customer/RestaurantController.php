@@ -32,7 +32,7 @@ class RestaurantController extends Controller
         
         $restaurants = $query->get();
 
-        if ($user && $user->latitude && $user->longitude) {
+        if ($user && $user->role === 'customer' && $user->latitude && $user->longitude) {
             $restaurants = $restaurants
                 ->filter(function($restaurant) use ($user) {
                     $distance = $this->deliveryService->calculateDistance(
@@ -93,7 +93,9 @@ class RestaurantController extends Controller
         $distance_km = null;
         $delivery_charge = null;
 
-        if ($user && $user->latitude && $user->longitude) {
+        // Only calculate distance for CUSTOMERS with location
+        // Restaurants don't need distance/delivery info
+        if ($user && $user->role === 'customer' && $user->latitude && $user->longitude) {
             $distance = $this->deliveryService->calculateDistance(
                 $restaurant->latitude,
                 $restaurant->longitude,
@@ -137,11 +139,13 @@ class RestaurantController extends Controller
         $query = $request->get('q', '');
         $categoryId = $request->get('category_id');
         $user = auth()->user();
-
+ 
         $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
-            ->where('name', 'LIKE', "%{$query}%")
-            ->orWhereHas('restaurantCategory', function($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%");
+            ->where(function($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                  ->orWhereHas('restaurantCategory', function($subQ) use ($query) {
+                      $subQ->where('name', 'LIKE', "%{$query}%");
+                  });
             })
             ->with('restaurantCategory');
         
@@ -150,8 +154,10 @@ class RestaurantController extends Controller
         }
         
         $restaurants = $restaurants->get();
-
-        if ($user && $user->latitude && $user->longitude) {
+ 
+        // Apply distance/delivery logic only for CUSTOMERS with location
+        // Restaurants & guests see all restaurants without location filtering
+        if ($user && $user->role === 'customer' && $user->latitude && $user->longitude) {
             $restaurants = $restaurants
                 ->filter(function($restaurant) use ($user) {
                     $distance = $this->deliveryService->calculateDistance(
@@ -180,12 +186,13 @@ class RestaurantController extends Controller
                     );
                 });
         } else {
+            // Guests & restaurants see all restaurants without distance/charges
             $restaurants = $restaurants->each(function($restaurant) {
                 $restaurant->distance_km = null;
                 $restaurant->delivery_charge = null;
             });
         }
-
+ 
         return response()->json([
             'data' => RestaurantResource::collection($restaurants->take(12))
         ]);

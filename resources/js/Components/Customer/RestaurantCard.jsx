@@ -66,21 +66,29 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                     </span>
 
                     {/* Distance with Bike Icon */}
+
                     <div className="flex items-center gap-1">
                         <Motorbike
                             size={14}
                             className="text-[color:var(--color-text-muted)]"
                         />
                         <span className="restaurant-card-distance">
-                            {restaurant.distance_km
+                            {user &&
+                            user.role === "customer" &&
+                            restaurant.distance_km !== null
                                 ? `${restaurant.distance_km} km`
-                                : "—"}
+                                : "--"}
                         </span>
                     </div>
 
                     {/* Delivery Charges */}
                     <p className="font-semibold restaurant-card-delivery-charges">
-                        Rs. {restaurant.delivery_charge || "—"}
+                        Rs.{" "}
+                        {user &&
+                        user.role === "customer" &&
+                        restaurant.delivery_charge !== null
+                            ? restaurant.delivery_charge
+                            : "--"}
                     </p>
                 </div>
 

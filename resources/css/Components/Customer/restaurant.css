@@ -24,7 +24,7 @@
 .restaurant-card-category {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
-    padding: 2px 8px;
+    padding: 2px 4px;
     background-color: var(--color-bg-secondary);
     border-radius: var(--radius-sm);
     white-space: nowrap;
