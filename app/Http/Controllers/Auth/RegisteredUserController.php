@@ -33,6 +33,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect('address');
+        return redirect()->route('customer.addresses.create');
     }
 }

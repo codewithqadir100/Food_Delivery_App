@@ -1,20 +1,21 @@
-import { useForm } from "@inertiajs/react";
-import { Head } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
+import { useState } from "react";
 import AppLayout from "@/Layouts/AppLayout";
 import MapLocationPicker from "@/Components/Common/MapLocationPicker";
 import TextInput from "@/Components/Forms/TextInput";
 import Button from "@/Components/Common/Button";
 
-const initialData = {
-    latitude: null,
-    longitude: null,
-    city_name: "",
-    area_name: "",
-    street_address: "",
-};
+export default function Addresses({ address }) {
+    const initialData = {
+        latitude: address?.latitude ?? null,
+        longitude: address?.longitude ?? null,
+        city_name: address?.city_name ?? "",
+        area_name: address?.area_name ?? "",
+        street_address: address?.street_address ?? "",
+    };
 
-export default function Addresses() {
     const { data, setData, post, processing, errors } = useForm(initialData);
+    const [skipping, setSkipping] = useState(false);
 
     const handleLocationSelect = (location) => {
         setData({
@@ -26,10 +27,6 @@ export default function Addresses() {
         });
     };
 
-    const handleStreetAddressChange = (event) => {
-        setData("street_address", event.target.value);
-    };
-
     const handleSubmit = (event) => {
         event.preventDefault();
 
@@ -38,7 +35,13 @@ export default function Addresses() {
         });
     };
 
-    const hasLocation = data.latitude !== null && data.longitude !== null;
+    const hasLocation =
+        data.latitude !== null &&
+        data.longitude !== null &&
+        data.city_name.trim() !== "" &&
+        data.area_name.trim() !== "";
+
+    const hasStreetAddress = data.street_address.trim().length >= 5;
 
     const hasChanges =
         data.latitude !== initialData.latitude ||
@@ -47,24 +50,44 @@ export default function Addresses() {
         data.area_name !== initialData.area_name ||
         data.street_address !== initialData.street_address;
 
+    const canSubmit = hasLocation && hasStreetAddress && hasChanges;
+
+    const initialLocation = address
+        ? {
+              latitude: Number(address.latitude),
+              longitude: Number(address.longitude),
+              city: address.city_name,
+              area: address.area_name,
+              name: address.street_address,
+              address: address.street_address,
+          }
+        : null;
+
     return (
         <>
-            <Head title="Delivery Address" />
+            <Head
+                title={address ? "Delivery Address" : "Add Delivery Address"}
+            />
 
             <AppLayout>
-                <div className="max-w-4xl mx-auto px-4 py-8">
+                <div className="max-w-4xl mx-auto">
                     <div className="mb-6">
                         <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
-                            Add Delivery Address
+                            {address
+                                ? "Delivery Address"
+                                : "Add Delivery Address"}
                         </h1>
 
                         <p className="mt-1 text-sm text-[color:var(--color-text-muted)]">
-                            Select your location and enter your delivery
+                            Select your delivery location and add your complete
                             address.
                         </p>
                     </div>
 
-                    <div className="bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)]">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] overflow-hidden"
+                    >
                         <div className="p-5 sm:p-6">
                             <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
                                 Choose Location
@@ -76,14 +99,18 @@ export default function Addresses() {
                             </p>
 
                             <MapLocationPicker
+                                initialLocation={initialLocation}
                                 onLocationSelect={handleLocationSelect}
                             />
 
-                            {errors.latitude || errors.longitude ? (
+                            {(errors.latitude ||
+                                errors.longitude ||
+                                errors.city_name ||
+                                errors.area_name) && (
                                 <p className="mt-3 text-sm text-[color:var(--color-danger-600)]">
                                     Please select a valid delivery location.
                                 </p>
-                            ) : null}
+                            )}
                         </div>
 
                         <div className="border-t border-[color:var(--color-border-light)] p-5 sm:p-6">
@@ -102,22 +129,44 @@ export default function Addresses() {
                                 label="Street Address"
                                 type="text"
                                 value={data.street_address}
-                                onChange={handleStreetAddressChange}
+                                onChange={(event) =>
+                                    setData(
+                                        "street_address",
+                                        event.target.value,
+                                    )
+                                }
                                 placeholder="House 123, Street 5, Block A"
                                 error={errors.street_address}
+                                required
+                                disabled={processing}
                             />
 
-                            <div className="mt-6 flex justify-end">
+                            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    disabled={processing || skipping}
+                                    loading={skipping}
+                                    onClick={() => {
+                                        setSkipping(true);
+                                        post(route("customer.addresses.skip"));
+                                    }}
+                                >
+                                    {address ? "Cancel" : "Skip for Now"}
+                                </Button>
+
                                 <Button
                                     type="submit"
-                                    disabled={!hasChanges || processing}
-                                    onClick={handleSubmit}
+                                    disabled={!canSubmit || skipping}
+                                    loading={processing && !skipping}
                                 >
-                                    {processing ? "Saving..." : "Save Address"}
+                                    {address
+                                        ? "Update Address"
+                                        : "Save Address"}
                                 </Button>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </AppLayout>
         </>

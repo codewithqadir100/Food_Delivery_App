@@ -140,9 +140,11 @@ export default function MapLocationPicker({
             }),
         }).addTo(mapInstance);
 
-        marker
-            .bindPopup(`<div class="font-medium text-sm">${title}</div>`)
-            .openPopup();
+        const popup = document.createElement("div");
+        popup.className = "font-medium text-sm";
+        popup.textContent = title || "Selected Location";
+
+        marker.bindPopup(popup).openPopup();
         markerRef.current = marker;
     };
 

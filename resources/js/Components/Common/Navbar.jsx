@@ -37,7 +37,13 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
         .filter(Boolean)
         .join(", ");
 
-    const customerLocation = customer?.location || "";
+    const customerLocation = [
+        customer?.street_address,
+        customer?.area_name,
+        customer?.city_name,
+    ]
+        .filter(Boolean)
+        .join(", ");
 
     const location = user?.is_restaurant_owner
         ? restaurantLocation
@@ -188,7 +194,9 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     </Link>
                                 ) : user.is_customer && !customerLocation ? (
                                     <Link
-                                        href={route("restaurants.index")}
+                                        href={route(
+                                            "customer.addresses.create",
+                                        )}
                                         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                     >
                                         <MapPin

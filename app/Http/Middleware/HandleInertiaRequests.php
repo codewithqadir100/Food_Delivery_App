@@ -32,7 +32,12 @@ class HandleInertiaRequests extends Middleware
                     'is_restaurant_owner' => $user->isRestaurantOwner(),
                     'is_admin' => $user->isAdmin(),
                 ] : null,
-                'restaurant' => fn() => $request->user()?->restaurant,
+
+                'restaurant' => fn() => $user?->restaurant,
+
+                'customer' => fn() => $user?->isCustomer()
+                    ? $user->primaryAddress
+                    : null,
             ],
         ];
     }
