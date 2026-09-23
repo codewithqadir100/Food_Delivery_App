@@ -40,6 +40,7 @@ export default function RestaurantProfile() {
     const [imageLoading, setImageLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
     const [feedback, setFeedback] = useState("");
+    const [feedbackType, setFeedbackType] = useState("success");
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [pendingStatus, setPendingStatus] = useState(null);
 
@@ -56,6 +57,11 @@ export default function RestaurantProfile() {
             preserveScroll: true,
             onSuccess: () => {
                 setFeedback("Restaurant information updated successfully.");
+                setFeedbackType("success");
+            },
+            onError: () => {
+                setFeedback("Failed to update restaurant information.");
+                setFeedbackType("error");
             },
         });
     };
@@ -85,9 +91,11 @@ export default function RestaurantProfile() {
             }));
 
             setFeedback("Cover image updated successfully.");
+            setFeedbackType("success");
             router.reload({ only: ["restaurant"] });
         } catch (error) {
             setFeedback("Failed to upload cover image.");
+            setFeedbackType("error");
             console.error("Cover upload error:", error);
         } finally {
             setImageLoading(false);
@@ -111,9 +119,11 @@ export default function RestaurantProfile() {
             }));
 
             setFeedback("Restaurant logo updated successfully.");
+            setFeedbackType("success");
             router.reload({ only: ["restaurant"] });
         } catch (error) {
             setFeedback("Failed to upload logo.");
+            setFeedbackType("error");
             console.error("Logo upload error:", error);
         } finally {
             setImageLoading(false);
@@ -146,11 +156,13 @@ export default function RestaurantProfile() {
 
             setIsOpen(Boolean(response.is_open));
             setFeedback(response.message);
+            setFeedbackType("success");
             setStatusModalOpen(false);
             setPendingStatus(null);
             router.reload({ only: ["restaurant"] });
         } catch (error) {
             setFeedback("Failed to update restaurant status.");
+            setFeedbackType("error");
             console.error("Status update error:", error);
             setStatusModalOpen(false);
             setPendingStatus(null);
@@ -171,8 +183,8 @@ export default function RestaurantProfile() {
             <div className="space-y-6">
                 {feedback && (
                     <Alert
-                        type="success"
-                        title="Success"
+                        type={feedbackType}
+                        title={feedbackType === "error" ? "Error" : "Success"}
                         message={feedback}
                         onClose={() => setFeedback("")}
                     />
