@@ -453,7 +453,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                             </Link>
                                                             <Link
                                                                 href={route(
-                                                                    "customer.addresses",
+                                                                    "customer.addresses.create",
                                                                 )}
                                                                 className={
                                                                     dropdownItemClass
@@ -959,7 +959,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             </Link>
                                             <Link
                                                 href={route(
-                                                    "customer.addresses",
+                                                    "customer.addresses.create",
                                                 )}
                                                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                                 onClick={() =>

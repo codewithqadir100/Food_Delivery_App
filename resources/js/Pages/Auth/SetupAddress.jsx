@@ -1,213 +1,376 @@
 import { useState } from "react";
-import { Head, router, useForm } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import Button from "@/Components/Common/Button";
+import LocationMap from "@/Components/Common/LocationMap";
 import TextInput from "@/Components/Forms/TextInput";
-import MapPickerModal from "@/Components/Common/MapPickerModal";
-import { MapPin } from "lucide-react";
-import { isAddressComplete, formatAddress } from "@/Utils/AddressHelper";
+import Button from "@/Components/Common/Button";
+import { AlertCircle, MapPin } from "lucide-react";
 
 export default function SetupAddress() {
-    const { data, setData, processing, errors } = useForm({
-        latitude: "",
-        longitude: "",
+    const { auth } = usePage().props;
+    const [selectedLocation, setSelectedLocation] = useState({
+        latitude: null,
+        longitude: null,
         city_name: "",
         area_name: "",
-        street_address: "",
     });
+    const [streetAddress, setStreetAddress] = useState("");
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [mapOpen, setMapOpen] = useState(false);
-    const [addressPreview, setAddressPreview] = useState(null);
-
-    const handleLocationChange = (lat, lon, city, area) => {
-        setData({
-            ...data,
-            latitude: lat.toString(),
-            longitude: lon.toString(),
-            city_name: city,
-            area_name: area,
-        });
-        setAddressPreview({
+    const handleLocationSelect = (lat, lng, city, area) => {
+        setSelectedLocation({
             latitude: lat,
-            longitude: lon,
+            longitude: lng,
             city_name: city,
             area_name: area,
         });
-        setMapOpen(false);
+        setErrors({});
     };
 
-    const handleStreetAddressChange = (e) => {
-        setData("street_address", e.target.value);
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrors({});
 
-        if (!isAddressComplete(data)) {
-            alert("Please fill all address details");
+        if (!selectedLocation.latitude || !selectedLocation.longitude) {
+            setErrors({ location: "Please select a location on the map" });
             return;
         }
 
-        router.post(route("address.store"), data);
+        if (!streetAddress.trim()) {
+            setErrors({ street_address: "Street address is required" });
+            return;
+        }
+
+        if (streetAddress.trim().length < 5) {
+            setErrors({
+                street_address: "Street address must be at least 5 characters",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            await router.post("/address", {
+                latitude: selectedLocation.latitude,
+                longitude: selectedLocation.longitude,
+                city_name: selectedLocation.city_name,
+                area_name: selectedLocation.area_name,
+                street_address: streetAddress.trim(),
+            });
+        } catch (error) {
+            console.error("Error saving address:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleSkip = () => {
-        router.post(route("address.skip"));
+        router.get("/");
     };
 
     return (
-        <>
-            <Head title="Set Delivery Address" />
-            <AuthenticatedLayout>
-                <div className="min-h-screen flex items-center justify-center bg-[color:var(--color-bg-secondary)] px-4 py-8">
-                    <div className="w-full max-w-2xl">
-                        <div className="mb-8 text-center">
+        <AuthenticatedLayout>
+            <div
+                className="min-h-screen"
+                style={{ backgroundColor: "var(--color-bg-secondary)" }}
+            >
+                <div className="max-w-2xl mx-auto p-4 md:p-6">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <div className="flex items-center gap-3 mb-2">
+                            <MapPin
+                                size={28}
+                                style={{ color: "var(--color-primary-600)" }}
+                            />
                             <h1
-                                className="font-bold text-[color:var(--color-text-primary)] mb-2"
-                                style={{ fontSize: "var(--font-size-2xl)" }}
+                                className="text-2xl md:text-3xl font-bold"
+                                style={{ color: "var(--color-text-primary)" }}
                             >
                                 Set Your Delivery Address
                             </h1>
-                            <p className="text-[color:var(--color-text-muted)]">
-                                We need your location to show restaurants near
-                                you
-                            </p>
                         </div>
+                        <p
+                            style={{ color: "var(--color-text-muted)" }}
+                            className="text-sm md:text-base"
+                        >
+                            Help us find you by selecting your location on the
+                            map. This is where we'll deliver your food orders.
+                        </p>
+                    </div>
 
-                        <div className="bg-[color:var(--color-bg-primary)] rounded-lg p-8 shadow-md">
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-[color:var(--color-text-primary)] mb-3">
-                                        📍 Delivery Location
-                                    </label>
-
-                                    {addressPreview ? (
-                                        <div className="p-4 bg-[color:var(--color-success-50)] border border-[color:var(--color-success-200)] rounded-lg mb-4">
-                                            <div className="flex items-start gap-3">
-                                                <MapPin
-                                                    size={20}
-                                                    className="text-[color:var(--color-success-600)] flex-shrink-0 mt-1"
-                                                />
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                                        {
-                                                            addressPreview.area_name
-                                                        }
-                                                        ,{" "}
-                                                        {
-                                                            addressPreview.city_name
-                                                        }
-                                                    </p>
-                                                    <p className="text-xs text-[color:var(--color-text-muted)] mt-1">
-                                                        Lat:{" "}
-                                                        {addressPreview.latitude.toFixed(
-                                                            4,
-                                                        )}
-                                                        , Lon:{" "}
-                                                        {addressPreview.longitude.toFixed(
-                                                            4,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setMapOpen(true)
-                                                    }
-                                                    className="text-sm text-[color:var(--color-primary-600)] hover:underline whitespace-nowrap"
-                                                >
-                                                    Change
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() => setMapOpen(true)}
-                                            className="w-full p-4 border-2 border-dashed border-[color:var(--color-border-light)] rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors text-[color:var(--color-text-muted)] hover:text-[color:var(--color-primary-600)]"
+                    {/* Main Card */}
+                    <div
+                        className="rounded-lg p-6 md:p-8"
+                        style={{
+                            backgroundColor: "var(--color-bg-primary)",
+                            boxShadow: "var(--shadow-md)",
+                        }}
+                    >
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Map Section */}
+                            <div>
+                                <label
+                                    className="block font-medium mb-3"
+                                    style={{
+                                        color: "var(--color-text-primary)",
+                                    }}
+                                >
+                                    Select Location on Map
+                                </label>
+                                <LocationMap
+                                    onLocationSelect={handleLocationSelect}
+                                    isLoading={isSubmitting}
+                                />
+                                {errors.location && (
+                                    <div
+                                        className="mt-3 flex items-center gap-2 p-3 rounded-lg"
+                                        style={{
+                                            backgroundColor:
+                                                "var(--color-error-50)",
+                                            borderLeft:
+                                                "4px solid var(--color-error-600)",
+                                        }}
+                                    >
+                                        <AlertCircle
+                                            size={18}
+                                            style={{
+                                                color: "var(--color-error-600)",
+                                            }}
+                                        />
+                                        <span
+                                            style={{
+                                                color: "var(--color-error-600)",
+                                            }}
+                                            className="text-sm"
                                         >
-                                            + Open Map to Select Location
-                                        </button>
-                                    )}
-
-                                    <MapPickerModal
-                                        isOpen={mapOpen}
-                                        onLocationSelect={handleLocationChange}
-                                        onClose={() => setMapOpen(false)}
-                                        initialLat={
-                                            data.latitude
-                                                ? parseFloat(data.latitude)
-                                                : null
-                                        }
-                                        initialLon={
-                                            data.longitude
-                                                ? parseFloat(data.longitude)
-                                                : null
-                                        }
-                                    />
-
-                                    {errors.latitude && (
-                                        <p className="text-sm text-[color:var(--color-danger-600)] mt-2">
-                                            {errors.latitude}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-[color:var(--color-text-primary)] mb-2">
-                                        House/Building Number & Street Name *
-                                    </label>
-                                    <TextInput
-                                        placeholder="e.g., Flat 123, ABC Heights, Main Road"
-                                        value={data.street_address}
-                                        onChange={handleStreetAddressChange}
-                                    />
-                                    {errors.street_address && (
-                                        <p className="text-sm text-[color:var(--color-danger-600)] mt-2">
-                                            {errors.street_address}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {isAddressComplete(data) && (
-                                    <div className="p-4 bg-[color:var(--color-bg-secondary)] rounded-lg">
-                                        <p className="text-sm text-[color:var(--color-text-muted)] mb-1">
-                                            Complete Address:
-                                        </p>
-                                        <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                            {formatAddress(data)}
-                                        </p>
+                                            {errors.location}
+                                        </span>
                                     </div>
                                 )}
+                            </div>
 
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleSkip}
-                                        className="flex-1 px-4 py-2 border border-[color:var(--color-border-light)] rounded-lg text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors font-medium"
+                            {/* Location Preview */}
+                            {selectedLocation.latitude && (
+                                <div
+                                    className="rounded-lg p-4 border"
+                                    style={{
+                                        backgroundColor:
+                                            "var(--color-bg-secondary)",
+                                        borderColor: "var(--color-border)",
+                                    }}
+                                >
+                                    <h3
+                                        className="font-semibold mb-3"
+                                        style={{
+                                            color: "var(--color-text-primary)",
+                                        }}
                                     >
-                                        Skip for Later
-                                    </button>
-                                    <Button
-                                        type="submit"
-                                        variant="primary"
-                                        size="md"
-                                        disabled={
-                                            !isAddressComplete(data) ||
-                                            processing
-                                        }
-                                        className="flex-1"
+                                        Selected Location
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p
+                                                style={{
+                                                    color: "var(--color-text-muted)",
+                                                }}
+                                                className="text-xs uppercase tracking-wide mb-1"
+                                            >
+                                                City
+                                            </p>
+                                            <p
+                                                className="font-medium text-sm"
+                                                style={{
+                                                    color: "var(--color-text-primary)",
+                                                }}
+                                            >
+                                                {selectedLocation.city_name ||
+                                                    "Not available"}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p
+                                                style={{
+                                                    color: "var(--color-text-muted)",
+                                                }}
+                                                className="text-xs uppercase tracking-wide mb-1"
+                                            >
+                                                Area
+                                            </p>
+                                            <p
+                                                className="font-medium text-sm"
+                                                style={{
+                                                    color: "var(--color-text-primary)",
+                                                }}
+                                            >
+                                                {selectedLocation.area_name ||
+                                                    "Not available"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="mt-3 pt-3 border-t"
+                                        style={{
+                                            borderColor: "var(--color-border)",
+                                        }}
                                     >
-                                        {processing
-                                            ? "Saving..."
-                                            : "Save Address"}
-                                    </Button>
+                                        <p
+                                            style={{
+                                                color: "var(--color-text-muted)",
+                                            }}
+                                            className="text-xs uppercase tracking-wide mb-1"
+                                        >
+                                            Coordinates
+                                        </p>
+                                        <p
+                                            className="text-sm font-mono"
+                                            style={{
+                                                color: "var(--color-text-secondary)",
+                                            }}
+                                        >
+                                            {selectedLocation.latitude?.toFixed(
+                                                4,
+                                            )}
+                                            ,{" "}
+                                            {selectedLocation.longitude?.toFixed(
+                                                4,
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
-                            </form>
-                        </div>
+                            )}
+
+                            {/* Street Address */}
+                            <div>
+                                <label
+                                    className="block font-medium mb-2"
+                                    style={{
+                                        color: "var(--color-text-primary)",
+                                    }}
+                                >
+                                    Street Address
+                                </label>
+                                <TextInput
+                                    type="text"
+                                    placeholder="e.g., House 123, Main Street, Building A"
+                                    value={streetAddress}
+                                    onChange={(e) => {
+                                        setStreetAddress(e.target.value);
+                                        if (errors.street_address) {
+                                            setErrors({
+                                                ...errors,
+                                                street_address: "",
+                                            });
+                                        }
+                                    }}
+                                    error={errors.street_address}
+                                />
+                                {errors.street_address && (
+                                    <p
+                                        style={{
+                                            color: "var(--color-error-600)",
+                                        }}
+                                        className="text-sm mt-2"
+                                    >
+                                        {errors.street_address}
+                                    </p>
+                                )}
+                                <p
+                                    style={{ color: "var(--color-text-muted)" }}
+                                    className="text-xs mt-2"
+                                >
+                                    Provide specific details so delivery
+                                    partners can find you easily
+                                </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleSkip}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors border"
+                                    style={{
+                                        backgroundColor:
+                                            "var(--color-bg-secondary)",
+                                        borderColor: "var(--color-border)",
+                                        color: "var(--color-text-primary)",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor =
+                                            "var(--color-bg-tertiary)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor =
+                                            "var(--color-bg-secondary)";
+                                    }}
+                                >
+                                    Skip for Now
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={
+                                        isSubmitting ||
+                                        !selectedLocation.latitude
+                                    }
+                                    className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                                    style={{
+                                        backgroundColor:
+                                            isSubmitting ||
+                                            !selectedLocation.latitude
+                                                ? "var(--color-primary-400)"
+                                                : "var(--color-primary-600)",
+                                        cursor:
+                                            isSubmitting ||
+                                            !selectedLocation.latitude
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (
+                                            !isSubmitting &&
+                                            selectedLocation.latitude
+                                        ) {
+                                            e.target.style.backgroundColor =
+                                                "var(--color-primary-700)";
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (
+                                            !isSubmitting &&
+                                            selectedLocation.latitude
+                                        ) {
+                                            e.target.style.backgroundColor =
+                                                "var(--color-primary-600)";
+                                        }
+                                    }}
+                                >
+                                    {isSubmitting
+                                        ? "Saving..."
+                                        : "Confirm Address"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Helper text */}
+                    <div
+                        className="mt-6 p-4 rounded-lg"
+                        style={{ backgroundColor: "var(--color-info-50)" }}
+                    >
+                        <p
+                            style={{ color: "var(--color-info-700)" }}
+                            className="text-sm"
+                        >
+                            💡 <strong>Tip:</strong> You can add more delivery
+                            addresses later from your profile settings.
+                        </p>
                     </div>
                 </div>
-            </AuthenticatedLayout>
-        </>
+            </div>
+        </AuthenticatedLayout>
     );
 }

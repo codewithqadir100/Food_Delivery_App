@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAddressRequest;
@@ -13,7 +13,7 @@ class AddressController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Auth/SetupAddress');
+        return Inertia::render('Customer/Addresses');
     }
 
     public function store(StoreAddressRequest $request): RedirectResponse

@@ -4,7 +4,6 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\AddressController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\RestaurantAuthController;
 use Illuminate\Support\Facades\Route;
@@ -34,11 +33,6 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/address', [AddressController::class, 'create'])->name('address.create');
-    Route::post('/address', [AddressController::class, 'store'])->name('address.store');
-    Route::post('address/skip', [AddressController::class, 'skip'])->name('address.skip');
-
-
     Route::put('password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.update');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');

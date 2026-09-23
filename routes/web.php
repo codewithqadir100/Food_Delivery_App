@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\Admin\RestaurantVerificationController;
 use App\Http\Controllers\Customer\ProfileController;
+use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use Illuminate\Support\Facades\Route;
@@ -23,13 +24,16 @@ Route::get('/restaurants', function () {
         ]);
     })->name('restaurants.index');
 
-Route::middleware(['auth', 'customer'])->group(function () {    
-    Route::get('/customer/profile', [ProfileController::class, 'index'])->name('customer.profile.index');
-    Route::get('/customer/profile/edit', [ProfileController::class, 'edit'])->name('customer.profile.edit');
-    Route::patch('/customer/profile', [ProfileController::class, 'update'])->name('customer.profile.update');
-    Route::get('/customer/wishlist', [ProfileController::class, 'wishlist'])->name('customer.wishlist');
-    Route::get('/customer/history', [ProfileController::class, 'history'])->name('customer.history');
-    Route::get('/customer/addresses', [ProfileController::class, 'addresses'])->name('customer.addresses');
+Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
+    Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+    Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');
+
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/wishlist', [ProfileController::class, 'wishlist'])->name('wishlist');
+    Route::get('/history', [ProfileController::class, 'history'])->name('history');
 });
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
