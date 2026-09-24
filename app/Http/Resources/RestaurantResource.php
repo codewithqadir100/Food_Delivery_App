@@ -33,8 +33,8 @@ class RestaurantResource extends JsonResource
             ],
             'rating' => $this->getRating(),
             'review_count' => $this->getReviewCount(),
-            'distance_km' => $additional['distance_km'] ?? null,
-            'delivery_charge' => $additional['delivery_charge'] ?? null,
+            'distance_km' => $this->distance_km,
+            'delivery_charge' => $this->delivery_charge,
         ];
     }
 

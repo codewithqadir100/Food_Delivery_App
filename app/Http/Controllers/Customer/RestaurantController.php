@@ -32,25 +32,31 @@ class RestaurantController extends Controller
         
         $restaurants = $query->get();
 
-        if ($user && $user->role === 'customer' && $user->latitude && $user->longitude) {
-            $restaurants = $restaurants
-                ->filter(function($restaurant) use ($user) {
+        $customerAddress = $user?->isCustomer()
+                ? $user->primaryAddress
+                : null;
+
+            if ($customerAddress && $customerAddress->latitude !== null &&
+                $customerAddress->longitude !== null ) {
+                $restaurants = $restaurants
+                    
+                ->filter(function ($restaurant) use ($customerAddress) {
                     $distance = $this->deliveryService->calculateDistance(
                         $restaurant->latitude,
                         $restaurant->longitude,
-                        $user->latitude,
-                        $user->longitude
+                        $customerAddress->latitude,
+                        $customerAddress->longitude,
                     );
                     
                     return $distance <= $restaurant->service_radius_km;
                 })
                 ->values()
-                ->each(function($restaurant) use ($user) {
+                ->each(function($restaurant) use ($customerAddress) {
                     $distance = $this->deliveryService->calculateDistance(
                         $restaurant->latitude,
                         $restaurant->longitude,
-                        $user->latitude,
-                        $user->longitude
+                        $customerAddress->latitude,
+                        $customerAddress->longitude,
                     );
                     
                     $restaurant->distance_km = round($distance, 2);
@@ -90,25 +96,29 @@ class RestaurantController extends Controller
             ->with('restaurantCategory')
             ->findOrFail($id);
 
+        $customerAddress = $user?->isCustomer()
+            ? $user->primaryAddress
+            : null;
+
         $distance_km = null;
         $delivery_charge = null;
 
-        // Only calculate distance for CUSTOMERS with location
-        // Restaurants don't need distance/delivery info
-        if ($user && $user->role === 'customer' && $user->latitude && $user->longitude) {
+        if ( $customerAddress && $customerAddress->latitude !== null &&
+                $customerAddress->longitude !== null
+            ) {
             $distance = $this->deliveryService->calculateDistance(
                 $restaurant->latitude,
                 $restaurant->longitude,
-                $user->latitude,
-                $user->longitude
+                $customerAddress->latitude,
+                $customerAddress->longitude,
             );
 
             $validation = $this->deliveryService->validateDeliveryLocation(
                 $restaurant->latitude,
                 $restaurant->longitude,
                 $restaurant->service_radius_km,
-                $user->latitude,
-                $user->longitude
+                $customerAddress->latitude,
+                $customerAddress->longitude,
             );
 
             if (!$validation['valid']) {
@@ -139,6 +149,10 @@ class RestaurantController extends Controller
         $query = $request->get('q', '');
         $categoryId = $request->get('category_id');
         $user = auth()->user();
+
+        $customerAddress = $user?->isCustomer()
+            ? $user->primaryAddress
+            : null;
  
         $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
             ->where(function($q) use ($query) {
@@ -155,16 +169,16 @@ class RestaurantController extends Controller
         
         $restaurants = $restaurants->get();
  
-        // Apply distance/delivery logic only for CUSTOMERS with location
-        // Restaurants & guests see all restaurants without location filtering
-        if ($user && $user->role === 'customer' && $user->latitude && $user->longitude) {
+        if ( $customerAddress && $customerAddress->latitude !== null &&
+                $customerAddress->longitude !== null
+            ) {
             $restaurants = $restaurants
                 ->filter(function($restaurant) use ($user) {
                     $distance = $this->deliveryService->calculateDistance(
                         $restaurant->latitude,
                         $restaurant->longitude,
-                        $user->latitude,
-                        $user->longitude
+                        $customerAddress->latitude,
+                        $customerAddress->longitude,
                     );
                     
                     return $distance <= $restaurant->service_radius_km;
@@ -174,8 +188,8 @@ class RestaurantController extends Controller
                     $distance = $this->deliveryService->calculateDistance(
                         $restaurant->latitude,
                         $restaurant->longitude,
-                        $user->latitude,
-                        $user->longitude
+                        $customerAddress->latitude,
+                        $customerAddress->longitude,
                     );
                     
                     $restaurant->distance_km = round($distance, 2);
