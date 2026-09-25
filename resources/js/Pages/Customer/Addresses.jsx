@@ -149,7 +149,6 @@ export default function Addresses({ address }) {
                                     <MapLocationPicker
                                         initialLocation={initialLocation}
                                         onLocationSelect={handleLocationSelect}
-                                        locationMode="customer"
                                     />
                                 </div>
 
