@@ -30,12 +30,10 @@ const parseAddress = (addressData, locationMode = "default") => {
 
     const addr = addressData.address;
 
-    // Street Level (house number + road)
     const name = addr.house_number
         ? `${addr.house_number} ${addr.road || ""}`.trim()
         : addr.road || "";
 
-    // Area Level (neighbourhood/suburb/village - WITHOUT road to avoid duplication)
     const areaParts = [];
     if (addr.neighbourhood) areaParts.push(addr.neighbourhood);
     if (addr.suburb && !areaParts.includes(addr.suburb))
@@ -49,7 +47,6 @@ const parseAddress = (addressData, locationMode = "default") => {
 
     const area = areaParts.join(", ");
 
-    // City Level (clean up districts/tehsils)
     let city = addr.city || addr.town || "";
     city = city
         .replace(
@@ -58,7 +55,7 @@ const parseAddress = (addressData, locationMode = "default") => {
         )
         .trim();
 
-    // Full Address
+    // Address
     const addressParts = [];
     if (name) addressParts.push(name);
     if (area && area !== name) addressParts.push(area);

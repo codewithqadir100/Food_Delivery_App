@@ -14,7 +14,6 @@ export default function Addresses({ address }) {
         city_name: address?.city_name ?? "",
         area_name: address?.area_name ?? "",
         street_address: address?.street_address ?? "",
-        location_address: address?.location_address ?? "",
     };
 
     const { data, setData, post, processing, errors } = useForm(initialData);
