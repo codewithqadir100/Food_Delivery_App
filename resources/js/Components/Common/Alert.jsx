@@ -65,7 +65,7 @@ export default function Alert({
       `}
             {...props}
         >
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
                 <div className="flex-shrink-0">
                     <style.Icon size={20} />
                 </div>

@@ -51,7 +51,7 @@ class AddressController extends Controller
             ]);
         });
 
-        return redirect()->route('home');
+        return back()->with('success', 'Restaurant information updated successfully.');
     }
 
     public function skip(): RedirectResponse

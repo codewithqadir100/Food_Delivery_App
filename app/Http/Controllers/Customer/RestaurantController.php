@@ -149,10 +149,6 @@ class RestaurantController extends Controller
         $query = $request->get('q', '');
         $categoryId = $request->get('category_id');
         $user = auth()->user();
-
-        $customerAddress = $user?->isCustomer()
-            ? $user->primaryAddress
-            : null;
  
         $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
             ->where(function($q) use ($query) {
@@ -168,12 +164,16 @@ class RestaurantController extends Controller
         }
         
         $restaurants = $restaurants->get();
+
+        $customerAddress = $user?->isCustomer()
+            ? $user->primaryAddress
+            : null;
  
         if ( $customerAddress && $customerAddress->latitude !== null &&
                 $customerAddress->longitude !== null
             ) {
             $restaurants = $restaurants
-                ->filter(function($restaurant) use ($user) {
+                ->filter(function($restaurant) use ($customerAddress) {
                     $distance = $this->deliveryService->calculateDistance(
                         $restaurant->latitude,
                         $restaurant->longitude,
