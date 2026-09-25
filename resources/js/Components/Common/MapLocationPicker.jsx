@@ -18,7 +18,7 @@ L.Icon.Default.mergeOptions({
 const MAP_DEFAULT_CENTER = [25.3548, 68.3711];
 const MAP_DEFAULT_ZOOM = 12;
 
-const parseAddress = (addressData) => {
+const parseAddress = (addressData, locationMode = "default") => {
     if (!addressData || !addressData.address) {
         return {
             name: "Location",
@@ -34,7 +34,15 @@ const parseAddress = (addressData) => {
         ? `${addr.house_number} ${addr.road || ""}`.trim()
         : addr.road || addr.neighbourhood || addr.suburb || addr.village || "";
 
-    const area = addr.suburb || addr.neighbourhood || addr.village || "";
+    const area =
+        locationMode === "customer"
+            ? addr.neighbourhood ||
+              addr.suburb ||
+              addr.locality ||
+              addr.village ||
+              addr.hamlet ||
+              ""
+            : addr.suburb || addr.neighbourhood || addr.village || "";
 
     let city = addr.city || addr.town || "";
     city = city
@@ -54,7 +62,7 @@ const parseAddress = (addressData) => {
 
     return {
         name: name || "Location",
-        area: area,
+        area: area.trim(),
         city: city,
         address: shortAddress,
     };
@@ -63,6 +71,7 @@ const parseAddress = (addressData) => {
 export default function MapLocationPicker({
     onLocationSelect,
     initialLocation,
+    locationMode = "defualt",
 }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
@@ -243,7 +252,7 @@ export default function MapLocationPicker({
                 `/api/geocoding/reverse?lat=${lat}&lon=${lon}`,
             );
             const addressData = await reverseResponse.json();
-            const parsed = parseAddress(addressData);
+            const parsed = parseAddress(addressData, locationMode);
 
             const locationData = {
                 latitude: lat,

@@ -14,7 +14,14 @@ export default function Addresses({ address }) {
         city_name: address?.city_name ?? "",
         area_name: address?.area_name ?? "",
         street_address: address?.street_address ?? "",
+        location_address: address?.location_address ?? "",
     };
+
+    const [locationAddress, setLocationAddress] = useState(
+        address?.street_address
+            ? `${address.street_address}, ${address.area_name}`
+            : "",
+    );
 
     const { data, setData, post, processing, errors } = useForm(initialData);
     const [lastSavedData, setLastSavedData] = useState(initialData);
@@ -29,6 +36,8 @@ export default function Addresses({ address }) {
             city_name: location.city,
             area_name: location.area,
         });
+
+        setLocationAddress(location.address);
     };
 
     const handleSubmit = (event) => {
@@ -149,6 +158,7 @@ export default function Addresses({ address }) {
                                     <MapLocationPicker
                                         initialLocation={initialLocation}
                                         onLocationSelect={handleLocationSelect}
+                                        locationMode="customer"
                                     />
                                 </div>
 
@@ -185,10 +195,9 @@ export default function Addresses({ address }) {
                                     />
 
                                     <ReadOnlyTextInput
-                                        label="Area Name"
-                                        value={data.area_name || "--"}
-                                        error={errors.area_name}
-                                        placeHolder="Select Area from Map"
+                                        label="Address"
+                                        value={locationAddress || "--"}
+                                        placeHolder="Select location from map"
                                         required
                                     />
 
@@ -213,7 +222,7 @@ export default function Addresses({ address }) {
                                     <Button
                                         type="submit"
                                         disabled={!canSubmit || skipping}
-                                        loading={processing}
+                                        loading={processing && !skipping}
                                         fullWidth
                                     >
                                         {address

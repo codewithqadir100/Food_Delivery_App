@@ -17,7 +17,7 @@ class StoreAddressRequest extends FormRequest
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'city_name' => 'required|string|max:100',
-            'area_name' => 'required|string|max:100',
+            'area_name' => 'required|string|max:500',
             'street_address' => 'required|string|min:5|max:500',
         ];
     }
