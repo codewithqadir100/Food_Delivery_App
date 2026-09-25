@@ -71,7 +71,7 @@ const parseAddress = (addressData, locationMode = "default") => {
 export default function MapLocationPicker({
     onLocationSelect,
     initialLocation,
-    locationMode = "defualt",
+    locationMode = "default",
 }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
@@ -252,7 +252,7 @@ export default function MapLocationPicker({
                 `/api/geocoding/reverse?lat=${lat}&lon=${lon}`,
             );
             const addressData = await reverseResponse.json();
-            const parsed = parseAddress(addressData, locationMode);
+            const parsed = parseAddress(addressData);
 
             const locationData = {
                 latitude: lat,
