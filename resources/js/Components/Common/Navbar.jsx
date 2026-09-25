@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Logo from "@/assets/logo.png";
 import Button from "./Button";
+import Modal from "./Modal";
 import TextInput from "../Forms/TextInput";
 
 export default function Navbar({ categories = [], RestaurantLogo }) {
@@ -61,6 +62,8 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
     const [addressDropdown, setAddressDropdown] = useState(false);
     const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+    const [logoutProcessing, setLogoutProcessing] = useState(false);
 
     const restaurantRef = useRef(null);
     const categoryRef = useRef(null);
@@ -119,6 +122,28 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
         }
     };
 
+    const handleLogout = () => {
+        setLogoutModalOpen(true);
+    };
+
+    const confirmLogout = () => {
+        setLogoutProcessing(true);
+
+        router.post(
+            route("logout"),
+            {},
+            {
+                onSuccess: () => {
+                    setLogoutModalOpen(false);
+                    setLogoutProcessing(false);
+                },
+                onError: () => {
+                    setLogoutProcessing(false);
+                },
+            },
+        );
+    };
+
     const navLinkClass = (active = false) =>
         `text-sm font-medium transition-colors duration-200 ${
             active
@@ -131,6 +156,41 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
 
     return (
         <>
+            <div className="relative z-[var(--z-modal)]">
+                <Modal
+                    isOpen={logoutModalOpen}
+                    onClose={() => {
+                        if (!logoutProcessing) {
+                            setLogoutModalOpen(false);
+                        }
+                    }}
+                    title="Log out?"
+                    closeButton={!logoutProcessing}
+                    footer={
+                        <>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setLogoutModalOpen(false)}
+                                disabled={logoutProcessing}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                variant="danger"
+                                loading={logoutProcessing}
+                                onClick={confirmLogout}
+                            >
+                                Logout
+                            </Button>
+                        </>
+                    }
+                >
+                    <p className="text-sm leading-6 text-[color:var(--color-text-secondary)]">
+                        Are you sure you want to log out of your account?
+                    </p>
+                </Modal>
+            </div>
             <header className="bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] sticky top-0 z-[var(--z-fixed)] shadow-sm">
                 {/* ===== TOP BAR ===== */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -483,18 +543,15 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                             </Link>
                                                         </div>
                                                         <div className="border-t border-[color:var(--color-border-light)] py-1">
-                                                            <Link
-                                                                href={route(
-                                                                    "logout",
-                                                                )}
-                                                                method="post"
-                                                                as="button"
+                                                            <button
+                                                                type="button"
                                                                 className={`${dropdownItemClass} text-[color:var(--color-danger-600)]`}
-                                                                onClick={() =>
+                                                                onClick={() => {
                                                                     setProfileDropdown(
                                                                         false,
-                                                                    )
-                                                                }
+                                                                    );
+                                                                    handleLogout();
+                                                                }}
                                                             >
                                                                 <span className="flex items-center gap-2">
                                                                     <LogOut
@@ -504,7 +561,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                                     />
                                                                     Logout
                                                                 </span>
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 )}
@@ -982,20 +1039,19 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                     My Addresses
                                                 </span>
                                             </Link>
-                                            <Link
-                                                href={route("logout")}
-                                                method="post"
-                                                as="button"
+                                            <button
+                                                type="button"
                                                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-bg-secondary)] transition-colors w-full text-left"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
+                                                onClick={() => {
+                                                    setMobileMenuOpen(false);
+                                                    handleLogout();
+                                                }}
                                             >
                                                 <LogOut size={18} />
                                                 <span className="text-sm font-medium">
                                                     Logout
                                                 </span>
-                                            </Link>
+                                            </button>
                                         </div>
                                     )
                                 ) : (

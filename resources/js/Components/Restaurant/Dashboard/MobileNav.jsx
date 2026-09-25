@@ -1,4 +1,4 @@
-import { Link, router } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import {
     Bell,
     LayoutDashboard,
@@ -60,16 +60,6 @@ export default function MobileNav({
     const [hideLabels, setHideLabels] = useState(false);
 
     const isActive = (routeKey) => currentRoute.includes(routeKey);
-
-    const handleLogout = () => {
-        setShowMore(false);
-
-        if (onLogout) {
-            onLogout();
-        } else {
-            router.post("/restaurant/logout");
-        }
-    };
 
     useEffect(() => {
         const checkScreenSize = () => {
@@ -168,7 +158,10 @@ export default function MobileNav({
                         <div className="my-1 border-t border-[color:var(--color-border-light)]" />
 
                         <button
-                            onClick={handleLogout}
+                            onClick={() => {
+                                setShowMore(false);
+                                onLogout();
+                            }}
                             className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-danger-50)] rounded-[var(--radius-sm)] transition-colors"
                         >
                             <LogOut size={18} />
