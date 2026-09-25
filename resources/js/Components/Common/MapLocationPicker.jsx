@@ -30,20 +30,26 @@ const parseAddress = (addressData, locationMode = "default") => {
 
     const addr = addressData.address;
 
+    // Street Level (house number + road)
     const name = addr.house_number
         ? `${addr.house_number} ${addr.road || ""}`.trim()
-        : addr.road || addr.neighbourhood || addr.suburb || addr.village || "";
+        : addr.road || "";
 
-    const area =
-        locationMode === "customer"
-            ? addr.neighbourhood ||
-              addr.suburb ||
-              addr.locality ||
-              addr.village ||
-              addr.hamlet ||
-              ""
-            : addr.suburb || addr.neighbourhood || addr.village || "";
+    // Area Level (neighbourhood/suburb/village - WITHOUT road to avoid duplication)
+    const areaParts = [];
+    if (addr.neighbourhood) areaParts.push(addr.neighbourhood);
+    if (addr.suburb && !areaParts.includes(addr.suburb))
+        areaParts.push(addr.suburb);
+    if (addr.village && !areaParts.includes(addr.village))
+        areaParts.push(addr.village);
+    if (addr.locality && !areaParts.includes(addr.locality))
+        areaParts.push(addr.locality);
+    if (addr.hamlet && !areaParts.includes(addr.hamlet))
+        areaParts.push(addr.hamlet);
 
+    const area = areaParts.join(", ");
+
+    // City Level (clean up districts/tehsils)
     let city = addr.city || addr.town || "";
     city = city
         .replace(
@@ -52,17 +58,16 @@ const parseAddress = (addressData, locationMode = "default") => {
         )
         .trim();
 
-    const postcode = addr.postcode || "";
+    // Full Address
+    const addressParts = [];
+    if (name) addressParts.push(name);
+    if (area && area !== name) addressParts.push(area);
 
-    const shortAddress = name
-        ? area
-            ? `${name}, ${area}`
-            : name
-        : area || postcode || "Selected Location";
+    const shortAddress = addressParts.join(", ") || "Selected Location";
 
     return {
         name: name || "Location",
-        area: area.trim(),
+        area: area,
         city: city,
         address: shortAddress,
     };
@@ -252,7 +257,7 @@ export default function MapLocationPicker({
                 `/api/geocoding/reverse?lat=${lat}&lon=${lon}`,
             );
             const addressData = await reverseResponse.json();
-            const parsed = parseAddress(addressData);
+            const parsed = parseAddress(addressData, locationMode);
 
             const locationData = {
                 latitude: lat,
