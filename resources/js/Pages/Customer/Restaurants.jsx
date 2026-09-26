@@ -82,7 +82,7 @@ export default function Restaurants({ categories = [], user = null }) {
     };
 
     const handleRestaurantClick = (restaurantId) => {
-        router.visit(`/restaurants/${restaurantId}`);
+        router.visit(route("customer.restaurant.menu", restaurantId));
     };
 
     const handlePaginationChange = (newPage) => {

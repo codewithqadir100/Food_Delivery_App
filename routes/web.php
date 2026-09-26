@@ -6,10 +6,13 @@ use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\Admin\RestaurantVerificationController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\CustomerRestaurantMenuController;
+use App\Http\Controllers\Customer\RestaurantMenuController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use App\Http\Controllers\Restaurant\MenuCategoryController;
 use App\Http\Controllers\Restaurant\MenuItemController;
+use App\Http\Controllers\Restaurant\MenuItemFormPageController;
 use App\Http\Controllers\Restaurant\MenuController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Customer\RestaurantController;
@@ -27,8 +30,9 @@ Route::get('/restaurants', function () {
         ]);
     })->name('restaurants.index');
 
-Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
+
+Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
     Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
     Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');
@@ -42,9 +46,9 @@ Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/menu', [MenuController::class, 'index'])->name('restaurant.menu');
-    Route::get('/menu/items/create', [MenuItemFormPageController::class, 'create'])->name('restaurant.menu.items.create');
-    Route::get('/menu/items/{item}/edit', [MenuItemFormPageController::class, 'edit'])->name('restaurant.menu.items.edit');
+    Route::get('/menu', [MenuController::class, 'index'])->name('menu');
+    Route::get('/menu/items/create', [MenuItemFormPageController::class, 'create'])->name('menu.items.create');
+    Route::get('/menu/items/{item}/edit', [MenuItemFormPageController::class, 'edit'])->name('menu.items.edit');
 
     Route::prefix('menu')->group(function () {
         // Categories

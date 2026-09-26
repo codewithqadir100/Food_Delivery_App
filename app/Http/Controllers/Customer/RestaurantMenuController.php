@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Customer;
 use App\Models\Restaurant;
 use Illuminate\Routing\Controller;
 
+
 class RestaurantMenuController extends Controller
 {
     public function show(Restaurant $restaurant)
     {
-        if ($restaurant->status !== 'approved' && !$restaurant->is_open) {
+        if ($restaurant->status !== 'approved' || !$restaurant->is_open) {
             return response()->json([
                 'success' => false,
                 'message' => 'Restaurant not available'
@@ -31,13 +32,26 @@ class RestaurantMenuController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
+        // Calculate delivery charge based on service radius
+        $deliveryCharge = 100;
+        if ($restaurant->service_radius_km) {
+            if ($restaurant->service_radius_km <= 2) {
+                $deliveryCharge = 50;
+            } elseif ($restaurant->service_radius_km <= 5) {
+                $deliveryCharge = 100;
+            } else {
+                $deliveryCharge = 150;
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
                 'restaurant' => [
                     'id' => $restaurant->id,
                     'name' => $restaurant->name,
-                    'logo' => $restaurant->logo,
+                    'logo' => $restaurant->logo_url,
+                    'logo_url' => $restaurant->logo_url,
                     'rating' => $restaurant->rating,
                     'review_count' => $restaurant->review_count ?? 0,
                     'category' => $restaurant->restaurantCategory?->name,
@@ -47,6 +61,8 @@ class RestaurantMenuController extends Controller
                     'city_name' => $restaurant->city_name,
                     'area_name' => $restaurant->area_name,
                     'street_address' => $restaurant->street_address,
+                    'delivery_charge' => $deliveryCharge,
+                    'service_radius_km' => $restaurant->service_radius_km,
                 ],
                 'categories' => $categories->map(function ($category) {
                     return [

@@ -21,6 +21,12 @@ export default function RestaurantMenu({ restaurant, address }) {
         calculateDeliveryCharges();
     }, []);
 
+    useEffect(() => {
+        if (menuData?.restaurant?.delivery_charge) {
+            setDeliveryCharge(menuData.restaurant.delivery_charge);
+        }
+    }, [menuData]);
+
     const fetchMenu = async () => {
         try {
             setLoading(true);

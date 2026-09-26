@@ -22,7 +22,12 @@ const NAV_ITEMS = [
         href: "/restaurant/dashboard",
         key: "dashboard",
     },
-    { label: "Menu", icon: Menu, href: "/restaurant/menu", key: "menu" },
+    {
+        label: "Menu",
+        icon: Menu,
+        href: "/restaurant/menu",
+        key: "menu",
+    },
     {
         label: "Orders",
         icon: ShoppingCart,

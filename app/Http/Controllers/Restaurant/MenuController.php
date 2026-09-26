@@ -9,6 +9,10 @@ class MenuController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Restaurant/Menu');
+        $restaurant = auth()->user()->restaurant;
+        
+        return Inertia::render('Restaurant/Menu', [
+            'restaurant' => $restaurant,
+        ]);
     }
 }

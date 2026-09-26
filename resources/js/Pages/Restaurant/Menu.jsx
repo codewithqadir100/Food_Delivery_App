@@ -21,6 +21,9 @@ export default function Menu() {
     const [deleting, setDeleting] = useState(false);
     const [alert, setAlert] = useState(null);
 
+    const pageTitle = "Restaurant Menu";
+    const subTitle = "Manage your Restaurant Menu";
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -186,7 +189,7 @@ export default function Menu() {
     return (
         <>
             <Head title="Menu Management" />
-            <RestaurantLayout>
+            <RestaurantLayout pageTitle={pageTitle} pageSubtitle={subTitle}>
                 <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
                     {alert && (
                         <div className="fixed top-4 right-4 z-50">

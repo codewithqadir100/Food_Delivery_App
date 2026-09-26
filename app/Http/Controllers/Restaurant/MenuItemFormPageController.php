@@ -13,6 +13,7 @@ class MenuItemFormPageController extends Controller
         $restaurant = auth()->user()->restaurant;
         
         return Inertia::render('Restaurant/MenuItemFormPage', [
+            'restaurant' => $restaurant,
             'categories' => $restaurant->menuCategories,
             'item' => null,
             'restaurantId' => $restaurant->id,
@@ -26,6 +27,7 @@ class MenuItemFormPageController extends Controller
         $restaurant = auth()->user()->restaurant;
         
         return Inertia::render('Restaurant/MenuItemFormPage', [
+            'restaurant' => $restaurant,
             'categories' => $restaurant->menuCategories,
             'item' => $item,
             'restaurantId' => $restaurant->id,
