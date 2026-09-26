@@ -84,7 +84,7 @@ export default function RestaurantLayout({
             <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
                 <Sidebar
                     Restaurantlogo={restaurant?.logo_url}
-                    restaurantName={restaurant.name}
+                    restaurantName={restaurant?.name}
                     currentRoute={currentRoute}
                     isPending={isPending}
                     isCollapsed={isSidebarCollapsed}

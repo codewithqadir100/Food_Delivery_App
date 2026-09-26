@@ -15,7 +15,7 @@ class AdminVerificationController extends Controller
     {
         $admins = User::where('role', User::ROLE_ADMIN)
             ->where('is_super_admin', false)
-            ->where('status', 'pending')
+            ->where('status', User::STATUS_PENDING)
             ->latest()
             ->paginate(20);
 
@@ -26,6 +26,8 @@ class AdminVerificationController extends Controller
 
     public function approve(User $admin): RedirectResponse
     {
+        $this->ensurePendingSubAdmin($admin);
+
         $admin->update(['status' => User::STATUS_APPROVED]);
 
         return back()->with('success', 'Admin approved successfully.');
@@ -33,8 +35,19 @@ class AdminVerificationController extends Controller
 
     public function reject(User $admin): RedirectResponse
     {
+        $this->ensurePendingSubAdmin($admin);
+
         $admin->update(['status' => User::STATUS_REJECTED]);
 
         return back()->with('success', 'Admin rejected.');
+    }
+
+    private function ensurePendingSubAdmin(User $admin): void
+    {
+        abort_unless(
+            $admin->isAdmin() && !$admin->isSuperAdmin() && $admin->isPending(),
+            403,
+            'This account is not a pending admin.'
+        );
     }
 }

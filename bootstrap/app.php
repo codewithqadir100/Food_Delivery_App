@@ -31,6 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('restaurant.login');
             }
 
+            if ($request->is('admin/*') || $request->is('super-admin/*')) {
+                return route('admin.login');
+            }
+
             return route('login');
         });
     })

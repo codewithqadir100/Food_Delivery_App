@@ -28,9 +28,12 @@ class HandleInertiaRequests extends Middleware
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role,
+                    'status' => $user->status,
                     'is_customer' => $user->isCustomer(),
                     'is_restaurant_owner' => $user->isRestaurantOwner(),
                     'is_admin' => $user->isAdmin(),
+                    'is_super_admin' => $user->isSuperAdmin(),
+                    'is_pending' => $user->isPending(),
                 ] : null,
 
                 'restaurant' => fn() => $user?->restaurant,
@@ -38,6 +41,10 @@ class HandleInertiaRequests extends Middleware
                 'customer' => fn() => $user?->isCustomer()
                     ? $user->primaryAddress
                     : null,
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
         ];
     }

@@ -15,10 +15,16 @@ import {
 } from "lucide-react";
 
 export default function Sidebar({ open, onClose }) {
-    const { auth } = usePage().props;
+    const { auth = {} } = usePage().props || {};
 
     const customerLinks = [
-        { href: route("customer.dashboard"), label: "Home", Icon: Home },
+        {
+            href: route().has("customer.dashboard")
+                ? route("customer.dashboard")
+                : route("home"),
+            label: "Home",
+            Icon: Home,
+        },
         { href: "/restaurants", label: "Restaurants", Icon: Utensils },
         { href: "/wishlist", label: "Wishlist", Icon: Heart },
         { href: "/orders", label: "My Orders", Icon: Package },
@@ -31,7 +37,7 @@ export default function Sidebar({ open, onClose }) {
             Icon: BarChart3,
         },
         {
-            href: route("restaurant.profile.index"),
+            href: route("restaurant.profile.edit"),
             label: "Restaurant",
             Icon: ChefHat,
         },
@@ -99,7 +105,11 @@ export default function Sidebar({ open, onClose }) {
                 {/* Settings Section */}
                 <div className="border-t border-[color:var(--color-border-light)] mt-4 pt-4 px-4 space-y-1">
                     <Link
-                        href={route("profile.edit")}
+                        href={
+                            route().has("customer.profile.edit")
+                                ? route("customer.profile.edit")
+                                : route("home")
+                        }
                         className="
               flex items-center gap-3
               px-4 py-2.5
