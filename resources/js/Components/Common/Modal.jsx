@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 
 export default function Modal({
-    isOpen,
+    isOpen: openProp,
+    show,
     onClose,
     title,
     children,
@@ -10,6 +11,8 @@ export default function Modal({
     size = "md",
     closeButton = true,
 }) {
+    const isOpen = Boolean(openProp ?? show ?? false);
+
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";

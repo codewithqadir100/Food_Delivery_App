@@ -30,7 +30,11 @@ export default function DeleteUserForm({ className = "" }) {
     const deleteUser = (e) => {
         e.preventDefault();
 
-        destroy(route("profile.destroy"), {
+        const destroyRoute = route().has("profile.destroy")
+            ? route("profile.destroy")
+            : "#";
+
+        destroy(destroyRoute, {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => passwordInput.current.focus(),
@@ -64,7 +68,7 @@ export default function DeleteUserForm({ className = "" }) {
                 Delete Account
             </DangerButton>
 
-            <Modal show={confirmingUserDeletion} onClose={closeModal}>
+            <Modal isOpen={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6">
                     <h2 className="text-lg font-medium text-gray-900">
                         Are you sure you want to delete your account?

@@ -8,8 +8,8 @@ export default function AdminDashboard({
     pendingRestaurantsCount = 0,
     pendingAdminsCount = 0,
 }) {
-    const { auth } = usePage().props;
-    const isSuperAdmin = Boolean(auth.user?.is_super_admin);
+    const { auth = {} } = usePage().props || {};
+    const isSuperAdmin = Boolean(auth?.user?.is_super_admin);
 
     return (
         <>

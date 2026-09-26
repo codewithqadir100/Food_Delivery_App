@@ -139,8 +139,9 @@ export default function VerifyRestaurants({ restaurants }) {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 text-[color:var(--color-text-secondary)]">
-                                                {restaurant.restaurant_category
-                                                    ?.name ?? "—"}
+                                                {restaurant.restaurant_category?.name ??
+                                                    restaurant.restaurantCategory?.name ??
+                                                    "—"}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="flex justify-end gap-2">

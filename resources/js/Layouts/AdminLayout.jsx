@@ -7,8 +7,9 @@ import Modal from "@/Components/Common/Modal";
 import Alert from "@/Components/Common/Alert";
 
 export default function AdminLayout({ title, subtitle, children }) {
-    const { url, auth, flash } = usePage().props;
-    const user = auth.user;
+    const { url = "" } = usePage();
+    const { auth = {}, flash = {} } = usePage().props || {};
+    const user = auth?.user;
     const isSuperAdmin = Boolean(user?.is_super_admin);
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
     const [logoutProcessing, setLogoutProcessing] = useState(false);
@@ -18,7 +19,7 @@ export default function AdminLayout({ title, subtitle, children }) {
             label: "Dashboard",
             href: route("admin.dashboard"),
             icon: LayoutDashboard,
-            active: url.startsWith("/admin/dashboard"),
+            active: Boolean(url?.startsWith("/admin/dashboard")),
         },
         ...(isSuperAdmin
             ? [
@@ -26,13 +27,13 @@ export default function AdminLayout({ title, subtitle, children }) {
                       label: "Restaurants",
                       href: route("super-admin.restaurants.pending"),
                       icon: Store,
-                      active: url.startsWith("/super-admin/restaurants"),
+                      active: Boolean(url?.startsWith("/super-admin/restaurants")),
                   },
                   {
                       label: "Admins",
                       href: route("super-admin.admins.pending"),
                       icon: ShieldCheck,
-                      active: url.startsWith("/super-admin/admins"),
+                      active: Boolean(url?.startsWith("/super-admin/admins")),
                   },
               ]
             : []),
