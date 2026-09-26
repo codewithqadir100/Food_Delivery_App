@@ -1,4 +1,4 @@
-import MenuItemCard from "../../Customer/MenuItemCard";
+import MenuItemCard from "./MenuItemCard";
 import Button from "@/Components/Common/Button";
 import { Plus } from "lucide-react";
 import Spinner from "@/Components/Common/Spinner";

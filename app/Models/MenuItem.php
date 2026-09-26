@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class MenuItem extends Model
 {
@@ -20,6 +21,17 @@ class MenuItem extends Model
         'price' => 'decimal:2',
         'is_available' => 'boolean',
     ];
+
+    protected $appends = [
+        'image_url',
+    ];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image
+            ? Storage::disk('public')->url($this->image)
+            : null;
+    }
 
     public function restaurant()
     {

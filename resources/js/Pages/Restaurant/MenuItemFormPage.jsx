@@ -18,7 +18,7 @@ export default function MenuItemFormPage({
     selectedCategoryId,
 }) {
     const isEditing = !!item;
-    const [imagePreview, setImagePreview] = useState(item?.image || null);
+    const [imagePreview, setImagePreview] = useState(item?.image_url || null);
     const [imageError, setImageError] = useState("");
     const [submitError, setSubmitError] = useState("");
 
@@ -132,7 +132,6 @@ export default function MenuItemFormPage({
                                     error={errors.menu_category_id}
                                     required
                                 >
-                                    <option value="">Select a category</option>
                                     {categories.map((category) => (
                                         <option
                                             key={category.id}

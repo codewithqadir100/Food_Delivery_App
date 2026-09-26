@@ -9,13 +9,16 @@ use Inertia\Inertia;
 
 class MenuItemFormPageController extends Controller
 {
-    public function create(request $request)
+    public function create(Request $request)
     {
-
         $restaurant = auth()->user()->restaurant;
+
         $categoryId = $request->query('category_id');
-        $categories = $restaurant->menuCategories()->get();
-        
+
+        $categories = $restaurant->menuCategories()
+            ->orderBy('created_at', 'asc')
+            ->get();
+
         return Inertia::render('Restaurant/MenuItemFormPage', [
             'restaurant' => $restaurant,
             'categories' => $categories,
@@ -27,16 +30,18 @@ class MenuItemFormPageController extends Controller
 
     public function edit(MenuItem $item)
     {
-        $this->authorize('update', $item);
-        
         $restaurant = auth()->user()->restaurant;
-        
+
+        $categories = $restaurant->menuCategories()
+            ->orderBy('created_at', 'asc')
+            ->get();
+
         return Inertia::render('Restaurant/MenuItemFormPage', [
             'restaurant' => $restaurant,
-            'categories' => $restaurant->$categories,
+            'categories' => $categories,
             'item' => $item,
             'restaurantId' => $restaurant->id,
-            'selectedCategoryId' => $categoryId,
+            'selectedCategoryId' => null,
         ]);
     }
 }

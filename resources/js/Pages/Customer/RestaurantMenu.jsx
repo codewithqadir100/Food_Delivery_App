@@ -3,7 +3,7 @@ import { Head } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import RestaurantHeader from "@/Components/Customer/RestaurantHeader";
 import CategoryFilterTabs from "@/Components/Customer/CategoryFilterTabs";
-import MenuItemCard from "@/Components/Customer/MenuItemCard";
+import MenuItemCard from "@/Components/Restaurant/Menu/MenuItemCard";
 import Alert from "@/Components/Common/Alert";
 import Spinner from "@/Components/Common/Spinner";
 import axios from "axios";

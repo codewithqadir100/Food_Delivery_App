@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Models\MenuCategory;
-use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -12,7 +11,7 @@ class MenuCategoryController extends Controller
     public function index()
     {
         $restaurant = auth()->user()->restaurant;
-        
+
         $categories = $restaurant->menuCategories()
             ->withCount('menuItems')
             ->orderBy('created_at', 'desc')
@@ -20,17 +19,22 @@ class MenuCategoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $categories
+            'data' => $categories,
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:menu_categories,name,NULL,id,restaurant_id,' . auth()->user()->restaurant_id,
-        ]);
-
         $restaurant = auth()->user()->restaurant;
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:50',
+                'unique:menu_categories,name,NULL,id,restaurant_id,' . $restaurant->id,
+            ],
+        ]);
 
         $category = $restaurant->menuCategories()->create([
             'name' => $validated['name'],
@@ -39,16 +43,26 @@ class MenuCategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Category created successfully',
-            'data' => $category->loadCount('menuItems')
+            'data' => $category->loadCount('menuItems'),
         ], 201);
     }
 
     public function update(Request $request, MenuCategory $category)
     {
-        $this->authorize('update', $category);
+        $restaurant = auth()->user()->restaurant;
+
+        abort_unless(
+            $category->restaurant_id === $restaurant->id,
+            403
+        );
 
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:menu_categories,name,' . $category->id . ',id,restaurant_id,' . auth()->user()->restaurant_id,
+            'name' => [
+                'required',
+                'string',
+                'max:50',
+                'unique:menu_categories,name,' . $category->id . ',id,restaurant_id,' . $restaurant->id,
+            ],
         ]);
 
         $category->update([
@@ -58,13 +72,18 @@ class MenuCategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Category updated successfully',
-            'data' => $category->loadCount('menuItems')
+            'data' => $category->loadCount('menuItems'),
         ]);
     }
 
     public function destroy(MenuCategory $category)
     {
-        $this->authorize('delete', $category);
+        $restaurant = auth()->user()->restaurant;
+
+        abort_unless(
+            $category->restaurant_id === $restaurant->id,
+            403
+        );
 
         $itemCount = $category->menuItems()->count();
 
