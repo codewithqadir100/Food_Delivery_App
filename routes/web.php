@@ -5,11 +5,15 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\RestaurantVerificationController;
+use App\Http\Controllers\Customer\CartController;
+use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\CustomerRestaurantMenuController;
 use App\Http\Controllers\Customer\RestaurantMenuController;
 use App\Http\Controllers\Restaurant\DashboardController;
+use App\Http\Controllers\Restaurant\OrderController as RestaurantOrderController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use App\Http\Controllers\Restaurant\MenuCategoryController;
 use App\Http\Controllers\Restaurant\MenuItemController;
@@ -41,7 +45,19 @@ Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/wishlist', [ProfileController::class, 'wishlist'])->name('wishlist');
-    Route::get('/history', [ProfileController::class, 'history'])->name('history');
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
+    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.store');
+    Route::patch('/cart/items/{menuItem}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/items/{menuItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+    Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
 });
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
@@ -70,6 +86,10 @@ Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('res
         Route::patch('/profile/status', [RestaurantProfileController::class, 'updateStatus'])->name('profile.update-status');
         Route::post('/profile/update-cover', [RestaurantProfileController::class, 'updateCoverImage'])->name('profile.update-cover');
         Route::post('/profile/update-logo', [RestaurantProfileController::class, 'updateLogoImage'])->name('profile.update-logo');
+
+        Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])->name('orders.update-status');
     });
 });
 

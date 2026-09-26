@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import RestaurantHeader from "@/Components/Customer/RestaurantHeader";
 import CategoryFilterTabs from "@/Components/Customer/CategoryFilterTabs";
-import MenuItemCard from "@/Components/Restaurant/Menu/MenuItemCard";
+import MenuItemOrderCard from "@/Components/Customer/MenuItemOrderCard";
 import Alert from "@/Components/Common/Alert";
 import Spinner from "@/Components/Common/Spinner";
 import axios from "axios";
@@ -17,6 +17,7 @@ export default function RestaurantMenu({
     const [menuData, setMenuData] = useState(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [addingItemId, setAddingItemId] = useState(null);
     const [alert, setAlert] = useState(null);
 
     useEffect(() => {
@@ -45,7 +46,7 @@ export default function RestaurantMenu({
         }
     };
 
-    const handleAddToCart = (item) => {
+    const handleAddToCart = async (item, quantity) => {
         if (!can_order) {
             setAlert({
                 type: "warning",
@@ -56,11 +57,36 @@ export default function RestaurantMenu({
             return;
         }
 
-        setAlert({
-            type: "info",
-            title: "Add to Cart",
-            message: `${item.name} added to cart (Coming soon)`,
-        });
+        try {
+            setAddingItemId(item.id);
+
+            const res = await axios.post(route("customer.cart.store"), {
+                menu_item_id: item.id,
+                quantity,
+            });
+
+            setAlert({
+                type: res.data.switched_restaurant ? "warning" : "success",
+                title: res.data.switched_restaurant
+                    ? "Cart Replaced"
+                    : "Added to Cart",
+                message: res.data.message,
+            });
+
+            // Refresh only the shared "auth" prop so the navbar cart badge
+            // updates without reloading the whole page/menu.
+            router.reload({ only: ["auth"] });
+        } catch (error) {
+            setAlert({
+                type: "error",
+                title: "Error",
+                message:
+                    error.response?.data?.message ||
+                    "Failed to add item to cart",
+            });
+        } finally {
+            setAddingItemId(null);
+        }
     };
 
     if (loading) {
@@ -136,9 +162,11 @@ export default function RestaurantMenu({
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {filteredItems.map((item) => (
-                                    <MenuItemCard
+                                    <MenuItemOrderCard
                                         key={item.id}
                                         item={item}
+                                        canOrder={can_order}
+                                        adding={addingItemId === item.id}
                                         onAddToCart={handleAddToCart}
                                     />
                                 ))}

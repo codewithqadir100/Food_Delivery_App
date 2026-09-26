@@ -44,13 +44,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function history(): Response
-    {
-        return Inertia::render('Customer/History', [
-            'orders' => [],
-        ]);
-    }
-
     public function addresses(): Response
     {
         return Inertia::render('Customer/Addresses', [
