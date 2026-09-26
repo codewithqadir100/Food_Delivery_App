@@ -8,24 +8,20 @@ import Alert from "@/Components/Common/Alert";
 import Spinner from "@/Components/Common/Spinner";
 import axios from "axios";
 
-export default function RestaurantMenu({ restaurant, address }) {
+export default function RestaurantMenu({
+    restaurant,
+    distance_km,
+    delivery_charge,
+    can_order,
+}) {
     const [menuData, setMenuData] = useState(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [alert, setAlert] = useState(null);
-    const [deliveryCharge, setDeliveryCharge] = useState(null);
-    const [distance, setDistance] = useState(null);
 
     useEffect(() => {
         fetchMenu();
-        calculateDeliveryCharges();
     }, []);
-
-    useEffect(() => {
-        if (menuData?.restaurant?.delivery_charge) {
-            setDeliveryCharge(menuData.restaurant.delivery_charge);
-        }
-    }, [menuData]);
 
     const fetchMenu = async () => {
         try {
@@ -49,32 +45,17 @@ export default function RestaurantMenu({ restaurant, address }) {
         }
     };
 
-    const calculateDeliveryCharges = () => {
-        if (!address || !restaurant) return;
-
-        const R = 6371;
-        const lat1 = (address.latitude * Math.PI) / 180;
-        const lat2 = (restaurant.latitude * Math.PI) / 180;
-        const dLat = ((restaurant.latitude - address.latitude) * Math.PI) / 180;
-        const dLng =
-            ((restaurant.longitude - address.longitude) * Math.PI) / 180;
-
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1) *
-                Math.cos(lat2) *
-                Math.sin(dLng / 2) *
-                Math.sin(dLng / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const dist = R * c;
-
-        setDistance(dist);
-
-        const charge = dist < 2 ? 50 : dist < 5 ? 100 : 150;
-        setDeliveryCharge(charge);
-    };
-
     const handleAddToCart = (item) => {
+        if (!can_order) {
+            setAlert({
+                type: "warning",
+                title: "Address Required",
+                message:
+                    "Please add a delivery address before placing an order.",
+            });
+            return;
+        }
+
         setAlert({
             type: "info",
             title: "Add to Cart",
@@ -134,8 +115,8 @@ export default function RestaurantMenu({ restaurant, address }) {
                 <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
                     <RestaurantHeader
                         restaurant={menuData.restaurant}
-                        deliveryCharge={deliveryCharge}
-                        distance={distance}
+                        deliveryCharge={delivery_charge}
+                        distance={distance_km}
                         onBack={() => window.history.back()}
                     />
 
