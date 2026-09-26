@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminVerificationController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\RestaurantVerificationController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\AddressController;
@@ -45,46 +46,35 @@ Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/menu', [MenuController::class, 'index'])->name('menu');
-    Route::get('/menu/items/create', [MenuItemFormPageController::class, 'create'])->name('menu.items.create');
-    Route::get('/menu/items/{item}/edit', [MenuItemFormPageController::class, 'edit'])->name('menu.items.edit');
 
-    Route::prefix('menu')->group(function () {
-        // Categories
-        Route::get('categories', [MenuCategoryController::class, 'index'])->name('menu.categories.index');
-        Route::post('categories', [MenuCategoryController::class, 'store'])->name('menu.categories.store');
-        Route::patch('categories/{category}', [MenuCategoryController::class, 'update'])->name('menu.categories.update');
-        Route::delete('categories/{category}', [MenuCategoryController::class, 'destroy'])->name('menu.categories.destroy');
- 
-        // Items
-        Route::get('items', [MenuItemController::class, 'index'])->name('menu.items.index');
-        Route::post('items', [MenuItemController::class, 'store'])->name('menu.items.store');
-        Route::patch('items/{item}', [MenuItemController::class, 'update'])->name('menu.items.update');
-        Route::delete('items/{item}', [MenuItemController::class, 'destroy'])->name('menu.items.destroy');
-        Route::patch('items/{item}/toggle-availability', [MenuItemController::class, 'toggleAvailability'])->name('menu.items.toggle');
+    Route::middleware('approved_restaurant')->group(function () {
+        Route::get('/menu', [MenuController::class, 'index'])->name('menu');
+        Route::get('/menu/items/create', [MenuItemFormPageController::class, 'create'])->name('menu.items.create');
+        Route::get('/menu/items/{item}/edit', [MenuItemFormPageController::class, 'edit'])->name('menu.items.edit');
+
+        Route::prefix('menu')->group(function () {
+            Route::get('categories', [MenuCategoryController::class, 'index'])->name('menu.categories.index');
+            Route::post('categories', [MenuCategoryController::class, 'store'])->name('menu.categories.store');
+            Route::patch('categories/{category}', [MenuCategoryController::class, 'update'])->name('menu.categories.update');
+            Route::delete('categories/{category}', [MenuCategoryController::class, 'destroy'])->name('menu.categories.destroy');
+
+            Route::get('items', [MenuItemController::class, 'index'])->name('menu.items.index');
+            Route::post('items', [MenuItemController::class, 'store'])->name('menu.items.store');
+            Route::patch('items/{item}', [MenuItemController::class, 'update'])->name('menu.items.update');
+            Route::delete('items/{item}', [MenuItemController::class, 'destroy'])->name('menu.items.destroy');
+            Route::patch('items/{item}/toggle-availability', [MenuItemController::class, 'toggleAvailability'])->name('menu.items.toggle');
+        });
+
+        Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');
+        Route::patch('/profile/status', [RestaurantProfileController::class, 'updateStatus'])->name('profile.update-status');
+        Route::post('/profile/update-cover', [RestaurantProfileController::class, 'updateCoverImage'])->name('profile.update-cover');
+        Route::post('/profile/update-logo', [RestaurantProfileController::class, 'updateLogoImage'])->name('profile.update-logo');
     });
-        //Profile
-    Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');
-    Route::patch('/profile/status', [RestaurantProfileController::class, 'updateStatus'])->name('profile.update-status');
-    Route::post('/profile/update-cover', [RestaurantProfileController::class, 'updateCoverImage'])->name('profile.update-cover');
-    Route::post('/profile/update-logo', [RestaurantProfileController::class, 'updateLogoImage'])->name('profile.update-logo');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        $user = auth()->user();
-
-        if ($user->isSuperAdmin()) {
-            return Inertia::render('Admin/Dashboard');
-        }
-
-        if ($user->isPending()) {
-            return Inertia::render('Admin/PendingDashboard');
-        }
-
-        return Inertia::render('Admin/Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 });
 
 Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
