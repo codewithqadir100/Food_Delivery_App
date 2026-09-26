@@ -43,7 +43,6 @@ class RestaurantAuthController extends Controller
                 'user_id' => $user->id,
                 'name' => $validated['restaurant_name'],
                 'restaurant_category_id' => $validated['restaurant_category_id'],
-                'address' => $validated['address'],
                 'phone' => $validated['phone'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'status' => Restaurant::STATUS_PENDING,

@@ -25,13 +25,7 @@ class MenuItemController extends Controller
             );
         }
 
-        $items = $query->get()->map(function (MenuItem $item) {
-            $item->image = $item->image
-                ? Storage::disk('public')->url($item->image)
-                : null;
-
-            return $item;
-        });
+        $items = $query->get();
 
         return response()->json([
             'success' => true,

@@ -13,7 +13,7 @@ export default function MenuItemCard({
             <div className="relative h-40 overflow-hidden bg-[color:var(--color-bg-secondary)]">
                 {item.image ? (
                     <img
-                        src={item.image}
+                        src={item.image_url}
                         alt={item.name}
                         className="w-full h-full object-cover"
                     />

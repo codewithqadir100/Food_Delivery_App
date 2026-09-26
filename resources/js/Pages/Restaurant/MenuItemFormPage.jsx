@@ -22,12 +22,13 @@ export default function MenuItemFormPage({
     const [imageError, setImageError] = useState("");
     const [submitError, setSubmitError] = useState("");
 
-    const { data, setData, post, patch, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         menu_category_id: item?.menu_category_id || selectedCategoryId || "",
         name: item?.name || "",
         description: item?.description || "",
         price: item?.price || "",
         image: null,
+        _method: item ? "PATCH" : "POST",
     });
 
     const handleSubmit = (e) => {
@@ -54,8 +55,11 @@ export default function MenuItemFormPage({
             return;
         }
 
-        if (isEditing) {
-            patch(route("restaurant.menu.items.update", item.id), {
+        post(
+            isEditing
+                ? route("restaurant.menu.items.update", item.id)
+                : route("restaurant.menu.items.store"),
+            {
                 forceFormData: true,
                 preserveScroll: true,
                 onError: (errors) => {
@@ -63,18 +67,8 @@ export default function MenuItemFormPage({
                         setSubmitError(errors.message);
                     }
                 },
-            });
-        } else {
-            post(route("restaurant.menu.items.store"), {
-                forceFormData: true,
-                preserveScroll: true,
-                onError: (errors) => {
-                    if (errors.message) {
-                        setSubmitError(errors.message);
-                    }
-                },
-            });
-        }
+            },
+        );
     };
 
     const handleImageChange = (file) => {

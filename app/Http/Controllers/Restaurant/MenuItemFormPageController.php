@@ -32,6 +32,11 @@ class MenuItemFormPageController extends Controller
     {
         $restaurant = auth()->user()->restaurant;
 
+        abort_unless(
+            (int) $item->restaurant_id === (int) $restaurant->id,
+            403
+        );
+
         $categories = $restaurant->menuCategories()
             ->orderBy('created_at', 'asc')
             ->get();

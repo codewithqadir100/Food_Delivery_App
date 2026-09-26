@@ -184,7 +184,7 @@ class RestaurantController extends Controller
                     return $distance <= $restaurant->service_radius_km;
                 })
                 ->values()
-                ->each(function($restaurant) use ($user) {
+                ->each(function ($restaurant) use ($customerAddress) {
                     $distance = $this->deliveryService->calculateDistance(
                         $restaurant->latitude,
                         $restaurant->longitude,
@@ -200,7 +200,6 @@ class RestaurantController extends Controller
                     );
                 });
         } else {
-            // Guests & restaurants see all restaurants without distance/charges
             $restaurants = $restaurants->each(function($restaurant) {
                 $restaurant->distance_km = null;
                 $restaurant->delivery_charge = null;
