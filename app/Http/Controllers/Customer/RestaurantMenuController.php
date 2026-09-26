@@ -32,17 +32,6 @@ class RestaurantMenuController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        // Calculate delivery charge based on service radius
-        $deliveryCharge = 100;
-        if ($restaurant->service_radius_km) {
-            if ($restaurant->service_radius_km <= 2) {
-                $deliveryCharge = 50;
-            } elseif ($restaurant->service_radius_km <= 5) {
-                $deliveryCharge = 100;
-            } else {
-                $deliveryCharge = 150;
-            }
-        }
 
         return response()->json([
             'success' => true,
@@ -61,7 +50,7 @@ class RestaurantMenuController extends Controller
                     'city_name' => $restaurant->city_name,
                     'area_name' => $restaurant->area_name,
                     'street_address' => $restaurant->street_address,
-                    'delivery_charge' => $deliveryCharge,
+                    'delivery_charge' => null,
                     'service_radius_km' => $restaurant->service_radius_km,
                 ],
                 'categories' => $categories->map(function ($category) {
