@@ -19,7 +19,6 @@ class RestaurantProfileRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'restaurant_category_id' => ['required', 'integer', 'exists:restaurant_categories,id'],
-            'address' => ['required', 'string', 'max:500'],
             'phone' => ['nullable', 'string', 'max:20'],
             'description' => ['nullable', 'string', 'max:2000'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],

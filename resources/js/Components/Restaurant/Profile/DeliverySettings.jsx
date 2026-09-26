@@ -17,8 +17,6 @@ export default function DeliverySettings({ data, errors = {}, onChange }) {
                   longitude: data.longitude,
                   city: data.city_name,
                   area: data.area_name,
-                  name: data.address,
-                  address: data.address,
               }
             : null;
 

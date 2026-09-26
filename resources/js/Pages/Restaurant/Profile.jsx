@@ -18,7 +18,6 @@ export default function RestaurantProfile() {
         restaurant_category_id: restaurant.restaurant_category_id ?? "",
         phone: restaurant.phone ?? "",
         city: restaurant.city ?? "",
-        address: restaurant.address ?? "",
         description: restaurant.description ?? "",
         street_address: restaurant.street_address ?? "",
         latitude: restaurant.latitude ?? null,

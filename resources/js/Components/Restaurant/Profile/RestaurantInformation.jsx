@@ -89,7 +89,7 @@ export default function RestaurantInformation({
                 <ReadOnlyTextInput
                     label="Address"
                     placeholder="Select Address from Map"
-                    value={data.address || "-"}
+                    value={data.area_name || "-"}
                     required={true}
                 />
 

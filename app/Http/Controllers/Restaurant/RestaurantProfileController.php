@@ -62,7 +62,6 @@ class RestaurantProfileController extends Controller
             $restaurant->update([
                 'name' => $validated['name'],
                 'restaurant_category_id' => $validated['restaurant_category_id'],
-                'address' => $validated['address'],
                 'street_address' => $validated['street_address'] ?? null,
                 'phone' => $validated['phone'] ?? null,
                 'description' => $validated['description'] ?? null,

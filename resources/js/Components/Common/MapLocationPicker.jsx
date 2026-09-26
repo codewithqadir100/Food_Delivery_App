@@ -67,7 +67,6 @@ const parseAddress = (addressData) => {
         name: name || "Location",
         area: area,
         city: city,
-        address: shortAddress,
     };
 };
 
@@ -261,7 +260,6 @@ export default function MapLocationPicker({
                 longitude: lon,
                 city: parsed.city,
                 area: parsed.area,
-                address: parsed.address,
                 name: parsed.name,
             };
 
@@ -394,12 +392,12 @@ export default function MapLocationPicker({
                                     {selectedLocation.name}
                                 </p>
                                 <p className="text-xs text-[color:var(--color-text-muted)] mt-1">
-                                    {selectedLocation.address}
+                                    {selectedLocation.area}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[color:var(--color-primary-200)]">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-[color:var(--color-primary-200)]">
                             <div className="bg-[color:var(--color-bg-primary)] p-2.5 rounded-md">
                                 <p className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wide">
                                     City

@@ -22,6 +22,7 @@ Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
 
+Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
 
 Route::get('/restaurants', function () {
         return Inertia::render('Customer/Restaurants', [
@@ -29,8 +30,6 @@ Route::get('/restaurants', function () {
             'user' => auth()->user(),
         ]);
     })->name('restaurants.index');
-
-    Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
 
 Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
