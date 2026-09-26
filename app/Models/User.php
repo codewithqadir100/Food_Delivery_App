@@ -92,4 +92,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(CustomerAddress::class, 'customer_id')->where('is_primary', true);
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
 }

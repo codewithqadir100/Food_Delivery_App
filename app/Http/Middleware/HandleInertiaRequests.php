@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +41,10 @@ class HandleInertiaRequests extends Middleware
 
                 'customer' => fn() => $user?->isCustomer()
                     ? $user->primaryAddress
+                    : null,
+
+                'cart' => fn() => $user?->isCustomer()
+                    ? ['count' => app(CartService::class)->count()]
                     : null,
             ],
             'flash' => [

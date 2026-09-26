@@ -21,7 +21,6 @@ class Restaurant extends Model
         'latitude',
         'service_radius_km',
         'area_name',
-        'address',
         'city_name',
         'street_address',
         'description',
@@ -65,6 +64,11 @@ class Restaurant extends Model
     public function menuItems(): HasMany
     {
         return $this->hasMany(MenuItem::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 
     public function isPending(): bool

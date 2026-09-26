@@ -1,9 +1,22 @@
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
+import { Clock, Activity, CheckCircle2, Wallet } from "lucide-react";
 import Alert from "@/Components/Common/Alert";
-import { DashboardCard, StatusBadge } from "@/Components/Restaurant/Dashboard";
+import Button from "@/Components/Common/Button";
+import {
+    DashboardCard,
+    StatusBadge,
+    StatCard,
+    OrderTable,
+} from "@/Components/Restaurant/Dashboard";
+import { formatCurrency } from "@/Utils/formatCurrency";
 
-export default function RestaurantDashboard({ restaurant, status }) {
+export default function RestaurantDashboard({
+    restaurant,
+    status,
+    stats,
+    recentOrders = [],
+}) {
     const restaurantName = restaurant?.name ?? "Restaurant";
     const pageTitle = `${restaurantName} Dashboard`;
     const subTitle = "Manage your restaurant operations";
@@ -34,7 +47,53 @@ export default function RestaurantDashboard({ restaurant, status }) {
                             />
                         </div>
                     </DashboardCard>
-                ) : null}
+                ) : (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <StatCard
+                                title="Pending Orders"
+                                value={stats?.pending ?? 0}
+                                icon={Clock}
+                            />
+                            <StatCard
+                                title="Active Orders"
+                                value={stats?.active ?? 0}
+                                icon={Activity}
+                            />
+                            <StatCard
+                                title="Delivered Today"
+                                value={stats?.delivered_today ?? 0}
+                                icon={CheckCircle2}
+                            />
+                            <StatCard
+                                title="Revenue Today"
+                                value={formatCurrency(
+                                    stats?.revenue_today ?? 0,
+                                )}
+                                icon={Wallet}
+                            />
+                        </div>
+
+                        <DashboardCard
+                            title="Recent Orders"
+                            action={
+                                <Link href={route("restaurant.orders.index")}>
+                                    <Button variant="secondary" size="sm">
+                                        View All Orders
+                                    </Button>
+                                </Link>
+                            }
+                        >
+                            <OrderTable
+                                orders={recentOrders.map((order) => ({
+                                    ...order,
+                                    customer_name:
+                                        order.customer?.name ?? "—",
+                                }))}
+                            />
+                        </DashboardCard>
+                    </div>
+                )}
             </RestaurantLayout>
         </>
     );

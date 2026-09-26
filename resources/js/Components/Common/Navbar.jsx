@@ -26,7 +26,10 @@ import TextInput from "../Forms/TextInput";
 export default function Navbar({ categories = [], RestaurantLogo }) {
     const { auth } = usePage().props;
     const user = auth?.user;
-    const isRestaurant = auth?.user?.role === "restaurant_owner";
+    const isRestaurant = user?.role === "restaurant_owner";
+    const isAdminUser = user?.role === "admin";
+    const isCustomer = user?.role === "customer";
+    const cartCount = auth?.cart?.count ?? 0;
     const restaurant = auth?.restaurant;
     const customer = auth?.customer;
 
@@ -237,8 +240,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             Add Address
                                         </span>
                                     </Link>
-                                ) : user.is_restaurant_owner &&
-                                  !restaurantLocation ? (
+                                ) : isRestaurant && !restaurantLocation ? (
                                     <Link
                                         href={route("restaurant.profile.edit")}
                                         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
@@ -252,7 +254,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             Add Address
                                         </span>
                                     </Link>
-                                ) : user.is_customer && !customerLocation ? (
+                                ) : isCustomer && !customerLocation ? (
                                     <Link
                                         href={route(
                                             "customer.addresses.create",
@@ -268,7 +270,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             Add Address
                                         </span>
                                     </Link>
-                                ) : (
+                                ) : !isAdminUser && location ? (
                                     <div className="flex items-center gap-2 px-3 py-2">
                                         <MapPin
                                             size={18}
@@ -279,7 +281,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             {location}
                                         </span>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
 
                             {!user && (
@@ -388,19 +390,102 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 />
                                             </Link>
                                         </div>
+                                    ) : isAdminUser ? (
+                                        <div className="flex gap-[var(--spacing-4)] items-center">
+                                            <Link
+                                                href={route(
+                                                    "admin.dashboard",
+                                                )}
+                                            >
+                                                <Button size="sm">
+                                                    <LayoutDashboard
+                                                        size={16}
+                                                    />
+                                                    Admin Dashboard
+                                                </Button>
+                                            </Link>
+
+                                            <div
+                                                className="relative"
+                                                ref={profileRef}
+                                            >
+                                                <button
+                                                    onClick={() =>
+                                                        setProfileDropdown(
+                                                            !profileDropdown,
+                                                        )
+                                                    }
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
+                                                        {user.name
+                                                            .charAt(0)
+                                                            .toUpperCase()}
+                                                    </div>
+                                                    <ChevronDown
+                                                        size={14}
+                                                        className={`text-[color:var(--color-text-muted)] transition-transform ${
+                                                            profileDropdown
+                                                                ? "rotate-180"
+                                                                : ""
+                                                        }`}
+                                                    />
+                                                </button>
+
+                                                {profileDropdown && (
+                                                    <div className="absolute right-0 mt-2 w-56 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-xl shadow-lg overflow-hidden z-50">
+                                                        <div className="px-4 py-3 border-b border-[color:var(--color-border-light)]">
+                                                            <p className="text-sm font-semibold text-[color:var(--color-text-primary)] truncate">
+                                                                {user.name}
+                                                            </p>
+                                                            <p className="text-xs text-[color:var(--color-text-muted)] truncate">
+                                                                {user.email}
+                                                            </p>
+                                                        </div>
+                                                        <div className="py-1">
+                                                            <button
+                                                                type="button"
+                                                                className={`${dropdownItemClass} text-[color:var(--color-danger-600)]`}
+                                                                onClick={() => {
+                                                                    setProfileDropdown(
+                                                                        false,
+                                                                    );
+                                                                    handleLogout();
+                                                                }}
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <LogOut
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    Logout
+                                                                </span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     ) : (
                                         <>
                                             <Link
-                                                href="/cart"
+                                                href={route(
+                                                    "customer.cart.index",
+                                                )}
                                                 className="relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                             >
                                                 <ShoppingCart
                                                     size={20}
                                                     className="text-[color:var(--color-text-secondary)]"
                                                 />
-                                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                                    0
-                                                </span>
+                                                {cartCount > 0 && (
+                                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                                        {cartCount > 9
+                                                            ? "9+"
+                                                            : cartCount}
+                                                    </span>
+                                                )}
                                             </Link>
 
                                             <Link
@@ -477,7 +562,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                             </Link>
                                                             <Link
                                                                 href={route(
-                                                                    "customer.history",
+                                                                    "customer.orders.index",
                                                                 )}
                                                                 className={
                                                                     dropdownItemClass
@@ -603,18 +688,32 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             />
                                         </Link>
                                     </>
+                                ) : isAdminUser ? (
+                                    <Link
+                                        href={route("admin.dashboard")}
+                                        className="md:hidden p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                    >
+                                        <LayoutDashboard
+                                            size={20}
+                                            className="text-[color:var(--color-text-secondary)]"
+                                        />
+                                    </Link>
                                 ) : (
                                     <Link
-                                        href="/cart"
+                                        href={route("customer.cart.index")}
                                         className="md:hidden relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                     >
                                         <ShoppingCart
                                             size={20}
                                             className="text-[color:var(--color-text-secondary)]"
                                         />
-                                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                            0
-                                        </span>
+                                        {cartCount > 0 && (
+                                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                                {cartCount > 9
+                                                    ? "9+"
+                                                    : cartCount}
+                                            </span>
+                                        )}
                                     </Link>
                                 )
                             ) : (
@@ -956,6 +1055,54 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 Restaurant Dashboard
                                             </span>
                                         </Link>
+                                    ) : isAdminUser ? (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-3 px-3 py-2">
+                                                <div className="w-9 h-9 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
+                                                    {user.name
+                                                        .charAt(0)
+                                                        .toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                                        {user.name}
+                                                    </p>
+                                                    <p className="text-xs text-[color:var(--color-text-muted)]">
+                                                        {user.email}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Link
+                                                href={route(
+                                                    "admin.dashboard",
+                                                )}
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <LayoutDashboard
+                                                    size={18}
+                                                    className="text-[color:var(--color-text-muted)]"
+                                                />
+                                                <span className="text-sm font-medium">
+                                                    Admin Dashboard
+                                                </span>
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-bg-secondary)] transition-colors w-full text-left"
+                                                onClick={() => {
+                                                    setMobileMenuOpen(false);
+                                                    handleLogout();
+                                                }}
+                                            >
+                                                <LogOut size={18} />
+                                                <span className="text-sm font-medium">
+                                                    Logout
+                                                </span>
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-3 px-3 py-2">
@@ -991,7 +1138,9 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 </span>
                                             </Link>
                                             <Link
-                                                href="/cart"
+                                                href={route(
+                                                    "customer.cart.index",
+                                                )}
                                                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                                 onClick={() =>
                                                     setMobileMenuOpen(false)
@@ -1003,6 +1152,8 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 />
                                                 <span className="text-sm font-medium">
                                                     My Cart
+                                                    {cartCount > 0 &&
+                                                        ` (${cartCount})`}
                                                 </span>
                                             </Link>
                                             <Link
