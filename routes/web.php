@@ -8,6 +8,9 @@ use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
+use App\Http\Controllers\Restaurant\MenuCategoryController;
+use App\Http\Controllers\Restaurant\MenuItemController;
+use App\Http\Controllers\Restaurant\MenuController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Customer\RestaurantController;
 use Inertia\Inertia;
@@ -25,6 +28,7 @@ Route::get('/restaurants', function () {
     })->name('restaurants.index');
 
 Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
     Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
     Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
     Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');
@@ -38,7 +42,25 @@ Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->
 
 Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/menu', [MenuController::class, 'index'])->name('restaurant.menu');
+    Route::get('/menu/items/create', [MenuItemFormPageController::class, 'create'])->name('restaurant.menu.items.create');
+    Route::get('/menu/items/{item}/edit', [MenuItemFormPageController::class, 'edit'])->name('restaurant.menu.items.edit');
 
+    Route::prefix('menu')->group(function () {
+        // Categories
+        Route::get('categories', [MenuCategoryController::class, 'index'])->name('menu.categories.index');
+        Route::post('categories', [MenuCategoryController::class, 'store'])->name('menu.categories.store');
+        Route::patch('categories/{category}', [MenuCategoryController::class, 'update'])->name('menu.categories.update');
+        Route::delete('categories/{category}', [MenuCategoryController::class, 'destroy'])->name('menu.categories.destroy');
+ 
+        // Items
+        Route::get('items', [MenuItemController::class, 'index'])->name('menu.items.index');
+        Route::post('items', [MenuItemController::class, 'store'])->name('menu.items.store');
+        Route::patch('items/{item}', [MenuItemController::class, 'update'])->name('menu.items.update');
+        Route::delete('items/{item}', [MenuItemController::class, 'destroy'])->name('menu.items.destroy');
+        Route::patch('items/{item}/toggle-availability', [MenuItemController::class, 'toggleAvailability'])->name('menu.items.toggle');
+    });
+        //Profile
     Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/status', [RestaurantProfileController::class, 'updateStatus'])->name('profile.update-status');
@@ -81,6 +103,10 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/restaurants', [RestaurantController::class, 'index']);
     Route::get('/restaurants/search', [RestaurantController::class, 'search']);
     Route::get('/restaurants/{id}', [RestaurantController::class, 'show']);
+});
+
+Route::middleware('api')->prefix('api')->group(function () {
+    Route::get('restaurants/{restaurant}/menu', [\App\Http\Controllers\Customer\RestaurantMenuController::class, 'show'])->name('api.restaurant.menu');
 });
 
 require __DIR__ . '/auth.php';

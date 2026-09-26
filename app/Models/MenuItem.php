@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class MenuItem extends Model
 {
-
     protected $fillable = [
         'restaurant_id',
         'menu_category_id',
@@ -17,11 +16,18 @@ class MenuItem extends Model
         'is_available',
     ];
 
-    public function restaurant (){
+    protected $casts = [
+        'price' => 'decimal:2',
+        'is_available' => 'boolean',
+    ];
+
+    public function restaurant()
+    {
         return $this->belongsTo(Restaurant::class);
     }
 
-    public function menuCategory (){
+    public function menuCategory()
+    {
         return $this->belongsTo(MenuCategory::class);
     }
 }

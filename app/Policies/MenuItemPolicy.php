@@ -1,45 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
-use App\Models\MenuItem;
 use App\Models\User;
+use App\Models\MenuItem;
 
 class MenuItemPolicy
 {
-    public function viewAny(User $user): bool
+    public function update(User $user, MenuItem $item): bool
     {
-        return true;
+        return $user->id === $item->restaurant->user_id;
     }
 
-    public function view(User $user, MenuItem $menuItem): bool
+    public function delete(User $user, MenuItem $item): bool
     {
-        return true;
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->isRestaurantOwner() || $user->isAdmin();
-    }
-
-    public function update(User $user, MenuItem $menuItem): bool
-    {
-        return $user->isAdmin() || $this->ownsMenuItem($user, $menuItem);
-    }
-
-    public function delete(User $user, MenuItem $menuItem): bool
-    {
-        return $user->isAdmin() || $this->ownsMenuItem($user, $menuItem);
-    }
-
-    private function ownsMenuItem(User $user, MenuItem $menuItem): bool
-    {
-        if (! $user->isRestaurantOwner() || ! $user->restaurant) {
-            return false;
-        }
-
-        return $menuItem->restaurant_id === $user->restaurant->id;
+        return $user->id === $item->restaurant->user_id;
     }
 }
