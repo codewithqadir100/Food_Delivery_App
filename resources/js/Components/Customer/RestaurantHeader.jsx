@@ -1,12 +1,15 @@
-import { ArrowLeft, MapPin, Clock, DollarSign, Star } from "lucide-react";
-import Button from "@/Components/Common/Button";
+import { ArrowLeft, MapPin, DollarSign, Star } from "lucide-react";
 
 export default function RestaurantHeader({
     restaurant,
-    deliveryCharge,
-    distance,
+    deliveryCharge = null,
+    distance = null,
     onBack,
 }) {
+    const hasDistance = distance !== null && distance !== undefined;
+    const hasDeliveryCharge =
+        deliveryCharge !== null && deliveryCharge !== undefined;
+
     return (
         <div className="bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border)]">
             <div className="max-w-6xl mx-auto">
@@ -34,11 +37,13 @@ export default function RestaurantHeader({
                             <h1 className="text-2xl font-bold text-[color:var(--color-text-primary)]">
                                 {restaurant.name}
                             </h1>
+
                             {restaurant.category && (
                                 <p className="text-sm text-[color:var(--color-text-muted)] mt-1">
                                     {restaurant.category}
                                 </p>
                             )}
+
                             <div className="flex items-center gap-3 mt-2">
                                 {restaurant.rating && (
                                     <div className="flex items-center gap-1">
@@ -64,32 +69,34 @@ export default function RestaurantHeader({
                     )}
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {distance !== undefined && (
-                            <div className="flex items-center gap-2 p-2 rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
-                                <MapPin className="w-4 h-4 text-[color:var(--color-primary-600)]" />
-                                <div className="text-xs">
-                                    <p className="text-[color:var(--color-text-muted)]">
-                                        Distance
-                                    </p>
-                                    <p className="font-medium text-[color:var(--color-text-primary)]">
-                                        {distance.toFixed(1)} km
-                                    </p>
-                                </div>
+                        <div className="flex items-center gap-2 p-2 rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
+                            <MapPin className="w-4 h-4 text-[color:var(--color-primary-600)]" />
+                            <div className="text-xs">
+                                <p className="text-[color:var(--color-text-muted)]">
+                                    Distance
+                                </p>
+                                <p className="font-medium text-[color:var(--color-text-primary)]">
+                                    {hasDistance
+                                        ? `${Number(distance).toFixed(2)} km`
+                                        : "--"}
+                                </p>
                             </div>
-                        )}
-                        {deliveryCharge !== undefined && (
-                            <div className="flex items-center gap-2 p-2 rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
-                                <DollarSign className="w-4 h-4 text-[color:var(--color-primary-600)]" />
-                                <div className="text-xs">
-                                    <p className="text-[color:var(--color-text-muted)]">
-                                        Delivery
-                                    </p>
-                                    <p className="font-medium text-[color:var(--color-text-primary)]">
-                                        Rs. {deliveryCharge}
-                                    </p>
-                                </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 p-2 rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
+                            <DollarSign className="w-4 h-4 text-[color:var(--color-primary-600)]" />
+                            <div className="text-xs">
+                                <p className="text-[color:var(--color-text-muted)]">
+                                    Delivery
+                                </p>
+                                <p className="font-medium text-[color:var(--color-text-primary)]">
+                                    {hasDeliveryCharge
+                                        ? `Rs. ${deliveryCharge}`
+                                        : "--"}
+                                </p>
                             </div>
-                        )}
+                        </div>
+
                         {restaurant.street_address && (
                             <div className="col-span-2 sm:col-span-1 flex items-center gap-2 p-2 rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
                                 <MapPin className="w-4 h-4 text-[color:var(--color-primary-600)] flex-shrink-0" />
