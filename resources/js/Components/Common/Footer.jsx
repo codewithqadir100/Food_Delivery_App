@@ -112,11 +112,6 @@ export default function Footer() {
                                 </FooterLink>
                             </li>
                             <li>
-                                <FooterLink href="/categories">
-                                    Categories
-                                </FooterLink>
-                            </li>
-                            <li>
                                 <FooterLink href="/blog">Blogs</FooterLink>
                             </li>
                             <li>

@@ -15,6 +15,7 @@ export default function MenuItemFormPage({
     categories,
     item = null,
     restaurantId,
+    selectedCategoryId,
 }) {
     const isEditing = !!item;
     const [imagePreview, setImagePreview] = useState(item?.image || null);
@@ -22,7 +23,7 @@ export default function MenuItemFormPage({
     const [submitError, setSubmitError] = useState("");
 
     const { data, setData, post, patch, processing, errors } = useForm({
-        menu_category_id: item?.menu_category_id || "",
+        menu_category_id: item?.menu_category_id || selectedCategoryId || "",
         name: item?.name || "",
         description: item?.description || "",
         price: item?.price || "",
