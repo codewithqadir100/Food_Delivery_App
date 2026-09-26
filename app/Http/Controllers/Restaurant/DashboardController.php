@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
-use Illuminate\Http\Request;
+use App\Services\RestaurantOrderStatsService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function __construct(private readonly RestaurantOrderStatsService $stats)
+    {
+    }
+
+    public function index(): Response
     {
         $user = Auth::user();
         $restaurant = $user->restaurant;
@@ -31,18 +35,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Restaurant/Dashboard', [
             'restaurant' => $restaurant,
-            'stats' => [
-                'pending' => $restaurant->orders()->where('status', Order::STATUS_PENDING)->count(),
-                'active' => $restaurant->orders()->whereIn('status', Order::ACTIVE_STATUSES)->count(),
-                'delivered_today' => $restaurant->orders()
-                    ->where('status', Order::STATUS_DELIVERED)
-                    ->whereDate('delivered_at', today())
-                    ->count(),
-                'revenue_today' => (float) $restaurant->orders()
-                    ->where('status', Order::STATUS_DELIVERED)
-                    ->whereDate('delivered_at', today())
-                    ->sum('total'),
-            ],
+            'stats' => $this->stats->buildStats($restaurant),
             'recentOrders' => $recentOrders,
         ]);
     }

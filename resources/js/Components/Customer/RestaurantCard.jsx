@@ -44,19 +44,25 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                     </h3>
 
                     {/* Rating & Reviews */}
-                    <div className="flex items-center gap-[var(--spacing-2)]">
-                        <span className="restaurant-card-rating flex items-center gap-[var(--spacing-1)]">
-                            <Star
-                                size={14}
-                                fill="var(--color-primary-300)"
-                                stroke="var(--color-primary-500)"
-                            />
-                            {restaurant.rating}
-                        </span>
+                    {restaurant.rating ? (
+                        <div className="flex items-center gap-[var(--spacing-2)]">
+                            <span className="restaurant-card-rating flex items-center gap-[var(--spacing-1)]">
+                                <Star
+                                    size={14}
+                                    fill="var(--color-primary-300)"
+                                    stroke="var(--color-primary-500)"
+                                />
+                                {restaurant.rating}
+                            </span>
+                            <span className="restaurant-card-review-count">
+                                ({restaurant.review_count})
+                            </span>
+                        </div>
+                    ) : (
                         <span className="restaurant-card-review-count">
-                            ({restaurant.review_count})
+                            New
                         </span>
-                    </div>
+                    )}
                 </div>
 
                 <div className="flex !mt-[var(--spacing-1)] gap-[var(--spacing-2)] items-center">

@@ -2,7 +2,7 @@ import { Head, usePage } from "@inertiajs/react";
 import { Store, ShieldCheck } from "lucide-react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import Card from "@/Components/Common/Card";
-import { QuickActionCard } from "@/Components/Restaurant/Dashboard";
+import QuickActionCard from "@/Components/Common/QuickActionCard";
 
 export default function AdminDashboard({
     pendingRestaurantsCount = 0,

@@ -4,7 +4,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import Spinner from "@/Components/Common/Spinner";
 import RestaurantCard from "@/Components/Customer/RestaurantCard";
 import RestaurantFilters from "@/Components/Customer/RestaurantFilters";
-import RestaurantPagination from "@/Components/Customer/RestaurantPagination";
+import Pagination from "@/Components/Common/Pagination";
 import axios from "axios";
 
 export default function Restaurants({ categories = [], user = null }) {
@@ -152,7 +152,7 @@ export default function Restaurants({ categories = [], user = null }) {
                             </div>
 
                             {/* Pagination */}
-                            <RestaurantPagination
+                            <Pagination
                                 pagination={pagination}
                                 onPageChange={handlePaginationChange}
                             />

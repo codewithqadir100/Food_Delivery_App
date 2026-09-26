@@ -64,7 +64,14 @@ class CartController extends Controller
 
     public function update(UpdateCartItemRequest $request, int $menuItem): JsonResponse
     {
-        $this->cart->updateItem($menuItem, (int) $request->validated('quantity'));
+        $updated = $this->cart->updateItem($menuItem, (int) $request->validated('quantity'));
+
+        if (!$updated) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This item is not in your cart.',
+            ], 404);
+        }
 
         return response()->json([
             'success' => true,

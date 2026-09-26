@@ -35,9 +35,18 @@ class CartService
         return $switchedRestaurant;
     }
 
-    public function updateItem(int $menuItemId, int $quantity): void
+    public function hasItem(int $menuItemId): bool
+    {
+        return array_key_exists($menuItemId, $this->getRawCart()['items']);
+    }
+
+    public function updateItem(int $menuItemId, int $quantity): bool
     {
         $cart = $this->getRawCart();
+
+        if (!array_key_exists($menuItemId, $cart['items'])) {
+            return false;
+        }
 
         if ($quantity <= 0) {
             unset($cart['items'][$menuItemId]);
@@ -50,11 +59,20 @@ class CartService
         }
 
         $this->saveRawCart($cart);
+
+        return true;
     }
 
     public function removeItem(int $menuItemId): void
     {
-        $this->updateItem($menuItemId, 0);
+        $cart = $this->getRawCart();
+        unset($cart['items'][$menuItemId]);
+
+        if (empty($cart['items'])) {
+            $cart['restaurant_id'] = null;
+        }
+
+        $this->saveRawCart($cart);
     }
 
     public function clear(): void
@@ -93,10 +111,10 @@ class CartService
             ->keyBy('id');
 
         return collect($cart['items'])
-            ->map(function (int $quantity, int $menuItemId) use ($menuItems) {
+            ->map(function (int $quantity, int $menuItemId) use ($menuItems, $cart) {
                 $menuItem = $menuItems->get($menuItemId);
 
-                if (!$menuItem) {
+                if (!$menuItem || $menuItem->restaurant_id !== $cart['restaurant_id']) {
                     return null;
                 }
 

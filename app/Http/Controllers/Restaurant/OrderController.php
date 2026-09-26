@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Restaurant\UpdateOrderStatusRequest;
 use App\Models\Order;
+use App\Services\RestaurantOrderStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,10 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
+    public function __construct(private readonly RestaurantOrderStatsService $stats)
+    {
+    }
+
     public function index(Request $request): Response
     {
         $restaurant = Auth::user()->restaurant;
@@ -35,7 +40,7 @@ class OrderController extends Controller
         return Inertia::render('Restaurant/Orders', [
             'orders' => $orders,
             'filters' => ['status' => $status ?: 'all'],
-            'stats' => $this->buildStats($restaurant),
+            'stats' => $this->stats->buildStats($restaurant),
         ]);
     }
 
@@ -81,19 +86,4 @@ class OrderController extends Controller
         ]);
     }
 
-    private function buildStats($restaurant): array
-    {
-        return [
-            'pending' => $restaurant->orders()->where('status', Order::STATUS_PENDING)->count(),
-            'active' => $restaurant->orders()->whereIn('status', Order::ACTIVE_STATUSES)->count(),
-            'delivered_today' => $restaurant->orders()
-                ->where('status', Order::STATUS_DELIVERED)
-                ->whereDate('delivered_at', today())
-                ->count(),
-            'revenue_today' => (float) $restaurant->orders()
-                ->where('status', Order::STATUS_DELIVERED)
-                ->whereDate('delivered_at', today())
-                ->sum('total'),
-        ];
-    }
 }

@@ -5,7 +5,5 @@ export { default as SidebarItem } from './SidebarItem';
 export { default as Sidebar } from './Sidebar';
 export { default as MobileNav } from './MobileNav';
 export { default as DashboardCard } from './DashboardCard';
-export { default as QuickActionCard } from './QuickActionCard';
 export { default as PerformanceChart } from './PerformanceChart';
-export { default as EmptyState } from './EmptyState';
 export { default as Header } from './Header';

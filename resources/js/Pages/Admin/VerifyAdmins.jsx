@@ -4,7 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import Button from "@/Components/Common/Button";
 import Modal from "@/Components/Common/Modal";
-import { EmptyState } from "@/Components/Restaurant/Dashboard";
+import EmptyState from "@/Components/Common/EmptyState";
 
 export default function VerifyAdmins({ admins }) {
     const items = admins?.data ?? [];

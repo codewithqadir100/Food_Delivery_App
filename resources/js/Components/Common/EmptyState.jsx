@@ -15,7 +15,7 @@ export default function EmptyState({
       <h3 className="text-base sm:text-lg font-semibold text-[color:var(--color-text-primary)] mb-2 text-center">
         {title}
       </h3>
-      
+
       <p className="text-xs sm:text-sm text-[color:var(--color-text-secondary)] text-center max-w-sm mb-6">
         {description}
       </p>

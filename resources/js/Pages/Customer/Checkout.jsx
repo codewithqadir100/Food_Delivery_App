@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
+import axios from "axios";
 import { MapPin, Plus } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
@@ -13,7 +14,9 @@ export default function Checkout({
     subtotal,
     addresses,
     delivery_fee,
+    delivery_error,
     has_unavailable_items,
+    restaurant_unavailable,
 }) {
     const primaryAddress =
         addresses.find((address) => address.is_primary) ?? addresses[0] ?? null;
@@ -24,9 +27,41 @@ export default function Checkout({
     });
 
     const [alert, setAlert] = useState(null);
+    const [deliveryEstimate, setDeliveryEstimate] = useState({
+        fee: delivery_fee,
+        error: delivery_error,
+    });
+    const [fetchingFee, setFetchingFee] = useState(false);
 
-    const deliveryFee = delivery_fee ?? 0;
+    const deliveryFeeUnavailable = deliveryEstimate.fee === null;
+    const deliveryFee = deliveryEstimate.fee ?? 0;
     const total = Number(subtotal) + Number(deliveryFee);
+    const canPlaceOrder =
+        !deliveryFeeUnavailable && !restaurant_unavailable && !has_unavailable_items;
+
+    const selectAddress = async (addressId) => {
+        setData("customer_address_id", addressId);
+
+        try {
+            setFetchingFee(true);
+            const res = await axios.get(route("customer.checkout.delivery-fee"), {
+                params: { customer_address_id: addressId },
+            });
+            setDeliveryEstimate({
+                fee: res.data.valid ? res.data.fee : null,
+                error: res.data.valid ? null : res.data.error,
+            });
+        } catch (error) {
+            setDeliveryEstimate({
+                fee: null,
+                error:
+                    error.response?.data?.error ||
+                    "Unable to calculate delivery fee for this address.",
+            });
+        } finally {
+            setFetchingFee(false);
+        }
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -83,6 +118,31 @@ export default function Checkout({
                                 type="warning"
                                 title="Unavailable items"
                                 message="Some items in your cart are unavailable. Please go back to your cart and remove them."
+                                closeable={false}
+                            />
+                        </div>
+                    )}
+
+                    {restaurant_unavailable && (
+                        <div className="mb-4">
+                            <Alert
+                                type="warning"
+                                title="Restaurant unavailable"
+                                message="This restaurant is not currently accepting orders. Please try again later."
+                                closeable={false}
+                            />
+                        </div>
+                    )}
+
+                    {!restaurant_unavailable && deliveryFeeUnavailable && !fetchingFee && (
+                        <div className="mb-4">
+                            <Alert
+                                type="warning"
+                                title="Delivery unavailable"
+                                message={
+                                    deliveryEstimate.error ||
+                                    "We couldn't calculate delivery for the selected address. Please choose a different address."
+                                }
                                 closeable={false}
                             />
                         </div>
@@ -146,8 +206,7 @@ export default function Checkout({
                                                         ) === address.id
                                                     }
                                                     onChange={() =>
-                                                        setData(
-                                                            "customer_address_id",
+                                                        selectAddress(
                                                             address.id,
                                                         )
                                                     }
@@ -246,7 +305,11 @@ export default function Checkout({
                                         Delivery Fee
                                     </span>
                                     <span className="font-medium text-[color:var(--color-text-primary)]">
-                                        {formatCurrency(deliveryFee)}
+                                        {fetchingFee
+                                            ? "..."
+                                            : deliveryFeeUnavailable
+                                              ? "—"
+                                              : formatCurrency(deliveryFee)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between pt-2 border-t border-[color:var(--color-border-light)] text-base">
@@ -266,8 +329,9 @@ export default function Checkout({
                                 loading={processing}
                                 disabled={
                                     processing ||
+                                    fetchingFee ||
                                     addresses.length === 0 ||
-                                    has_unavailable_items
+                                    !canPlaceOrder
                                 }
                             >
                                 Place Order

@@ -6,7 +6,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
 import Spinner from "@/Components/Common/Spinner";
-import EmptyState from "@/Components/Restaurant/Dashboard/EmptyState";
+import EmptyState from "@/Components/Common/EmptyState";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function Cart({ restaurant }) {

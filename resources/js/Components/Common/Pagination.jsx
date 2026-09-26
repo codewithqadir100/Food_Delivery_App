@@ -1,6 +1,6 @@
 import Button from "@/Components/Common/Button";
 
-export default function RestaurantPagination({ pagination, onPageChange }) {
+export default function Pagination({ pagination, onPageChange }) {
     if (pagination.last_page <= 1) return null;
 
     return (

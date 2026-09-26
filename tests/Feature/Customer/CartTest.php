@@ -1,0 +1,142 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\MenuItem;
+use App\Models\Restaurant;
+use App\Models\User;
+
+function customer(): User
+{
+    return User::factory()->create([
+        'role' => User::ROLE_CUSTOMER,
+        'status' => User::STATUS_APPROVED,
+    ]);
+}
+
+test('customer can add an available item to the cart', function () {
+    $menuItem = MenuItem::factory()->create();
+
+    $response = $this->actingAs(customer())
+        ->postJson(route('customer.cart.store'), [
+            'menu_item_id' => $menuItem->id,
+            'quantity' => 2,
+        ]);
+
+    $response->assertOk()->assertJsonPath('success', true);
+    expect($response->json('cart_count'))->toBe(2);
+});
+
+test('customer cannot add an unavailable item to the cart', function () {
+    $menuItem = MenuItem::factory()->unavailable()->create();
+
+    $response = $this->actingAs(customer())
+        ->postJson(route('customer.cart.store'), [
+            'menu_item_id' => $menuItem->id,
+            'quantity' => 1,
+        ]);
+
+    $response->assertStatus(422);
+});
+
+test('customer cannot update a menu item that is not already in their cart', function () {
+    $menuItem = MenuItem::factory()->create();
+
+    $response = $this->actingAs(customer())
+        ->patchJson(route('customer.cart.update', $menuItem->id), [
+            'quantity' => 5,
+        ]);
+
+    $response->assertStatus(404);
+});
+
+test('update endpoint cannot be used to inject an arbitrary menu item into the cart', function () {
+    $inCart = MenuItem::factory()->create();
+    $notInCart = MenuItem::factory()->create(['restaurant_id' => $inCart->restaurant_id]);
+    $user = customer();
+
+    $this->actingAs($user)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $inCart->id,
+        'quantity' => 1,
+    ])->assertOk();
+
+    $response = $this->actingAs($user)->patchJson(route('customer.cart.update', $notInCart->id), [
+        'quantity' => 3,
+    ]);
+
+    $response->assertStatus(404);
+
+    $cartData = $this->actingAs($user)->getJson(route('customer.cart.data'))->json('data');
+    expect(collect($cartData['items'])->pluck('menu_item_id'))
+        ->toContain($inCart->id)
+        ->not->toContain($notInCart->id);
+});
+
+test('adding an item from a different restaurant replaces the cart', function () {
+    $itemA = MenuItem::factory()->create();
+    $itemB = MenuItem::factory()->create();
+    $user = customer();
+
+    $this->actingAs($user)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $itemA->id,
+        'quantity' => 1,
+    ])->assertOk();
+
+    $response = $this->actingAs($user)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $itemB->id,
+        'quantity' => 1,
+    ]);
+
+    $response->assertOk()->assertJsonPath('switched_restaurant', true);
+
+    $cartData = $this->actingAs($user)->getJson(route('customer.cart.data'))->json('data');
+    expect(collect($cartData['items'])->pluck('menu_item_id'))
+        ->toContain($itemB->id)
+        ->not->toContain($itemA->id);
+});
+
+test('cart quantity cannot be negative or excessive', function () {
+    $menuItem = MenuItem::factory()->create();
+    $user = customer();
+
+    $this->actingAs($user)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 1,
+    ])->assertOk();
+
+    $this->actingAs($user)->patchJson(route('customer.cart.update', $menuItem->id), [
+        'quantity' => -1,
+    ])->assertStatus(422);
+
+    $this->actingAs($user)->patchJson(route('customer.cart.update', $menuItem->id), [
+        'quantity' => 999,
+    ])->assertStatus(422);
+});
+
+test('setting quantity to zero removes the item from the cart', function () {
+    $menuItem = MenuItem::factory()->create();
+    $user = customer();
+
+    $this->actingAs($user)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 1,
+    ])->assertOk();
+
+    $response = $this->actingAs($user)->patchJson(route('customer.cart.update', $menuItem->id), [
+        'quantity' => 0,
+    ]);
+
+    $response->assertOk();
+    expect($response->json('cart_count'))->toBe(0);
+});
+
+test('restaurant owners cannot access the customer cart', function () {
+    $owner = User::factory()->create([
+        'role' => User::ROLE_RESTAURANT_OWNER,
+        'status' => User::STATUS_APPROVED,
+    ]);
+
+    $this->actingAs($owner)
+        ->getJson(route('customer.cart.data'))
+        ->assertForbidden();
+});

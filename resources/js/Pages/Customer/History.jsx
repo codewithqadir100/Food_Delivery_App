@@ -3,8 +3,8 @@ import { ClipboardList, ChevronRight } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Button from "@/Components/Common/Button";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
-import EmptyState from "@/Components/Restaurant/Dashboard/EmptyState";
-import RestaurantPagination from "@/Components/Customer/RestaurantPagination";
+import EmptyState from "@/Components/Common/EmptyState";
+import Pagination from "@/Components/Common/Pagination";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function History({ orders }) {
@@ -89,7 +89,7 @@ export default function History({ orders }) {
                                 ))}
                             </div>
 
-                            <RestaurantPagination
+                            <Pagination
                                 pagination={orders}
                                 onPageChange={handlePageChange}
                             />

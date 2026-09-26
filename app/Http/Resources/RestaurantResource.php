@@ -30,20 +30,10 @@ class RestaurantResource extends JsonResource
                 'id' => $this->restaurantCategory?->id,
                 'name' => $this->restaurantCategory?->name,
             ],
-            'rating' => $this->getRating(),
-            'review_count' => $this->getReviewCount(),
+            'rating' => null,
+            'review_count' => 0,
             'distance_km' => $this->distance_km,
             'delivery_charge' => $this->delivery_charge,
         ];
-    }
-
-    private function getRating(): float
-    {
-        return 4.5;
-    }
-
-    private function getReviewCount(): int
-    {
-        return 120;
     }
 }
