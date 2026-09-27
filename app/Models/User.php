@@ -1,28 +1,39 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\RateLimiter;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
     public const ROLE_CUSTOMER = 'customer';
+
     public const ROLE_RESTAURANT_OWNER = 'restaurant_owner';
+
     public const ROLE_ADMIN = 'admin';
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
         'name',
         'email',
+        'google_id',
+        'email_verified_at',
         'password',
         'role',
         'status',
@@ -87,7 +98,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(CustomerAddress::class, 'customer_id');
     }
- 
+
     public function primaryAddress(): HasOne
     {
         return $this->hasOne(CustomerAddress::class, 'customer_id')->where('is_primary', true);
@@ -96,5 +107,19 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    public function sendEmailVerificationNotification(): bool
+    {
+        return RateLimiter::attempt(
+            'restaurant-verification-email:'.$this->getKey(),
+            1,
+            function (): bool {
+                $this->notify(new VerifyEmail);
+
+                return true;
+            },
+            60,
+        ) !== false;
     }
 }

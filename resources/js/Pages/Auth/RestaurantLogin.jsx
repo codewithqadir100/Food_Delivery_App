@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import AuthLayout from "@/Layouts/AuthenticatedLayout";
 import Card from "@/Components/Common/Card";
 import Button from "@/Components/Common/Button";
@@ -7,9 +7,11 @@ import Checkbox from "@/Components/Forms/Checkbox";
 import PasswordInput from "@/Components/Forms/PasswordInput";
 import FormLabel from "@/Components/Forms/FormLabel";
 import Alert from "@/Components/Common/Alert";
+import GoogleAuthButton from "@/Components/Auth/GoogleAuthButton";
 import { Mail, LogIn } from "lucide-react";
 
 export default function RestaurantLogin({ status }) {
+    const { flash = {} } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
@@ -30,6 +32,7 @@ export default function RestaurantLogin({ status }) {
             <Card padding="lg">
                 <div className="space-y-6">
                     {status && <Alert type="success" message={status} />}
+                    {flash.error && <Alert type="error" message={flash.error} />}
 
                     <div>
                         <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-1">
@@ -94,6 +97,8 @@ export default function RestaurantLogin({ status }) {
                             Sign In
                         </Button>
                     </form>
+
+                    <GoogleAuthButton />
 
                     <div className="space-y-3 text-center text-sm">
                         <Link

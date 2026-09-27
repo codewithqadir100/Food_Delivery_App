@@ -4,23 +4,28 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PaymentVerificationController;
 use App\Http\Controllers\Admin\RestaurantVerificationController;
+use App\Http\Controllers\Api\GeocodingController;
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Customer\CustomerRestaurantMenuController;
 use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\Customer\ProfileController;
-use App\Http\Controllers\Customer\AddressController;
-use App\Http\Controllers\Customer\CustomerRestaurantMenuController;
+use App\Http\Controllers\Customer\RestaurantController;
 use App\Http\Controllers\Customer\RestaurantMenuController;
 use App\Http\Controllers\Restaurant\DashboardController;
-use App\Http\Controllers\Restaurant\OrderController as RestaurantOrderController;
-use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use App\Http\Controllers\Restaurant\MenuCategoryController;
+use App\Http\Controllers\Restaurant\MenuController;
 use App\Http\Controllers\Restaurant\MenuItemController;
 use App\Http\Controllers\Restaurant\MenuItemFormPageController;
-use App\Http\Controllers\Restaurant\MenuController;
+use App\Http\Controllers\Restaurant\OrderController as RestaurantOrderController;
+use App\Http\Controllers\Restaurant\RestaurantProfileController;
+use App\Http\Controllers\Restaurant\SubscriptionController;
+use App\Models\RestaurantCategory;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Customer\RestaurantController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -30,11 +35,11 @@ Route::get('/', function () {
 Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
 
 Route::get('/restaurants', function () {
-        return Inertia::render('Customer/Restaurants', [
-            'categories' => \App\Models\RestaurantCategory::orderBy('name')->get(['id', 'name']),
-            'user' => auth()->user(),
-        ]);
-    })->name('restaurants.index');
+    return Inertia::render('Customer/Restaurants', [
+        'categories' => RestaurantCategory::orderBy('name')->get(['id', 'name']),
+        'user' => auth()->user(),
+    ]);
+})->name('restaurants.index');
 
 Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
@@ -61,10 +66,13 @@ Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
 });
 
-Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('restaurant.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant')->name('restaurant.')->group(function () {
+    Route::get('/register/complete', [GoogleAuthController::class, 'createComplete'])->name('register.complete');
+    Route::post('/register/complete', [GoogleAuthController::class, 'storeComplete'])->name('register.complete.store');
 
-    Route::middleware('approved_restaurant')->group(function () {
+    Route::middleware('restaurant_exists')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
         Route::get('/menu', [MenuController::class, 'index'])->name('menu');
         Route::get('/menu/items/create', [MenuItemFormPageController::class, 'create'])->name('menu.items.create');
         Route::get('/menu/items/{item}/edit', [MenuItemFormPageController::class, 'edit'])->name('menu.items.edit');
@@ -88,9 +96,14 @@ Route::middleware(['auth', 'restaurant_owner'])->prefix('restaurant')->name('res
         Route::post('/profile/update-cover', [RestaurantProfileController::class, 'updateCoverImage'])->name('profile.update-cover');
         Route::post('/profile/update-logo', [RestaurantProfileController::class, 'updateLogoImage'])->name('profile.update-logo');
 
-        Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');
-        Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+        Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
+
+        Route::middleware('approved_restaurant')->group(function () {
+            Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
+            Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');
+            Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])->name('orders.update-status');
+        });
     });
 });
 
@@ -102,6 +115,10 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-a
     Route::get('/restaurants/pending', [RestaurantVerificationController::class, 'index'])->name('restaurants.pending');
     Route::post('/restaurants/{restaurant}/approve', [RestaurantVerificationController::class, 'approve'])->name('restaurants.approve');
     Route::post('/restaurants/{restaurant}/reject', [RestaurantVerificationController::class, 'reject'])->name('restaurants.reject');
+    Route::delete('/restaurants/{restaurant}', [RestaurantVerificationController::class, 'destroy'])->name('restaurants.destroy');
+
+    Route::get('/payments/pending', [PaymentVerificationController::class, 'index'])->name('payments.pending');
+    Route::post('/payments/{payment}/verify', [PaymentVerificationController::class, 'verify'])->name('payments.verify');
 
     Route::get('/admins/pending', [AdminVerificationController::class, 'index'])->name('admins.pending');
     Route::post('/admins/{admin}/approve', [AdminVerificationController::class, 'approve'])->name('admins.approve');
@@ -109,8 +126,8 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super-a
 });
 
 Route::prefix('api')->name('api.')->middleware('throttle:60,1')->group(function () {
-    Route::get('/geocoding/search', [\App\Http\Controllers\Api\GeocodingController::class, 'search']);
-    Route::get('/geocoding/reverse', [\App\Http\Controllers\Api\GeocodingController::class, 'reverse']);
+    Route::get('/geocoding/search', [GeocodingController::class, 'search']);
+    Route::get('/geocoding/reverse', [GeocodingController::class, 'reverse']);
 });
 
 Route::prefix('api')->name('api.')->group(function () {
@@ -120,7 +137,7 @@ Route::prefix('api')->name('api.')->group(function () {
 });
 
 Route::middleware('api')->prefix('api')->group(function () {
-    Route::get('restaurants/{restaurant}/menu', [\App\Http\Controllers\Customer\RestaurantMenuController::class, 'show'])->name('api.restaurant.menu');
+    Route::get('restaurants/{restaurant}/menu', [RestaurantMenuController::class, 'show'])->name('api.restaurant.menu');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

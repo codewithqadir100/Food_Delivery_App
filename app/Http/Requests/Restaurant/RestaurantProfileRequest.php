@@ -1,16 +1,18 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Requests\Restaurant;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class RestaurantProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return $this->user()?->isRestaurantOwner() === true
-            && $this->user()->isApproved()
+            && $this->user()->hasVerifiedEmail()
+            && ! $this->user()->isRejected()
             && $this->user()->restaurant !== null;
     }
 

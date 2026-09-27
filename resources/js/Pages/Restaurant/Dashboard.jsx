@@ -9,6 +9,7 @@ import {
     StatCard,
     OrderTable,
 } from "@/Components/Restaurant/Dashboard";
+import OnboardingChecklist from "@/Components/Restaurant/Onboarding/OnboardingChecklist";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function RestaurantDashboard({
@@ -16,12 +17,14 @@ export default function RestaurantDashboard({
     status,
     stats,
     recentOrders = [],
+    onboarding,
+    subscription,
 }) {
     const restaurantName = restaurant?.name ?? "Restaurant";
     const pageTitle = `${restaurantName} Dashboard`;
     const subTitle = "Manage your restaurant operations";
-    const isPending =
-        status === "pending" || restaurant?.status === "pending";
+    const isApproved =
+        status === "approved" && restaurant?.status === "approved";
 
     return (
         <>
@@ -30,70 +33,96 @@ export default function RestaurantDashboard({
             <RestaurantLayout
                 pageTitle={pageTitle}
                 pageSubtitle={subTitle}
-                isPending={isPending}
+                isPending={!isApproved}
             >
-                {isPending ? (
-                    <DashboardCard
-                        title="Account under review"
-                        subtitle="Menu and profile unlock after a super admin approves your restaurant."
-                    >
-                        <div className="space-y-4">
-                            <StatusBadge status="pending" />
-                            <Alert
-                                type="warning"
-                                title="Pending approval"
-                                message="You can stay signed in. We will let you manage menu, profile, and orders once your restaurant is approved."
-                                closeable={false}
-                            />
-                        </div>
-                    </DashboardCard>
-                ) : (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <StatCard
-                                title="Pending Orders"
-                                value={stats?.pending ?? 0}
-                                icon={Clock}
-                            />
-                            <StatCard
-                                title="Active Orders"
-                                value={stats?.active ?? 0}
-                                icon={Activity}
-                            />
-                            <StatCard
-                                title="Delivered Today"
-                                value={stats?.delivered_today ?? 0}
-                                icon={CheckCircle2}
-                            />
-                            <StatCard
-                                title="Revenue Today"
-                                value={formatCurrency(
-                                    stats?.revenue_today ?? 0,
-                                )}
-                                icon={Wallet}
-                            />
-                        </div>
-
+                <div className="space-y-6">
+                    {!isApproved && (
                         <DashboardCard
-                            title="Recent Orders"
-                            action={
-                                <Link href={route("restaurant.orders.index")}>
-                                    <Button variant="secondary" size="sm">
-                                        View All Orders
-                                    </Button>
-                                </Link>
-                            }
+                            title="Restaurant not live yet"
+                            subtitle="Customers see your restaurant after a subscription becomes active."
                         >
-                            <OrderTable
-                                orders={recentOrders.map((order) => ({
-                                    ...order,
-                                    customer_name:
-                                        order.customer?.name ?? "—",
-                                }))}
-                            />
+                            <div className="space-y-4">
+                                <StatusBadge status={status ?? "pending"} />
+                                <Alert
+                                    type="warning"
+                                    title="Approval follows your subscription"
+                                    message="Profile, location, and menu are available now. Choosing Free starts immediately and approves your restaurant. Paid plans approve it after payment verification. Orders unlock once you are approved."
+                                    closeable={false}
+                                />
+                            </div>
                         </DashboardCard>
-                    </div>
-                )}
+                    )}
+
+                    {!onboarding?.complete && (
+                        <OnboardingChecklist onboarding={onboarding} />
+                    )}
+
+                    {onboarding?.complete && !subscription?.activated_at && (
+                        <Alert
+                            type="warning"
+                            title="Choose a subscription"
+                            message="Onboarding is complete. Pick a plan so customers can find your restaurant."
+                            closeable={false}
+                        />
+                    )}
+
+                    {subscription?.status === "expired" && (
+                        <Alert
+                            type="warning"
+                            title="Subscription expired"
+                            message="Your restaurant stays visible as unavailable until a renewal payment is verified."
+                            closeable={false}
+                        />
+                    )}
+
+                    {isApproved && (
+                        <>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <StatCard
+                                    title="Pending Orders"
+                                    value={stats?.pending ?? 0}
+                                    icon={Clock}
+                                />
+                                <StatCard
+                                    title="Active Orders"
+                                    value={stats?.active ?? 0}
+                                    icon={Activity}
+                                />
+                                <StatCard
+                                    title="Delivered Today"
+                                    value={stats?.delivered_today ?? 0}
+                                    icon={CheckCircle2}
+                                />
+                                <StatCard
+                                    title="Revenue Today"
+                                    value={formatCurrency(
+                                        stats?.revenue_today ?? 0,
+                                    )}
+                                    icon={Wallet}
+                                />
+                            </div>
+
+                            <DashboardCard
+                                title="Recent Orders"
+                                action={
+                                    <Link href={route("restaurant.orders.index")}>
+                                        <Button variant="secondary" size="sm">
+                                            View All Orders
+                                        </Button>
+                                    </Link>
+                                }
+                            >
+                                <OrderTable
+                                    orders={recentOrders.map((order) => ({
+                                        ...order,
+                                        customer_name:
+                                            order.customer?.name ?? "—",
+                                    }))}
+                                />
+                            </DashboardCard>
+                        </>
+                    )}
+                </div>
             </RestaurantLayout>
         </>
     );

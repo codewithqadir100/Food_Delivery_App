@@ -1,0 +1,72 @@
+---
+description: Security, authorization, database performance, frontend performance and scalability requirements for the Food Delivery App.
+globs: ""
+alwaysApply: true
+---
+
+# Security & Performance
+
+## Security First
+
+Every feature must be reviewed for security implications.
+
+Never trust the frontend.
+
+Server-side authorization is mandatory.
+
+Consider protection against:
+
+- IDOR/BOLA
+- Mass assignment
+- SQL injection
+- XSS
+- CSRF
+- Unauthorized resource access
+- Privilege escalation
+- Unsafe file uploads
+- Sensitive information exposure
+
+## Authentication
+
+Respect the existing authentication architecture.
+
+Do not bypass existing middleware, policies or authentication checks.
+
+Do not create alternative authentication mechanisms without explicit requirements.
+
+## Authorization
+
+Check authorization for every protected resource and action.
+
+A user being authenticated does not mean they are authorized to access another user's or another role's resources.
+
+## Performance
+
+Prefer efficient implementations.
+
+Avoid:
+
+- N+1 queries
+- unnecessary database calls
+- unnecessary API requests
+- loading large collections unnecessarily
+- repeated expensive calculations
+- unnecessary React re-renders
+- duplicated server state
+- unnecessary polling
+
+Use caching only when it provides a real benefit and is compatible with the existing architecture.
+
+## Scalability
+
+Assume the application may grow significantly.
+
+Database queries, relationships, indexes, pagination and application architecture should be considered with future growth in mind.
+
+Do not optimize prematurely, but do not introduce obvious scalability problems.
+
+## Security vs Convenience
+
+Never weaken authorization, validation or security merely to simplify implementation.
+
+Correctness and security take priority over implementation convenience.

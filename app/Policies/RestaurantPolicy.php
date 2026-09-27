@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Policies;
 
@@ -24,7 +26,10 @@ class RestaurantPolicy
 
     public function update(User $user, Restaurant $restaurant): bool
     {
-        return $user->id === $restaurant->user_id && $user->isApproved();
+        return $user->id === $restaurant->user_id
+            && $user->isRestaurantOwner()
+            && $user->hasVerifiedEmail()
+            && ! $user->isRejected();
     }
 
     public function delete(User $user, Restaurant $restaurant): bool

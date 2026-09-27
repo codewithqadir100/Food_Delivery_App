@@ -1,0 +1,86 @@
+---
+description: Repository inspection, GitHub usage, implementation workflow, testing and change discipline.
+globs: ""
+alwaysApply: true
+---
+
+# Development Workflow
+
+## Before Coding
+
+For every task:
+
+1. Inspect the repository.
+2. Inspect the relevant existing feature.
+3. Inspect the components directory for reusable components.
+4. Inspect related frontend files.
+5. Inspect related backend files.
+6. Inspect routes.
+7. Inspect middleware and policies when authorization is involved.
+8. Inspect models and migrations when database behavior is involved.
+9. Understand how the existing implementation works.
+10. Then implement the change.
+
+Do not start coding based on assumptions.
+
+## GitHub
+
+Repository:
+
+https://github.com/codewithqadir100/Food_Delivery_App
+
+GitHub is used for repository inspection and reference.
+
+Do not:
+
+- Push code
+- Create commits
+- Create pull requests
+- Merge branches
+
+unless the user explicitly requests it.
+
+## Existing Changes
+
+Always account for the current repository state.
+
+Do not assume that a feature is missing simply because it is not mentioned in the task.
+
+Check whether it already exists.
+
+## Testing
+
+After implementing a change, verify the affected functionality as much as possible.
+
+Check for:
+
+- Syntax errors
+- Laravel errors
+- React errors
+- Route errors
+- Validation errors
+- Authorization issues
+- Broken imports
+- Broken components
+- Responsive UI regressions
+- Existing functionality regressions
+
+If tests or relevant checks are available in the project, use them.
+
+## Final Review
+
+Before considering the task complete, ask:
+
+- Did I duplicate existing functionality?
+- Did I reuse existing components?
+- Did I introduce unnecessary dependencies?
+- Did I introduce unnecessary database queries?
+- Did I preserve authorization?
+- Did I preserve existing behavior?
+- Did I create unnecessary state?
+- Is the implementation maintainable?
+- Is it scalable?
+- Is it secure?
+- Did I modify anything unrelated?
+
+If the answer to any of these is problematic, fix it before finishing.

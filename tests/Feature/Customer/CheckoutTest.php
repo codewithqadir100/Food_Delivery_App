@@ -7,8 +7,8 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\Restaurant;
 use App\Models\User;
-use Illuminate\Support\Facades\Notification;
 use App\Notifications\NewOrderReceived;
+use Illuminate\Support\Facades\Notification;
 
 function checkoutCustomer(): User
 {
@@ -29,7 +29,7 @@ function addItemToCart(User $customer, MenuItem $menuItem, int $quantity = 1): v
 test('customer can checkout a valid cart', function () {
     Notification::fake();
 
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 500]);
     $customer = checkoutCustomer();
     $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
@@ -63,7 +63,7 @@ test('customer cannot checkout an empty cart', function () {
 });
 
 test('customer cannot use another customers address to checkout', function () {
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id]);
     $customer = checkoutCustomer();
     $otherCustomersAddress = CustomerAddress::factory()->create();
@@ -79,7 +79,7 @@ test('customer cannot use another customers address to checkout', function () {
 });
 
 test('checkout rejects an address outside the restaurant delivery radius', function () {
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id]);
     $customer = checkoutCustomer();
     $address = CustomerAddress::factory()->farAway()->create(['customer_id' => $customer->id]);
@@ -95,7 +95,7 @@ test('checkout rejects an address outside the restaurant delivery radius', funct
 });
 
 test('checkout rejects missing restaurant coordinates instead of defaulting to a free delivery', function () {
-    $restaurant = Restaurant::factory()->withoutCoordinates()->create();
+    $restaurant = Restaurant::factory()->subscribed()->withoutCoordinates()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id]);
     $customer = checkoutCustomer();
     $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
@@ -111,18 +111,15 @@ test('checkout rejects missing restaurant coordinates instead of defaulting to a
 });
 
 test('checkout rejects a closed restaurant', function () {
-    $restaurant = Restaurant::factory()->closed()->create();
+    $restaurant = Restaurant::factory()->subscribed()->closed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id]);
     $customer = checkoutCustomer();
-    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
 
-    addItemToCart($customer, $menuItem);
+    $this->actingAs($customer)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 1,
+    ])->assertStatus(422);
 
-    $response = $this->actingAs($customer)->post(route('customer.checkout.store'), [
-        'customer_address_id' => $address->id,
-    ]);
-
-    $response->assertSessionHas('error');
     $this->assertDatabaseCount('orders', 0);
 });
 
@@ -130,20 +127,17 @@ test('checkout rejects an unapproved restaurant', function () {
     $restaurant = Restaurant::factory()->pending()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id]);
     $customer = checkoutCustomer();
-    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
 
-    addItemToCart($customer, $menuItem);
+    $this->actingAs($customer)->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 1,
+    ])->assertStatus(422);
 
-    $response = $this->actingAs($customer)->post(route('customer.checkout.store'), [
-        'customer_address_id' => $address->id,
-    ]);
-
-    $response->assertSessionHas('error');
     $this->assertDatabaseCount('orders', 0);
 });
 
 test('checkout rejects an item that became unavailable after being added to the cart', function () {
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id]);
     $customer = checkoutCustomer();
     $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
@@ -161,7 +155,7 @@ test('checkout rejects an item that became unavailable after being added to the 
 });
 
 test('order uses the current menu item price rather than a stale cart price', function () {
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 200]);
     $customer = checkoutCustomer();
     $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
@@ -180,7 +174,7 @@ test('order uses the current menu item price rather than a stale cart price', fu
 });
 
 test('order total equals subtotal plus delivery fee', function () {
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 500]);
     $customer = checkoutCustomer();
     $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);

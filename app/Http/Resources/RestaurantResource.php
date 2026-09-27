@@ -34,6 +34,8 @@ class RestaurantResource extends JsonResource
             'review_count' => 0,
             'distance_km' => $this->distance_km,
             'delivery_charge' => $this->delivery_charge,
+            'listing_availability' => $this->listing_availability ?? $this->listingAvailability(),
+            'is_featured' => (bool) ($this->is_featured ?? $this->subscription?->plan?->isFeatured()),
         ];
     }
 }

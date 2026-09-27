@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
@@ -14,9 +16,7 @@ use Inertia\Response;
 
 class CartController extends Controller
 {
-    public function __construct(private readonly CartService $cart)
-    {
-    }
+    public function __construct(private readonly CartService $cart) {}
 
     public function index(): Response
     {
@@ -47,8 +47,15 @@ class CartController extends Controller
 
     public function store(AddToCartRequest $request): JsonResponse
     {
-        $menuItem = MenuItem::where('is_available', true)
+        $menuItem = MenuItem::with('restaurant')->where('is_available', true)
             ->findOrFail($request->validated('menu_item_id'));
+
+        if (! $menuItem->restaurant?->isOrderable()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This restaurant is currently unavailable.',
+            ], 422);
+        }
 
         $switchedRestaurant = $this->cart->addItem($menuItem, (int) ($request->validated('quantity') ?? 1));
 
@@ -66,7 +73,7 @@ class CartController extends Controller
     {
         $updated = $this->cart->updateItem($menuItem, (int) $request->validated('quantity'));
 
-        if (!$updated) {
+        if (! $updated) {
             return response()->json([
                 'success' => false,
                 'message' => 'This item is not in your cart.',
