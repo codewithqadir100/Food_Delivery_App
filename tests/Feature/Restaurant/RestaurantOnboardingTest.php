@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\PaymentVerificationService;
 use Database\Seeders\PlanSeeder;
@@ -70,6 +71,33 @@ test('restaurant registration requires email verification before profile access'
         ->assertRedirect(route('verification.notice'));
 });
 
+test('profile shows approved since as a date only after the restaurant is approved', function () {
+    $restaurant = Restaurant::factory()->create([
+        'status' => Restaurant::STATUS_PENDING,
+        'approved_since' => null,
+    ]);
+    $restaurant->user->update([
+        'role' => User::ROLE_RESTAURANT_OWNER,
+        'status' => User::STATUS_PENDING,
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($restaurant->user)
+        ->get(route('restaurant.profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('restaurant.approved_since', null));
+
+    $restaurant->update([
+        'status' => Restaurant::STATUS_APPROVED,
+        'approved_since' => '2026-09-26 14:38:31',
+    ]);
+
+    $this->actingAs($restaurant->user->fresh())
+        ->get(route('restaurant.profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('restaurant.approved_since', '2026-09-26'));
+});
+
 test('onboarding checklist follows saved profile location category and item records', function () {
     $restaurant = Restaurant::factory()->create([
         'status' => Restaurant::STATUS_PENDING,
@@ -126,6 +154,7 @@ test('starting the free plan activates the subscription and approves a pending r
 
     expect($restaurant->status)->toBe(Restaurant::STATUS_APPROVED);
     expect($restaurant->user->fresh()->status)->toBe(User::STATUS_APPROVED);
+    expect($restaurant->approved_since?->toDateString())->toBe(now()->toDateString());
     expect($restaurant->subscription->status)->toBe('active');
     expect($restaurant->subscription->activated_at)->not->toBeNull();
 
@@ -142,6 +171,7 @@ test('a paid plan stays hidden until a super admin verifies the payment', functi
         ->assertRedirect(route('restaurant.subscription.index'));
 
     expect($restaurant->fresh()->status)->toBe(Restaurant::STATUS_PENDING);
+    expect($restaurant->fresh()->approved_since)->toBeNull();
     expect($restaurant->fresh()->listingAvailability())->toBe(Restaurant::LISTING_HIDDEN);
 
     $payment = Payment::query()->where('restaurant_id', $restaurant->id)->first();
@@ -161,7 +191,76 @@ test('a paid plan stays hidden until a super admin verifies the payment', functi
 
     expect($payment->fresh()->status)->toBe(Payment::STATUS_VERIFIED);
     expect($restaurant->status)->toBe(Restaurant::STATUS_APPROVED);
+    expect($restaurant->approved_since?->toDateString())->toBe(now()->toDateString());
     expect($restaurant->listingAvailability())->toBe(Restaurant::LISTING_AVAILABLE);
+});
+
+test('switching plans starts a new month instead of extending the current end date', function () {
+    $restaurant = onboardedRestaurant();
+
+    $this->actingAs($restaurant->user)
+        ->post(route('restaurant.subscription.store'), ['plan' => Plan::CODE_FREE])
+        ->assertRedirect(route('restaurant.subscription.index'));
+
+    $originalEndsAt = $restaurant->fresh()->subscription->ends_at->copy();
+
+    $this->actingAs($restaurant->user)
+        ->post(route('restaurant.subscription.store'), ['plan' => Plan::CODE_NORMAL])
+        ->assertRedirect(route('restaurant.subscription.index'));
+
+    $payment = Payment::query()
+        ->where('restaurant_id', $restaurant->id)
+        ->where('status', Payment::STATUS_PENDING)
+        ->first();
+
+    $admin = User::factory()->create([
+        'role' => User::ROLE_ADMIN,
+        'status' => User::STATUS_APPROVED,
+        'is_super_admin' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('super-admin.payments.verify', $payment))
+        ->assertRedirect();
+
+    $subscription = $restaurant->fresh()->subscription->load('plan');
+
+    expect($subscription->plan->code)->toBe(Plan::CODE_NORMAL);
+    expect($subscription->ends_at->between(
+        now()->addDays(30)->subMinute(),
+        now()->addDays(30)->addMinute(),
+    ))->toBeTrue();
+    expect($subscription->ends_at->lt($originalEndsAt->copy()->addDays(20)))->toBeTrue();
+});
+
+test('verifying the same plan again extends the current end date', function () {
+    $restaurant = onboardedRestaurant();
+    $plan = Plan::query()->where('code', Plan::CODE_NORMAL)->first();
+    $endsAt = now()->addDays(10);
+
+    $subscription = $restaurant->subscription()->create([
+        'plan_id' => $plan->id,
+        'status' => Subscription::STATUS_ACTIVE,
+        'starts_at' => now()->subDays(20),
+        'ends_at' => $endsAt,
+        'activated_at' => now()->subDays(20),
+    ]);
+
+    $payment = Payment::query()->create([
+        'restaurant_id' => $restaurant->id,
+        'subscription_id' => $subscription->id,
+        'plan_id' => $plan->id,
+        'provider' => Payment::PROVIDER_MANUAL,
+        'currency' => 'PKR',
+        'status' => Payment::STATUS_PENDING,
+    ]);
+
+    app(PaymentVerificationService::class)->markVerified($payment);
+
+    expect($subscription->fresh()->ends_at->between(
+        $endsAt->copy()->addDays(30)->subMinute(),
+        $endsAt->copy()->addDays(30)->addMinute(),
+    ))->toBeTrue();
 });
 
 test('payment verification does not approve a rejected restaurant', function () {
@@ -203,6 +302,7 @@ test('super admin can manually approve, reject, and delete a restaurant without 
         ->assertRedirect();
 
     expect($restaurant->fresh()->status)->toBe(Restaurant::STATUS_APPROVED);
+    expect($restaurant->fresh()->approved_since)->not->toBeNull();
     expect($restaurant->fresh()->listingAvailability())->toBe(Restaurant::LISTING_HIDDEN);
 
     $this->actingAs($admin)

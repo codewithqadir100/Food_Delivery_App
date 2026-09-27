@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Restaurant;
 
+use App\Events\RestaurantLocationUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Restaurant\RestaurantProfileRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantCoverImageRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantLogoRequest;
 use App\Http\Requests\Restaurant\UpdateRestaurantStatusRequest;
-use App\Events\RestaurantLocationUpdated;
-use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,11 +29,16 @@ class RestaurantProfileController extends Controller
 
         $this->authorize('view', $restaurant);
 
+        $restaurantPayload = $restaurant->toArray();
+        $restaurantPayload['approved_since'] = $restaurant->isApproved() && $restaurant->approved_since
+            ? $restaurant->approved_since->toDateString()
+            : null;
+
         return Inertia::render('Restaurant/Profile', [
-            'restaurant' => $restaurant,
+            'restaurant' => $restaurantPayload,
             'categories' => RestaurantCategory::query()
-            ->orderBy('name')
-            ->get(['id', 'name']),
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -73,7 +77,7 @@ class RestaurantProfileController extends Controller
             ]);
 
             // Dispatch event if location changed
-            if ($oldLocation['latitude'] !== $validated['latitude'] || 
+            if ($oldLocation['latitude'] !== $validated['latitude'] ||
                 $oldLocation['longitude'] !== $validated['longitude']) {
                 RestaurantLocationUpdated::dispatch(
                     $restaurant,

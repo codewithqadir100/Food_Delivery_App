@@ -58,7 +58,7 @@ class RestaurantAuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('verification.notice');
+        return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
     }
 
     public function createLogin(): Response

@@ -39,15 +39,18 @@ class PaymentVerificationService
                 ->firstOrFail();
 
             $now = now();
-            $base = $subscription->ends_at && $subscription->ends_at->isFuture()
+            $renewingSamePlan = (int) $subscription->plan_id === (int) $plan->id
+                && $subscription->ends_at !== null
+                && $subscription->ends_at->isFuture();
+            $periodStart = $renewingSamePlan
                 ? $subscription->ends_at->copy()
                 : $now->copy();
 
             $subscription->fill([
                 'plan_id' => $plan->id,
                 'status' => Subscription::STATUS_ACTIVE,
-                'starts_at' => $subscription->starts_at ?? $now,
-                'ends_at' => $base->addDays((int) $plan->duration_days),
+                'starts_at' => $renewingSamePlan ? ($subscription->starts_at ?? $now) : $now,
+                'ends_at' => $periodStart->addDays((int) $plan->duration_days),
                 'activated_at' => $subscription->activated_at ?? $now,
             ])->save();
 

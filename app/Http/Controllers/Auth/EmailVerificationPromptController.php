@@ -24,8 +24,10 @@ class EmailVerificationPromptController extends Controller
             return redirect()->route('restaurant.dashboard');
         }
 
+        $sent = $user->sendEmailVerificationNotification();
+
         return Inertia::render('Auth/VerifyEmail', [
-            'status' => session('status'),
+            'status' => session('status') ?: ($sent ? 'verification-link-sent' : null),
         ]);
     }
 }

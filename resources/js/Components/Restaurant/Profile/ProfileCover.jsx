@@ -35,10 +35,25 @@ export default function ProfileCover({
     };
 
     const formatDate = (date) => {
-        if (!date) return "N/A";
-        if (typeof date === "string") return date;
-        return new Date(date).toLocaleDateString("en-GB");
+        if (!date) return null;
+
+        if (typeof date === "string") {
+            const match = date.match(/^(\d{4}-\d{2}-\d{2})/);
+            return match ? match[1] : null;
+        }
+
+        if (date instanceof Date && !Number.isNaN(date.getTime())) {
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            const day = String(date.getUTCDate()).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+        return null;
     };
+
+    const approvedOn = formatDate(approvedDate);
 
     return (
         <>
@@ -110,15 +125,17 @@ export default function ProfileCover({
                                 </p>
                             </div>
 
-                            <div className="sm:text-right">
-                                <span className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-muted)]">
-                                    Approved Since
-                                </span>
+                            {approvedOn && (
+                                <div className="sm:text-right">
+                                    <span className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-muted)]">
+                                        Approved Since
+                                    </span>
 
-                                <p className="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                    {formatDate(approvedDate)}
-                                </p>
-                            </div>
+                                    <p className="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                        {approvedOn}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

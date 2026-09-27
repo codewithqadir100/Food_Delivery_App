@@ -22,7 +22,14 @@ export default function VerifyEmail({ status }) {
                     {status === "verification-link-sent" && (
                         <Alert
                             type="success"
-                            message="A new verification link has been sent to your email address."
+                            message="A verification link has been sent to your email address."
+                        />
+                    )}
+
+                    {status === "verification-link-throttled" && (
+                        <Alert
+                            type="warning"
+                            message="Please wait a minute before requesting another verification email."
                         />
                     )}
 

@@ -22,7 +22,9 @@ class EmailVerificationNotificationController extends Controller
             return redirect()->route('restaurant.dashboard');
         }
 
-        $user->sendEmailVerificationNotification();
+        if (! $user->sendEmailVerificationNotification()) {
+            return back()->with('status', 'verification-link-throttled');
+        }
 
         return back()->with('status', 'verification-link-sent');
     }
