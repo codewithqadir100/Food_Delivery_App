@@ -104,7 +104,7 @@ export default function MobileNav({
                     </button>
 
                     <Link
-                        href="/restaurant/settings"
+                        href={route("restaurant.profile.edit")}
                         className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Settings"
                     >
@@ -115,7 +115,7 @@ export default function MobileNav({
                     </Link>
 
                     <Link
-                        href="/restaurant/profile"
+                        href={route("restaurant.profile.edit")}
                         className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Profile"
                     >

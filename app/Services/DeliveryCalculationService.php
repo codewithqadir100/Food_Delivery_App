@@ -5,6 +5,8 @@ namespace App\Services;
 class DeliveryCalculationService
 {
     private const EARTH_RADIUS_KM = 6371;
+    public const BASE_DELIVERY_FEE = 100;
+    public const PER_KM_FEE = 50;
 
     public function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
@@ -32,8 +34,8 @@ class DeliveryCalculationService
 
     public function calculateDeliveryCharge(
         float $distance,
-        int $baseFee,
-        int $perKmFee
+        int $baseFee = self::BASE_DELIVERY_FEE,
+        int $perKmFee = self::PER_KM_FEE
     ): int {
         return $baseFee + (int)ceil($distance * $perKmFee);
     }

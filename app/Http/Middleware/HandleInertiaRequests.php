@@ -46,6 +46,10 @@ class HandleInertiaRequests extends Middleware
                 'cart' => fn() => $user?->isCustomer()
                     ? ['count' => app(CartService::class)->count()]
                     : null,
+
+                'notifications_count' => fn() => $user?->isRestaurantOwner()
+                    ? $user->unreadNotifications()->count()
+                    : null,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

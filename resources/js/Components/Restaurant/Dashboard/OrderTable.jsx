@@ -1,6 +1,6 @@
 import { Eye, ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
-import EmptyState from './EmptyState';
+import EmptyState from '@/Components/Common/EmptyState';
 import OrderStatusBadge from '@/Components/Common/OrderStatusBadge';
 import { formatCurrency } from '@/Utils/formatCurrency';
 

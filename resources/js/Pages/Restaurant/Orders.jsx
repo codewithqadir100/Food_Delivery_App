@@ -6,7 +6,7 @@ import {
     StatCard,
     OrderTable,
 } from "@/Components/Restaurant/Dashboard";
-import RestaurantPagination from "@/Components/Customer/RestaurantPagination";
+import Pagination from "@/Components/Common/Pagination";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 const STATUS_TABS = [
@@ -95,7 +95,7 @@ export default function Orders({ orders, filters, stats }) {
                             }))}
                         />
 
-                        <RestaurantPagination
+                        <Pagination
                             pagination={orders}
                             onPageChange={handlePageChange}
                         />

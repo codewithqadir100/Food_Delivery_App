@@ -8,15 +8,17 @@ export default function RestaurantLayout({
     children,
     pageTitle,
     pageSubtitle,
-    notificationCount = 8,
+    notificationCount,
     onNotificationsClick,
     isPending = false,
     onLogout = null,
 }) {
     const { url } = usePage();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const { restaurant } = usePage().props;
+    const { restaurant, auth } = usePage().props;
     const currentRoute = url;
+    const resolvedNotificationCount =
+        notificationCount ?? auth?.notifications_count ?? 0;
 
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
     const [logoutProcessing, setLogoutProcessing] = useState(false);
@@ -97,7 +99,7 @@ export default function RestaurantLayout({
                     currentRoute={currentRoute}
                     isPending={isPending}
                     onLogout={handleLogout}
-                    notificationCount={notificationCount}
+                    notificationCount={resolvedNotificationCount}
                     onNotificationsClick={onNotificationsClick}
                 />
 
@@ -111,7 +113,7 @@ export default function RestaurantLayout({
                             title={pageTitle}
                             subtitle={pageSubtitle}
                             isRestaurantOpen={restaurant?.is_open ?? false}
-                            notificationCount={notificationCount}
+                            notificationCount={resolvedNotificationCount}
                             onNotificationsClick={onNotificationsClick}
                         />
 

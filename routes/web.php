@@ -54,6 +54,7 @@ Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->
     Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::get('/checkout/delivery-fee', [CheckoutController::class, 'deliveryFee'])->name('checkout.delivery-fee');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
     Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
