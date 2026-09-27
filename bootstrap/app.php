@@ -1,8 +1,17 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureApprovedAdmin;
+use App\Http\Middleware\EnsureApprovedRestaurant;
+use App\Http\Middleware\EnsureCustomer;
+use App\Http\Middleware\EnsureRestaurantExists;
+use App\Http\Middleware\EnsureRestaurantOwner;
+use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -13,21 +22,22 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         $middleware->alias([
-            'customer' => \App\Http\Middleware\EnsureCustomer::class,
-            'restaurant_owner' => \App\Http\Middleware\EnsureRestaurantOwner::class,
-            'approved_restaurant' => \App\Http\Middleware\EnsureApprovedRestaurant::class,
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
-            'approved_admin' => \App\Http\Middleware\EnsureApprovedAdmin::class,
-            'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+            'customer' => EnsureCustomer::class,
+            'restaurant_owner' => EnsureRestaurantOwner::class,
+            'approved_restaurant' => EnsureApprovedRestaurant::class,
+            'restaurant_exists' => EnsureRestaurantExists::class,
+            'admin' => EnsureAdmin::class,
+            'approved_admin' => EnsureApprovedAdmin::class,
+            'super_admin' => EnsureSuperAdmin::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
-            if ($request->is('restaurant/*')) {
+            if ($request->is('restaurant/*') || $request->is('verify-email') || $request->is('verify-email/*')) {
                 return route('restaurant.login');
             }
 

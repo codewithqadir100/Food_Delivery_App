@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Customer;
 use App\Models\Restaurant;
 use Illuminate\Routing\Controller;
 
-
 class RestaurantMenuController extends Controller
 {
     public function show(Restaurant $restaurant)
     {
-        if ($restaurant->status !== 'approved' || !$restaurant->is_open) {
+        $restaurant->loadMissing('subscription');
+
+        if (! $restaurant->isOrderable()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Restaurant not available'
+                'message' => 'Restaurant not available',
             ], 404);
         }
 
@@ -22,7 +23,7 @@ class RestaurantMenuController extends Controller
                 'menuItems' => function ($query) {
                     $query->where('is_available', true)
                         ->orderBy('created_at', 'asc');
-                }
+                },
             ])
             ->orderBy('created_at', 'asc')
             ->get();
@@ -31,7 +32,6 @@ class RestaurantMenuController extends Controller
             ->where('is_available', true)
             ->orderBy('created_at', 'asc')
             ->get();
-
 
         return response()->json([
             'success' => true,
@@ -67,11 +67,11 @@ class RestaurantMenuController extends Controller
                         'name' => $item->name,
                         'description' => $item->description,
                         'price' => $item->price,
-                        'image' => asset('storage/' . $item->image),
+                        'image' => asset('storage/'.$item->image),
                         'is_available' => $item->is_available,
                     ];
                 })->values(),
-            ]
+            ],
         ]);
     }
 }

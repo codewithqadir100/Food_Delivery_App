@@ -8,6 +8,7 @@ import SelectInput from "@/Components/Forms/SelectInput";
 import Checkbox from "@/Components/Forms/Checkbox";
 import PasswordInput from "@/Components/Forms/PasswordInput";
 import FormLabel from "@/Components/Forms/FormLabel";
+import GoogleAuthButton from "@/Components/Auth/GoogleAuthButton";
 import { Mail, Building2, Phone, Store } from "lucide-react";
 
 export default function RestaurantRegister({ categories }) {
@@ -49,6 +50,16 @@ export default function RestaurantRegister({ categories }) {
                     </div>
 
                     <form onSubmit={submit} className="space-y-5">
+                        <GoogleAuthButton />
+
+                        <div className="flex items-center gap-3">
+                            <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
+                            <span className="text-xs text-[color:var(--color-text-muted)]">
+                                or
+                            </span>
+                            <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
+                        </div>
+
                         <div className="grid grid-cols-1 gap-4">
                             <TextInput
                                 type="text"

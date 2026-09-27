@@ -1,0 +1,121 @@
+---
+description: React and Inertia frontend architecture, reusable components, UI consistency, state management, forms and responsive design.
+resources/js/**/*.{js,jsx,ts,tsx}
+alwaysApply: true
+---
+
+# Frontend Rules
+
+## Component-First Development
+
+Reusable components are mandatory wherever reuse makes sense.
+
+Before creating a component:
+
+1. Search the existing components directory.
+2. Check whether an existing component can be reused.
+3. If not, create a reusable component when the UI is likely to be reused.
+
+Do not duplicate:
+
+- Buttons
+- Inputs
+- Forms
+- Modals
+- Cards
+- Tables
+- Dropdowns
+- Alerts
+- Loaders
+- Empty states
+- Error states
+- Repeated layouts
+- Repeated UI patterns
+
+Do not create unnecessarily generic components. Components should have a clear responsibility.
+
+## Components Directory
+
+The existing components directory must be inspected before implementing relevant frontend work.
+
+Prefer existing project components over creating new ones.
+
+## React
+
+Follow the existing React architecture.
+
+Avoid unnecessary:
+
+- useState
+- useEffect
+- Contexts
+- API requests
+- duplicated server state
+- derived state
+
+Do not duplicate server data into local state unless there is a clear reason.
+
+Use existing hooks and contexts where appropriate.
+
+## Inertia
+
+Follow the existing Inertia.js patterns.
+
+Do not introduce another data-fetching architecture unless explicitly required.
+
+Use server-side props and Inertia forms/navigation consistently with the existing application.
+
+## Forms
+
+Forms must properly handle:
+
+- Validation
+- Field errors
+- Submission state
+- Server errors
+- Success feedback
+- Disabled/submitting states
+- Duplicate submission prevention where required
+
+Reuse existing form components and patterns.
+
+## UI
+
+Maintain consistency with the existing application.
+
+Reuse the existing theme, CSS variables, spacing, typography, colors and design patterns.
+
+Do not introduce random styles or a second design system.
+
+## Responsive Design
+
+Every new UI must work across:
+
+- Mobile
+- Tablet
+- Desktop
+
+Do not fix desktop UI while breaking mobile layouts.
+
+## Accessibility
+
+Interactive elements should be accessible.
+
+Use semantic HTML where appropriate.
+
+Buttons must be buttons.
+
+Links must be links.
+
+Inputs must have proper labels or accessible naming.
+
+## Loading and Error States
+
+Relevant asynchronous UI must have proper:
+
+- Loading state
+- Error state
+- Empty state
+- Success feedback where applicable
+
+Do not leave users with a blank UI while an operation is processing.

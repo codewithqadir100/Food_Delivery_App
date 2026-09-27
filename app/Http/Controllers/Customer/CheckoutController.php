@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
@@ -25,8 +27,7 @@ class CheckoutController extends Controller
     public function __construct(
         private readonly CartService $cart,
         private readonly DeliveryCalculationService $deliveryService,
-    ) {
-    }
+    ) {}
 
     public function show(): Response|RedirectResponse
     {
@@ -37,7 +38,7 @@ class CheckoutController extends Controller
 
         $restaurant = Restaurant::find($this->cart->getRestaurantId());
 
-        if (!$restaurant) {
+        if (! $restaurant) {
             $this->cart->clear();
 
             return redirect()->route('customer.cart.index')
@@ -58,9 +59,9 @@ class CheckoutController extends Controller
             'subtotal' => $subtotal,
             'addresses' => $addresses,
             'delivery_fee' => $deliveryEstimate['valid'] ?? false ? $deliveryEstimate['fee'] : null,
-            'delivery_error' => $deliveryEstimate && !$deliveryEstimate['valid'] ? $deliveryEstimate['error'] : null,
+            'delivery_error' => $deliveryEstimate && ! $deliveryEstimate['valid'] ? $deliveryEstimate['error'] : null,
             'has_unavailable_items' => $this->cart->hasUnavailableItems(),
-            'restaurant_unavailable' => !$restaurant->isApproved() || !$restaurant->is_open,
+            'restaurant_unavailable' => ! $restaurant->isOrderable(),
         ]);
     }
 
@@ -68,14 +69,14 @@ class CheckoutController extends Controller
     {
         $restaurant = Restaurant::find($this->cart->getRestaurantId());
 
-        if (!$restaurant) {
+        if (! $restaurant) {
             return response()->json(['valid' => false, 'error' => 'Restaurant not found.'], 404);
         }
 
         $address = CustomerAddress::where('customer_id', Auth::id())
             ->find($request->query('customer_address_id'));
 
-        if (!$address) {
+        if (! $address) {
             return response()->json(['valid' => false, 'error' => 'Address not found.'], 404);
         }
 
@@ -98,13 +99,13 @@ class CheckoutController extends Controller
         $address = CustomerAddress::where('customer_id', $user->id)
             ->find($request->validated('customer_address_id'));
 
-        if (!$address) {
+        if (! $address) {
             return back()->with('error', 'Please select a valid delivery address.');
         }
 
         $restaurant = Restaurant::find($this->cart->getRestaurantId());
 
-        if (!$restaurant) {
+        if (! $restaurant) {
             $this->cart->clear();
 
             return redirect()->route('customer.cart.index')
@@ -124,7 +125,7 @@ class CheckoutController extends Controller
 
                 $deliveryEstimate = $this->estimateDeliveryFee($restaurant, $address);
 
-                if (!$deliveryEstimate['valid']) {
+                if (! $deliveryEstimate['valid']) {
                     throw new RuntimeException($deliveryEstimate['error']);
                 }
 
@@ -173,12 +174,8 @@ class CheckoutController extends Controller
 
     private function assertRestaurantCanReceiveOrders(Restaurant $restaurant): void
     {
-        if (!$restaurant->isApproved()) {
-            throw new RuntimeException('This restaurant is not currently accepting orders.');
-        }
-
-        if (!$restaurant->is_open) {
-            throw new RuntimeException('This restaurant is currently closed. Please try again later.');
+        if (! $restaurant->isOrderable()) {
+            throw new RuntimeException('This restaurant is currently unavailable.');
         }
     }
 
@@ -216,11 +213,11 @@ class CheckoutController extends Controller
 
     private function estimateDeliveryFee(Restaurant $restaurant, CustomerAddress $address): array
     {
-        if (!$restaurant->latitude || !$restaurant->longitude) {
+        if (! $restaurant->latitude || ! $restaurant->longitude) {
             return ['valid' => false, 'error' => 'This restaurant has not configured its delivery location yet.'];
         }
 
-        if (!$address->latitude || !$address->longitude) {
+        if (! $address->latitude || ! $address->longitude) {
             return ['valid' => false, 'error' => 'Your selected address is missing location coordinates.'];
         }
 
@@ -232,7 +229,7 @@ class CheckoutController extends Controller
             (float) $address->longitude,
         );
 
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'valid' => false,
                 'error' => $validation['error'] === 'Delivery location is outside service zone'

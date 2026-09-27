@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Services\CartService;
+use App\Services\RestaurantOnboardingService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -20,6 +21,14 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $restaurant = null;
+
+        if ($user?->isRestaurantOwner()) {
+            $restaurant = $user->restaurant()
+                ->withCount(['menuCategories', 'menuItems'])
+                ->with('subscription.plan')
+                ->first();
+        }
 
         return [
             ...parent::share($request),
@@ -30,6 +39,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'role' => $user->role,
                     'status' => $user->status,
+                    'email_verified' => $user->hasVerifiedEmail(),
                     'is_customer' => $user->isCustomer(),
                     'is_restaurant_owner' => $user->isRestaurantOwner(),
                     'is_admin' => $user->isAdmin(),
@@ -37,17 +47,23 @@ class HandleInertiaRequests extends Middleware
                     'is_pending' => $user->isPending(),
                 ] : null,
 
-                'restaurant' => fn() => $user?->restaurant,
+                'restaurant' => fn () => $restaurant,
 
-                'customer' => fn() => $user?->isCustomer()
+                'onboarding' => fn () => $user?->isRestaurantOwner()
+                    ? app(RestaurantOnboardingService::class)->status($restaurant)
+                    : null,
+
+                'subscription' => fn () => $restaurant?->subscription,
+
+                'customer' => fn () => $user?->isCustomer()
                     ? $user->primaryAddress
                     : null,
 
-                'cart' => fn() => $user?->isCustomer()
+                'cart' => fn () => $user?->isCustomer()
                     ? ['count' => app(CartService::class)->count()]
                     : null,
 
-                'notifications_count' => fn() => $user?->isRestaurantOwner()
+                'notifications_count' => fn () => $user?->isRestaurantOwner()
                     ? $user->unreadNotifications()->count()
                     : null,
             ],

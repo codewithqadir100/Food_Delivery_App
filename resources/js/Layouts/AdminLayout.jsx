@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, router, usePage } from "@inertiajs/react";
-import { LayoutDashboard, Store, ShieldCheck, LogOut } from "lucide-react";
+import { LayoutDashboard, Store, ShieldCheck, Wallet, LogOut } from "lucide-react";
 import Logo from "@/assets/logo.png";
 import Button from "@/Components/Common/Button";
 import Modal from "@/Components/Common/Modal";
@@ -28,6 +28,12 @@ export default function AdminLayout({ title, subtitle, children }) {
                       href: route("super-admin.restaurants.pending"),
                       icon: Store,
                       active: Boolean(url?.startsWith("/super-admin/restaurants")),
+                  },
+                  {
+                      label: "Payments",
+                      href: route("super-admin.payments.pending"),
+                      icon: Wallet,
+                      active: Boolean(url?.startsWith("/super-admin/payments")),
                   },
                   {
                       label: "Admins",
