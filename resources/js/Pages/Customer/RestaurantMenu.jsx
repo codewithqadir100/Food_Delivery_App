@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Head, router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import RestaurantHeader from "@/Components/Customer/RestaurantHeader";
 import CategoryFilterTabs from "@/Components/Customer/CategoryFilterTabs";
 import MenuItemOrderCard from "@/Components/Customer/MenuItemOrderCard";
+import MenuCart from "@/Components/Customer/MenuCart";
 import Alert from "@/Components/Common/Alert";
 import Spinner from "@/Components/Common/Spinner";
 import axios from "axios";
@@ -12,16 +13,21 @@ export default function RestaurantMenu({
     restaurant,
     distance_km,
     delivery_charge,
-    can_order,
 }) {
     const [menuData, setMenuData] = useState(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [addingItemId, setAddingItemId] = useState(null);
     const [alert, setAlert] = useState(null);
+    const [cart, setCart] = useState(null);
+    const [updatingFulfillment, setUpdatingFulfillment] = useState(false);
+    const isCustomer = Boolean(usePage().props.auth?.user?.is_customer);
 
     useEffect(() => {
         fetchMenu();
+        if (isCustomer) {
+            fetchCart();
+        }
     }, []);
 
     const fetchMenu = async () => {
@@ -46,13 +52,42 @@ export default function RestaurantMenu({
         }
     };
 
+    const fetchCart = async () => {
+        try {
+            const res = await axios.get(route("customer.cart.data"), {
+                params: { restaurant_id: restaurant.id },
+            });
+            setCart(res.data.data);
+        } catch {
+            setCart(null);
+        }
+    };
+
+    const changeFulfillment = async (fulfillment) => {
+        try {
+            setUpdatingFulfillment(true);
+            const res = await axios.patch(route("customer.cart.fulfillment"), {
+                fulfillment,
+                restaurant_id: restaurant.id,
+            });
+            setCart(res.data.data);
+        } catch (error) {
+            setAlert({
+                type: "error",
+                title: "Error",
+                message: "Could not update pickup or delivery.",
+            });
+        } finally {
+            setUpdatingFulfillment(false);
+        }
+    };
+
     const handleAddToCart = async (item, quantity) => {
-        if (!can_order) {
+        if (!isCustomer) {
             setAlert({
                 type: "warning",
-                title: "Address Required",
-                message:
-                    "Please add a delivery address before placing an order.",
+                title: "Sign in required",
+                message: "Please sign in as a customer to add items.",
             });
             return;
         }
@@ -65,16 +100,7 @@ export default function RestaurantMenu({
                 quantity,
             });
 
-            setAlert({
-                type: res.data.switched_restaurant ? "warning" : "success",
-                title: res.data.switched_restaurant
-                    ? "Cart Replaced"
-                    : "Added to Cart",
-                message: res.data.message,
-            });
-
-            // Refresh only the shared "auth" prop so the navbar cart badge
-            // updates without reloading the whole page/menu.
+            setCart(res.data.data);
             router.reload({ only: ["auth"] });
         } catch (error) {
             setAlert({
@@ -128,7 +154,7 @@ export default function RestaurantMenu({
             <Head title={`${restaurant.name} - Menu`} />
             <AppLayout>
                 {alert && (
-                    <div className="fixed top-4 right-4 z-50">
+                    <div className="fixed top-4 right-4 z-[var(--z-popover)]">
                         <Alert
                             type={alert.type}
                             title={alert.title}
@@ -152,7 +178,11 @@ export default function RestaurantMenu({
                         onSelect={setSelectedCategoryId}
                     />
 
-                    <div className="max-w-6xl mx-auto px-4 py-8">
+                    <div
+                        className={`max-w-6xl mx-auto px-4 py-8 ${
+                            cart?.items?.length ? "pb-24 md:pb-8" : ""
+                        }`}
+                    >
                         {filteredItems.length === 0 ? (
                             <div className="text-center py-12">
                                 <p className="text-[color:var(--color-text-muted)]">
@@ -165,7 +195,7 @@ export default function RestaurantMenu({
                                     <MenuItemOrderCard
                                         key={item.id}
                                         item={item}
-                                        canOrder={can_order}
+                                        canOrder={isCustomer}
                                         adding={addingItemId === item.id}
                                         onAddToCart={handleAddToCart}
                                     />
@@ -174,6 +204,14 @@ export default function RestaurantMenu({
                         )}
                     </div>
                 </div>
+
+                <MenuCart
+                    cart={cart}
+                    onFulfillmentChange={changeFulfillment}
+                    onAddSuggestion={(item) => handleAddToCart(item, 1)}
+                    addingItemId={addingItemId}
+                    updatingFulfillment={updatingFulfillment || !isCustomer}
+                />
             </AppLayout>
         </>
     );

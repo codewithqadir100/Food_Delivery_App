@@ -6,13 +6,16 @@ export default function Toggle({
     activeIcon: ActiveIcon,
     inactiveIcon: InactiveIcon,
     disabled = false,
+    fullWidth = false,
     className = "",
 }) {
     const isActive = Boolean(value);
 
     return (
         <div
-            className={`relative inline-flex w-fit items-center rounded-full bg-[var(--color-gray-100)] p-1 ${className}`}
+            className={`relative inline-flex items-center rounded-full bg-[var(--color-gray-100)] p-1 ${
+                fullWidth ? "w-full" : "w-fit"
+            } ${className}`}
             role="group"
         >
             <span
@@ -27,7 +30,9 @@ export default function Toggle({
                 disabled={disabled}
                 aria-pressed={isActive}
                 onClick={() => onChange(true)}
-                className={`relative z-10 flex min-w-24 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium toggle-option ${
+                className={`relative z-10 flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium toggle-option ${
+                    fullWidth ? "min-w-0 flex-1" : "min-w-24"
+                } ${
                     isActive
                         ? "text-[var(--color-primary-500)]"
                         : "text-[var(--color-gray-700)]"
@@ -45,7 +50,9 @@ export default function Toggle({
                 disabled={disabled}
                 aria-pressed={!isActive}
                 onClick={() => onChange(false)}
-                className={`relative z-10 flex min-w-24 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium toggle-option ${
+                className={`relative z-10 flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium toggle-option ${
+                    fullWidth ? "min-w-0 flex-1" : "min-w-24"
+                } ${
                     !isActive
                         ? "text-[var(--color-primary-500)]"
                         : "text-[var(--color-gray-700)]"

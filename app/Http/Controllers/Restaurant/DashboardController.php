@@ -30,6 +30,7 @@ class DashboardController extends Controller
 
         $props = [
             'restaurant' => $restaurant,
+<<<<<<< HEAD
             'status' => $restaurant->status,
             'onboarding' => $this->onboarding->status($restaurant),
             'subscription' => $restaurant->subscription,
@@ -46,5 +47,11 @@ class DashboardController extends Controller
         }
 
         return Inertia::render('Restaurant/Dashboard', $props);
+=======
+            'stats' => $this->stats->buildStats($restaurant),
+            'recentOrders' => $recentOrders,
+            'latest_order_id' => (int) ($recentOrders->max('id') ?? 0),
+        ]);
+>>>>>>> fixing/agent-fixing
     }
 }

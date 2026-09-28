@@ -72,7 +72,7 @@ test('update endpoint cannot be used to inject an arbitrary menu item into the c
         ->not->toContain($notInCart->id);
 });
 
-test('adding an item from a different restaurant replaces the cart', function () {
+test('adding an item from a different restaurant keeps both carts', function () {
     $itemA = MenuItem::factory()->create();
     $itemB = MenuItem::factory()->create();
     $user = customer();
@@ -87,12 +87,13 @@ test('adding an item from a different restaurant replaces the cart', function ()
         'quantity' => 1,
     ]);
 
-    $response->assertOk()->assertJsonPath('switched_restaurant', true);
+    $response->assertOk()->assertJsonPath('switched_restaurant', false);
 
-    $cartData = $this->actingAs($user)->getJson(route('customer.cart.data'))->json('data');
-    expect(collect($cartData['items'])->pluck('menu_item_id'))
-        ->toContain($itemB->id)
-        ->not->toContain($itemA->id);
+    $carts = $this->actingAs($user)->getJson(route('customer.cart.data'))->json('data.carts');
+    $itemIds = collect($carts)->flatMap(fn ($cart) => collect($cart['items'])->pluck('menu_item_id'));
+
+    expect($itemIds)->toContain($itemA->id)->toContain($itemB->id);
+    expect($carts)->toHaveCount(2);
 });
 
 test('cart quantity cannot be negative or excessive', function () {

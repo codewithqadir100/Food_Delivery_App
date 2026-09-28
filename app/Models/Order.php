@@ -26,15 +26,28 @@ class Order extends Model
         self::STATUS_OUT_FOR_DELIVERY,
     ];
 
-    /** Allowed forward status transitions, keyed by current status. */
-    public const STATUS_FLOW = [
-        self::STATUS_PENDING => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
-        self::STATUS_CONFIRMED => [self::STATUS_PREPARING, self::STATUS_CANCELLED],
-        self::STATUS_PREPARING => [self::STATUS_READY, self::STATUS_CANCELLED],
-        self::STATUS_READY => [self::STATUS_OUT_FOR_DELIVERY, self::STATUS_CANCELLED],
-        self::STATUS_OUT_FOR_DELIVERY => [self::STATUS_DELIVERED],
-        self::STATUS_DELIVERED => [],
-        self::STATUS_CANCELLED => [],
+    public const FULFILLMENT_DELIVERY = 'delivery';
+    public const FULFILLMENT_PICKUP = 'pickup';
+
+    public const FULFILLMENTS = [
+        self::FULFILLMENT_DELIVERY,
+        self::FULFILLMENT_PICKUP,
+    ];
+
+    /** Any of these can be chosen until the order is delivered or cancelled. */
+    public const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_CONFIRMED,
+        self::STATUS_PREPARING,
+        self::STATUS_READY,
+        self::STATUS_OUT_FOR_DELIVERY,
+        self::STATUS_DELIVERED,
+        self::STATUS_CANCELLED,
+    ];
+
+    public const TERMINAL_STATUSES = [
+        self::STATUS_DELIVERED,
+        self::STATUS_CANCELLED,
     ];
 
     protected $fillable = [
@@ -43,6 +56,7 @@ class Order extends Model
         'restaurant_id',
         'customer_address_id',
         'status',
+        'fulfillment_type',
         'subtotal',
         'delivery_fee',
         'total',
@@ -102,14 +116,30 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function isTerminal(): bool
+    {
+        return in_array($this->status, self::TERMINAL_STATUSES, true);
+    }
+
     public function canTransitionTo(string $status): bool
     {
-        return in_array($status, self::STATUS_FLOW[$this->status] ?? [], true);
+        if ($this->isTerminal() || !in_array($status, self::STATUSES, true)) {
+            return false;
+        }
+
+        return $status !== $this->status;
     }
 
     public function nextStatuses(): array
     {
-        return self::STATUS_FLOW[$this->status] ?? [];
+        if ($this->isTerminal()) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            self::STATUSES,
+            fn (string $status) => $status !== $this->status,
+        ));
     }
 
     public function isActive(): bool

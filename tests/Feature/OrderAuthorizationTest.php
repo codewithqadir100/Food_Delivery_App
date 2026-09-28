@@ -63,7 +63,7 @@ test('restaurant owner cannot update the status of another restaurants order', f
     $response->assertForbidden();
 });
 
-test('invalid status transitions are rejected', function () {
+test('restaurant can set any status before the order is finished', function () {
     $restaurant = Restaurant::factory()->create();
     $order = createOrderFor($restaurant, status: Order::STATUS_PENDING);
 
@@ -72,8 +72,25 @@ test('invalid status transitions are rejected', function () {
         ['status' => Order::STATUS_DELIVERED],
     );
 
-    $response->assertStatus(422);
-    expect($order->refresh()->status)->toBe(Order::STATUS_PENDING);
+    $response->assertOk();
+    expect($order->refresh()->status)->toBe(Order::STATUS_DELIVERED);
+});
+
+test('restaurant order feed returns only orders newer than the cursor', function () {
+    $restaurant = Restaurant::factory()->create();
+    $existing = createOrderFor($restaurant);
+
+    $this->actingAs($restaurant->user)
+        ->getJson(route('restaurant.orders.feed', ['after_id' => $existing->id]))
+        ->assertOk()
+        ->assertJsonCount(0, 'orders');
+
+    $newer = createOrderFor($restaurant);
+
+    $this->actingAs($restaurant->user)
+        ->getJson(route('restaurant.orders.feed', ['after_id' => $existing->id]))
+        ->assertOk()
+        ->assertJsonPath('orders.0.id', $newer->id);
 });
 
 test('delivered orders cannot be modified further', function () {

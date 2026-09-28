@@ -65,8 +65,9 @@ export default function Sidebar({
 
     const FOOTER_ITEMS = [
         {
-            label: restaurantName,
-            image: Restaurantlogo,
+            label: restaurantName || "Restaurant",
+            image: Restaurantlogo || undefined,
+            icon: User,
             href: "/restaurant/profile",
             key: "profile",
         },

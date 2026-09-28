@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import { Clock, Activity, CheckCircle2, Wallet } from "lucide-react";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
@@ -7,6 +8,7 @@ import {
     OrderTable,
 } from "@/Components/Restaurant/Dashboard";
 import Pagination from "@/Components/Common/Pagination";
+import useIncomingOrders from "@/Hooks/useIncomingOrders";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 const STATUS_TABS = [
@@ -20,23 +22,77 @@ const STATUS_TABS = [
     { key: "cancelled", label: "Cancelled" },
 ];
 
-export default function Orders({ orders, filters, stats }) {
+export default function Orders({ orders, filters, stats, latest_order_id = 0 }) {
     const activeStatus = filters?.status ?? "all";
+    const [rows, setRows] = useState(orders.data);
+    const [liveStats, setLiveStats] = useState(stats);
+
+    useEffect(() => {
+        setRows(orders.data);
+    }, [orders]);
+
+    useEffect(() => {
+        setLiveStats(stats);
+    }, [stats]);
+
+    useIncomingOrders(true, latest_order_id, (payload) => {
+        if (payload.stats) {
+            setLiveStats(payload.stats);
+        }
+
+        const incoming = (payload.orders ?? []).filter(
+            (order) => activeStatus === "all" || order.status === activeStatus,
+        );
+
+        if (incoming.length === 0) return;
+
+        setRows((current) => {
+            const ids = new Set(current.map((order) => order.id));
+            const fresh = incoming.filter((order) => !ids.has(order.id));
+            return fresh.length === 0 ? current : [...fresh, ...current];
+        });
+    });
 
     const handleStatusChange = (status) => {
         router.get(
             route("restaurant.orders.index"),
             status === "all" ? {} : { status },
-            { preserveScroll: true, preserveState: true },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                only: ["orders", "filters"],
+            },
         );
     };
 
     const handlePageChange = (page) => {
         router.get(
             route("restaurant.orders.index"),
-            { status: activeStatus, page },
-            { preserveScroll: true, preserveState: true },
+            { status: activeStatus === "all" ? undefined : activeStatus, page },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                only: ["orders"],
+            },
         );
+    };
+
+    const refreshAfterStatusChange = (updated) => {
+        if (updated?.id) {
+            setRows((current) =>
+                current.map((order) =>
+                    order.id === updated.id
+                        ? { ...order, status: updated.status }
+                        : order,
+                ),
+            );
+        }
+
+        router.reload({
+            only: ["orders", "stats"],
+            preserveScroll: true,
+            preserveState: true,
+        });
     };
 
     return (
@@ -50,22 +106,22 @@ export default function Orders({ orders, filters, stats }) {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard
                             title="Pending Orders"
-                            value={stats.pending}
+                            value={liveStats.pending}
                             icon={Clock}
                         />
                         <StatCard
                             title="Active Orders"
-                            value={stats.active}
+                            value={liveStats.active}
                             icon={Activity}
                         />
                         <StatCard
                             title="Delivered Today"
-                            value={stats.delivered_today}
+                            value={liveStats.delivered_today}
                             icon={CheckCircle2}
                         />
                         <StatCard
                             title="Revenue Today"
-                            value={formatCurrency(stats.revenue_today)}
+                            value={formatCurrency(liveStats.revenue_today)}
                             icon={Wallet}
                         />
                     </div>
@@ -89,10 +145,14 @@ export default function Orders({ orders, filters, stats }) {
                         </div>
 
                         <OrderTable
-                            orders={orders.data.map((order) => ({
+                            orders={rows.map((order) => ({
                                 ...order,
-                                customer_name: order.customer?.name ?? "—",
+                                customer_name:
+                                    order.customer_name ??
+                                    order.customer?.name ??
+                                    "—",
                             }))}
+                            onStatusUpdated={refreshAfterStatusChange}
                         />
 
                         <Pagination

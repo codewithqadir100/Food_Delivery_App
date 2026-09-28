@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export default function Modal({
@@ -32,17 +33,17 @@ export default function Modal({
         "2xl": "max-w-2xl",
     };
 
-    return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+    return createPortal(
+        <div className="fixed inset-0 z-[var(--z-modal)] overflow-y-auto">
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+                className="fixed inset-0 bg-black/50 transition-opacity"
                 onClick={onClose}
                 aria-hidden="true"
             />
 
             {/* Modal */}
-            <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative flex min-h-full items-center justify-center p-4">
                 <div
                     className={`
             bg-[color:var(--color-bg-primary)]
@@ -84,6 +85,7 @@ export default function Modal({
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }

@@ -4,12 +4,13 @@ import Button from "@/Components/Common/Button";
 import TextInput from "@/Components/Forms/TextInput";
 import PasswordInput from "@/Components/Forms/PasswordInput";
 import Card from "@/Components/Common/Card";
-import { User, Mail, UserPlus } from "lucide-react";
+import { User, Mail, Phone, UserPlus } from "lucide-react";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
         email: "",
+        phone: "",
         password: "",
         password_confirmation: "",
     });
@@ -45,6 +46,17 @@ export default function Register() {
                             error={errors.name}
                             icon={<User size={16} />}
                             autoComplete="name"
+                            required
+                        />
+
+                        <TextInput
+                            type="tel"
+                            placeholder="03XXXXXXXXX"
+                            value={data.phone}
+                            onChange={(e) => setData("phone", e.target.value)}
+                            error={errors.phone}
+                            icon={<Phone size={16} />}
+                            autoComplete="tel"
                             required
                         />
 

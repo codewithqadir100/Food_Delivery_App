@@ -2,10 +2,12 @@ import { Head, Link } from "@inertiajs/react";
 import { ArrowLeft, MapPin, Store } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
+import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function OrderDetail({ order }) {
     const address = order.address;
+    const isPickup = order.fulfillment_type === "pickup";
 
     return (
         <>
@@ -34,7 +36,10 @@ export default function OrderDetail({ order }) {
                                     )}
                                 </p>
                             </div>
-                            <OrderStatusBadge status={order.status} />
+                            <OrderStatusBadge
+                                status={order.status}
+                                fulfillment={order.fulfillment_type}
+                            />
                         </div>
 
                         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-[color:var(--color-border-light)]">
@@ -60,17 +65,20 @@ export default function OrderDetail({ order }) {
                                 />
                                 <div>
                                     <p className="text-xs text-[color:var(--color-text-muted)]">
-                                        Delivery Address
+                                        {isPickup ? "Fulfillment" : "Delivery Address"}
                                     </p>
                                     <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                        {order.delivery_address ||
-                                            [
-                                                address?.street_address,
-                                                address?.area_name,
-                                                address?.city_name,
-                                            ]
-                                                .filter(Boolean)
-                                                .join(", ")}
+                                        {isPickup
+                                            ? "Pickup"
+                                            : order.delivery_address ||
+                                              [
+                                                  address?.street_address,
+                                                  address?.area_name,
+                                                  address?.city_name,
+                                              ]
+                                                  .filter(Boolean)
+                                                  .join(", ") ||
+                                              fulfillmentLabel(order.fulfillment_type)}
                                     </p>
                                 </div>
                             </div>

@@ -6,6 +6,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
 import TextArea from "@/Components/Forms/TextArea";
+import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function Checkout({
@@ -15,6 +16,7 @@ export default function Checkout({
     addresses,
     delivery_fee,
     delivery_error,
+    fulfillment = "delivery",
     has_unavailable_items,
     restaurant_unavailable,
 }) {
@@ -33,8 +35,9 @@ export default function Checkout({
     });
     const [fetchingFee, setFetchingFee] = useState(false);
 
-    const deliveryFeeUnavailable = deliveryEstimate.fee === null;
-    const deliveryFee = deliveryEstimate.fee ?? 0;
+    const isPickup = fulfillment === "pickup";
+    const deliveryFeeUnavailable = !isPickup && deliveryEstimate.fee === null;
+    const deliveryFee = isPickup ? 0 : (deliveryEstimate.fee ?? 0);
     const total = Number(subtotal) + Number(deliveryFee);
     const canPlaceOrder =
         !deliveryFeeUnavailable && !restaurant_unavailable && !has_unavailable_items;
@@ -45,7 +48,10 @@ export default function Checkout({
         try {
             setFetchingFee(true);
             const res = await axios.get(route("customer.checkout.delivery-fee"), {
-                params: { customer_address_id: addressId },
+                params: {
+                    customer_address_id: addressId,
+                    restaurant_id: restaurant.id,
+                },
             });
             setDeliveryEstimate({
                 fee: res.data.valid ? res.data.fee : null,
@@ -67,7 +73,7 @@ export default function Checkout({
         event.preventDefault();
         setAlert(null);
 
-        post(route("customer.checkout.store"), {
+        post(route("customer.checkout.store", restaurant.id), {
             onError: (errs) => {
                 if (Object.keys(errs).length === 0) {
                     setAlert({
@@ -134,7 +140,7 @@ export default function Checkout({
                         </div>
                     )}
 
-                    {!restaurant_unavailable && deliveryFeeUnavailable && !fetchingFee && (
+                    {!isPickup && !restaurant_unavailable && deliveryFeeUnavailable && !fetchingFee && (
                         <div className="mb-4">
                             <Alert
                                 type="warning"
@@ -153,7 +159,41 @@ export default function Checkout({
                         className="grid grid-cols-1 gap-[var(--spacing-5)] lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]"
                     >
                         <div className="space-y-5">
-                            {/* Delivery Address */}
+                            {isPickup ? (
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                                    <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                                        Pickup from {restaurant.name}
+                                    </h2>
+                                    <p className="mt-2 text-sm text-[color:var(--color-text-secondary)]">
+                                        Collect this order from the restaurant.
+                                    </p>
+                                    <p className="mt-3 flex items-start gap-2 text-sm font-medium text-[color:var(--color-text-primary)]">
+                                        <MapPin
+                                            size={16}
+                                            className="mt-0.5 shrink-0 text-[color:var(--color-primary-600)]"
+                                        />
+                                        <span>
+                                            {[
+                                                restaurant.street_address,
+                                                restaurant.area_name,
+                                                restaurant.city_name,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(", ") || "Address not available"}
+                                        </span>
+                                    </p>
+                                    {restaurant.latitude && restaurant.longitude && (
+                                        <a
+                                            href={`https://www.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="mt-3 inline-flex text-sm font-medium text-[color:var(--color-primary-600)] hover:underline"
+                                        >
+                                            Open map
+                                        </a>
+                                    )}
+                                </div>
+                            ) : (
                             <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
@@ -241,6 +281,7 @@ export default function Checkout({
                                     </p>
                                 )}
                             </div>
+                            )}
 
                             {/* Order Items */}
                             <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
@@ -252,9 +293,18 @@ export default function Checkout({
                                     {items.map((item) => (
                                         <li
                                             key={item.menu_item_id}
-                                            className="flex items-center justify-between py-3"
+                                            className="flex items-center justify-between gap-3 py-3"
                                         >
-                                            <div>
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <div className="aspect-square w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-[color:var(--color-bg-secondary)]">
+                                                    {item.image_url && (
+                                                        <img
+                                                            src={item.image_url}
+                                                            alt=""
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    )}
+                                                </div>
                                                 <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
                                                     {item.name}{" "}
                                                     <span className="text-[color:var(--color-text-muted)]">
@@ -302,16 +352,21 @@ export default function Checkout({
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-[color:var(--color-text-secondary)]">
-                                        Delivery Fee
+                                        {isPickup ? "Pickup" : "Delivery Fee"}
                                     </span>
                                     <span className="font-medium text-[color:var(--color-text-primary)]">
-                                        {fetchingFee
-                                            ? "..."
-                                            : deliveryFeeUnavailable
-                                              ? "—"
-                                              : formatCurrency(deliveryFee)}
+                                        {isPickup
+                                            ? "Free"
+                                            : fetchingFee
+                                              ? "..."
+                                              : deliveryFeeUnavailable
+                                                ? "—"
+                                                : formatCurrency(deliveryFee)}
                                     </span>
                                 </div>
+                                <p className="text-xs text-[color:var(--color-text-muted)]">
+                                    {fulfillmentLabel(fulfillment)}
+                                </p>
                                 <div className="flex justify-between pt-2 border-t border-[color:var(--color-border-light)] text-base">
                                     <span className="font-semibold text-[color:var(--color-text-primary)]">
                                         Total
@@ -329,8 +384,7 @@ export default function Checkout({
                                 loading={processing}
                                 disabled={
                                     processing ||
-                                    fetchingFee ||
-                                    addresses.length === 0 ||
+                                    (!isPickup && (fetchingFee || addresses.length === 0)) ||
                                     !canPlaceOrder
                                 }
                             >

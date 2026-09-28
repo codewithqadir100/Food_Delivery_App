@@ -19,14 +19,7 @@ class UpdateOrderStatusRequest extends FormRequest
             'status' => [
                 'required',
                 'string',
-                Rule::in([
-                    Order::STATUS_CONFIRMED,
-                    Order::STATUS_PREPARING,
-                    Order::STATUS_READY,
-                    Order::STATUS_OUT_FOR_DELIVERY,
-                    Order::STATUS_DELIVERED,
-                    Order::STATUS_CANCELLED,
-                ]),
+                Rule::in(Order::STATUSES),
             ],
             'cancellation_reason' => ['required_if:status,' . Order::STATUS_CANCELLED, 'nullable', 'string', 'max:255'],
         ];

@@ -1,17 +1,21 @@
-import { Eye, ChevronRight } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import EmptyState from '@/Components/Common/EmptyState';
 import OrderStatusBadge from '@/Components/Common/OrderStatusBadge';
+import OrderStatusSelect from '@/Components/Restaurant/Orders/OrderStatusSelect';
+import { fulfillmentLabel } from '@/Utils/fulfillment';
 import { formatCurrency } from '@/Utils/formatCurrency';
 
-export default function OrderTable({ orders = [], loading = false }) {
+export default function OrderTable({ orders = [], loading = false, onStatusUpdated }) {
+  const openOrder = (orderId) => {
+    router.visit(route('restaurant.orders.show', orderId));
+  };
+
   if (!loading && orders.length === 0) {
     return <EmptyState title="No orders yet" description="Your orders will appear here" />;
   }
 
   return (
     <>
-      {/* Desktop Table */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-[color:var(--color-border)]">
@@ -39,26 +43,39 @@ export default function OrderTable({ orders = [], loading = false }) {
               ))
             ) : (
               orders.map((order) => (
-                <tr key={order.id} className="border-b border-[color:var(--color-border-light)] hover:bg-[color:var(--color-gray-50)]">
+                <tr
+                  key={order.id}
+                  tabIndex={0}
+                  onClick={() => openOrder(order.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') openOrder(order.id);
+                  }}
+                  className="cursor-pointer border-b border-[color:var(--color-border-light)] transition-colors hover:bg-[color:var(--color-gray-100)]"
+                >
                   <td className="px-4 py-4 font-medium text-[color:var(--color-text-primary)]">{order.order_number ?? `#${order.id}`}</td>
-                  <td className="px-4 py-4 text-[color:var(--color-text-secondary)]">{order.customer_name ?? order.customer?.name ?? '—'}</td>
+                  <td className="px-4 py-4 text-[color:var(--color-text-secondary)]">
+                    <p>{order.customer_name ?? order.customer?.name ?? '—'}</p>
+                    <p className="mt-0.5 text-xs text-[color:var(--color-text-muted)]">
+                      {fulfillmentLabel(order.fulfillment_type)}
+                    </p>
+                  </td>
                   <td className="px-4 py-4 text-[color:var(--color-text-secondary)]">{order.items_count} items</td>
                   <td className="px-4 py-4 font-semibold text-[color:var(--color-text-primary)]">
                     {formatCurrency(order.total)}
                   </td>
                   <td className="px-4 py-4">
-                    <OrderStatusBadge status={order.status} size="sm" />
+                    <OrderStatusBadge status={order.status} fulfillment={order.fulfillment_type} size="sm" />
                   </td>
-                  <td className="px-4 py-4 text-[color:var(--color-text-secondary)] text-xs">
+                  <td className="px-4 py-4 text-xs text-[color:var(--color-text-secondary)]">
                     {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td className="px-4 py-4">
-                    <Link
-                      href={`/restaurant/orders/${order.id}`}
-                      className="inline-flex items-center gap-1 text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] transition-colors"
-                    >
-                      <Eye size={16} />
-                    </Link>
+                  <td className="px-4 py-4 min-w-44">
+                    <OrderStatusSelect
+                      orderId={order.id}
+                      status={order.status}
+                      fulfillment={order.fulfillment_type}
+                      onUpdated={onStatusUpdated}
+                    />
                   </td>
                 </tr>
               ))
@@ -67,7 +84,6 @@ export default function OrderTable({ orders = [], loading = false }) {
         </table>
       </div>
 
-      {/* Mobile Card View */}
       <div className="sm:hidden space-y-3">
         {loading ? (
           [...Array(3)].map((_, i) => (
@@ -79,36 +95,43 @@ export default function OrderTable({ orders = [], loading = false }) {
           ))
         ) : (
           orders.map((order) => (
-            <Link
+            <div
               key={order.id}
-              href={`/restaurant/orders/${order.id}`}
-              className="block bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border)] rounded-lg p-4 active:bg-[color:var(--color-gray-50)]"
+              role="link"
+              tabIndex={0}
+              onClick={() => openOrder(order.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') openOrder(order.id);
+              }}
+              className="cursor-pointer rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)] p-4 transition-colors hover:bg-[color:var(--color-gray-100)]"
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold text-[color:var(--color-text-primary)]">{order.order_number ?? `Order #${order.id}`}</p>
-                  <p className="text-xs text-[color:var(--color-text-secondary)] mt-1">{order.customer_name ?? order.customer?.name ?? '—'}</p>
+                  <p className="mt-1 text-xs text-[color:var(--color-text-secondary)]">{order.customer_name ?? order.customer?.name ?? '—'}</p>
+                  <p className="text-xs text-[color:var(--color-text-muted)]">{fulfillmentLabel(order.fulfillment_type)}</p>
                 </div>
-
-                <OrderStatusBadge status={order.status} size="sm" className="flex-shrink-0" />
+                <p className="text-xs text-[color:var(--color-text-muted)]">
+                  {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-end justify-between gap-3 text-sm">
                 <div>
                   <p className="text-[color:var(--color-text-secondary)]">{order.items_count} items</p>
-                  <p className="font-semibold text-[color:var(--color-text-primary)] mt-1">
+                  <p className="mt-1 font-semibold text-[color:var(--color-text-primary)]">
                     {formatCurrency(order.total)}
                   </p>
                 </div>
-
-                <div className="flex flex-col items-end gap-2">
-                  <span className="text-xs text-[color:var(--color-text-muted)]">
-                    {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <ChevronRight size={18} className="text-[color:var(--color-primary-600)]" />
-                </div>
+                <OrderStatusSelect
+                  orderId={order.id}
+                  status={order.status}
+                  fulfillment={order.fulfillment_type}
+                  onUpdated={onStatusUpdated}
+                  className="w-40"
+                />
               </div>
-            </Link>
+            </div>
           ))
         )}
       </div>

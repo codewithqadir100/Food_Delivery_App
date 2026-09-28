@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Customer;
 
+use App\Services\CartService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,11 +13,25 @@ class PlaceOrderRequest extends FormRequest
         return $this->user()?->isCustomer() === true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('customer_address_id') === '' || $this->input('customer_address_id') === null) {
+            $this->merge(['customer_address_id' => null]);
+        }
+    }
+
     public function rules(): array
     {
+        $restaurant = $this->route('restaurant');
+        $restaurantId = $restaurant instanceof \App\Models\Restaurant
+            ? $restaurant->id
+            : (is_numeric($restaurant) ? (int) $restaurant : null);
+
+        $requiresAddress = !app(CartService::class)->isPickup($restaurantId);
+
         return [
             'customer_address_id' => [
-                'required',
+                $requiresAddress ? 'required' : 'nullable',
                 'integer',
                 Rule::exists('customer_addresses', 'id')->where('customer_id', $this->user()->id),
             ],
