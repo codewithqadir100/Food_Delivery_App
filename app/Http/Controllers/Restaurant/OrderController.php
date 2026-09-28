@@ -37,9 +37,43 @@ class OrderController extends Controller
 
         $orders = $query->paginate(15)->withQueryString();
 
-        return Inertia::render('Restaurant/Orders', [
+        $only = $this->partialProps($request);
+        $props = [
             'orders' => $orders,
             'filters' => ['status' => $status ?: 'all'],
+        ];
+
+        if ($only === null || in_array('stats', $only, true)) {
+            $props['stats'] = $this->stats->buildStats($restaurant);
+        }
+
+        if ($only === null || in_array('latest_order_id', $only, true)) {
+            $props['latest_order_id'] = (int) ($restaurant->orders()->max('id') ?? 0);
+        }
+
+        return Inertia::render('Restaurant/Orders', $props);
+    }
+
+    public function feed(Request $request): JsonResponse
+    {
+        $restaurant = Auth::user()->restaurant;
+
+        abort_unless($restaurant, 404);
+
+        $afterId = max(0, (int) $request->query('after_id', 0));
+
+        $orders = $restaurant->orders()
+            ->with('customer:id,name')
+            ->withCount('items')
+            ->where('id', '>', $afterId)
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get()
+            ->map(fn (Order $order) => $this->serializeListOrder($order))
+            ->values();
+
+        return response()->json([
+            'orders' => $orders,
             'stats' => $this->stats->buildStats($restaurant),
         ]);
     }
@@ -84,6 +118,34 @@ class OrderController extends Controller
             'data' => $order,
             'next_statuses' => $order->nextStatuses(),
         ]);
+    }
+
+    /**
+     * @return list<string>|null Null means a full visit, so every prop is needed.
+     */
+    private function partialProps(Request $request): ?array
+    {
+        $header = $request->header('X-Inertia-Partial-Data');
+
+        if (!is_string($header) || $header === '') {
+            return null;
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $header))));
+    }
+
+    private function serializeListOrder(Order $order): array
+    {
+        return [
+            'id' => $order->id,
+            'order_number' => $order->order_number,
+            'customer_name' => $order->customer?->name ?? '—',
+            'items_count' => (int) $order->items_count,
+            'total' => $order->total,
+            'status' => $order->status,
+            'fulfillment_type' => $order->fulfillment_type ?? Order::FULFILLMENT_DELIVERY,
+            'created_at' => $order->created_at,
+        ];
     }
 
 }

@@ -3,15 +3,12 @@
 namespace App\Services;
 
 use App\Models\MenuItem;
+use App\Models\Order;
 use Illuminate\Support\Collection;
 
 /**
- * Lightweight, session-backed shopping cart.
- *
- * The cart only ever holds items from a single restaurant at a time (the
- * common "one restaurant per order" rule used by most food delivery apps).
- * Prices are always re-read from the database when the cart is rendered so
- * a stale session can never show/checkout an outdated price.
+ * Session carts, one per restaurant. Prices are re-read from the database
+ * whenever a cart is rendered.
  */
 class CartService
 {
@@ -19,90 +16,123 @@ class CartService
 
     public function addItem(MenuItem $menuItem, int $quantity = 1): bool
     {
-        $cart = $this->getRawCart();
-        $switchedRestaurant = false;
+        $carts = $this->carts();
+        $key = (string) $menuItem->restaurant_id;
+        $cart = $carts[$key] ?? $this->emptyCart($menuItem->restaurant_id);
 
-        if ($cart['restaurant_id'] !== null && $cart['restaurant_id'] !== $menuItem->restaurant_id) {
-            $cart = ['restaurant_id' => null, 'items' => []];
-            $switchedRestaurant = true;
-        }
-
-        $cart['restaurant_id'] = $menuItem->restaurant_id;
         $cart['items'][$menuItem->id] = max(1, ($cart['items'][$menuItem->id] ?? 0) + $quantity);
+        $carts[$key] = $cart;
+        $this->saveCarts($carts);
 
-        $this->saveRawCart($cart);
-
-        return $switchedRestaurant;
-    }
-
-    public function hasItem(int $menuItemId): bool
-    {
-        return array_key_exists($menuItemId, $this->getRawCart()['items']);
+        return false;
     }
 
     public function updateItem(int $menuItemId, int $quantity): bool
     {
-        $cart = $this->getRawCart();
+        $carts = $this->carts();
+        $key = $this->keyForItem($carts, $menuItemId);
 
-        if (!array_key_exists($menuItemId, $cart['items'])) {
+        if ($key === null) {
             return false;
         }
 
         if ($quantity <= 0) {
-            unset($cart['items'][$menuItemId]);
+            unset($carts[$key]['items'][$menuItemId]);
         } else {
-            $cart['items'][$menuItemId] = $quantity;
+            $carts[$key]['items'][$menuItemId] = $quantity;
         }
 
-        if (empty($cart['items'])) {
-            $cart['restaurant_id'] = null;
+        if (empty($carts[$key]['items'])) {
+            unset($carts[$key]);
         }
 
-        $this->saveRawCart($cart);
+        $this->saveCarts($carts);
 
         return true;
     }
 
     public function removeItem(int $menuItemId): void
     {
-        $cart = $this->getRawCart();
-        unset($cart['items'][$menuItemId]);
-
-        if (empty($cart['items'])) {
-            $cart['restaurant_id'] = null;
-        }
-
-        $this->saveRawCart($cart);
+        $this->updateItem($menuItemId, 0);
     }
 
-    public function clear(): void
+    public function clear(?int $restaurantId = null): void
     {
-        session()->forget(self::SESSION_KEY);
+        if ($restaurantId === null) {
+            session()->forget(self::SESSION_KEY);
+
+            return;
+        }
+
+        $carts = $this->carts();
+        unset($carts[(string) $restaurantId]);
+        $this->saveCarts($carts);
     }
 
     public function count(): int
     {
-        return array_sum($this->getRawCart()['items']);
+        return array_sum(array_map(
+            fn (array $cart) => array_sum($cart['items'] ?? []),
+            $this->carts(),
+        ));
     }
 
-    public function isEmpty(): bool
+    public function isEmpty(?int $restaurantId = null): bool
     {
-        return empty($this->getRawCart()['items']);
+        if ($restaurantId === null) {
+            return $this->count() === 0;
+        }
+
+        return empty($this->rawCart($restaurantId)['items']);
     }
 
-    public function getRestaurantId(): ?int
+    public function soleRestaurantId(): ?int
     {
-        return $this->getRawCart()['restaurant_id'];
+        $ids = $this->restaurantIds();
+
+        return count($ids) === 1 ? $ids[0] : null;
     }
 
-    /**
-     * Returns cart line items with fresh prices/availability from the DB.
-     */
-    public function getItems(): Collection
+    public function restaurantIds(): array
     {
-        $cart = $this->getRawCart();
+        return array_values(array_map(
+            'intval',
+            array_keys(array_filter(
+                $this->carts(),
+                fn (array $cart) => !empty($cart['items']),
+            )),
+        ));
+    }
 
-        if (empty($cart['items'])) {
+    public function getFulfillment(?int $restaurantId = null): string
+    {
+        return $this->rawCart($restaurantId)['fulfillment'];
+    }
+
+    public function setFulfillment(string $fulfillment, ?int $restaurantId = null): void
+    {
+        if ($restaurantId === null) {
+            return;
+        }
+
+        $carts = $this->carts();
+        $key = (string) $restaurantId;
+        $cart = $carts[$key] ?? $this->emptyCart($restaurantId);
+        $cart['fulfillment'] = $fulfillment;
+        $carts[$key] = $cart;
+        $this->saveCarts($carts);
+    }
+
+    public function isPickup(?int $restaurantId = null): bool
+    {
+        return $this->getFulfillment($restaurantId) === Order::FULFILLMENT_PICKUP;
+    }
+
+    public function getItems(?int $restaurantId = null): Collection
+    {
+        $cart = $this->rawCart($restaurantId);
+
+        if (empty($cart['items']) || $cart['restaurant_id'] === null) {
             return collect();
         }
 
@@ -122,7 +152,9 @@ class CartService
 
                 return [
                     'menu_item_id' => $menuItem->id,
+                    'category_id' => $menuItem->menu_category_id,
                     'name' => $menuItem->name,
+                    'description' => $menuItem->description,
                     'image_url' => $menuItem->image_url,
                     'price' => $price,
                     'quantity' => $quantity,
@@ -134,28 +166,118 @@ class CartService
             ->values();
     }
 
-    public function getSubtotal(): float
+    public function getSubtotal(?int $restaurantId = null): float
     {
-        return round((float) $this->getItems()->sum('subtotal'), 2);
+        return round((float) $this->getItems($restaurantId)->sum('subtotal'), 2);
     }
 
-    public function hasUnavailableItems(): bool
+    public function hasUnavailableItems(?int $restaurantId = null): bool
     {
-        return $this->getItems()->contains(fn (array $item) => !$item['is_available']);
+        return $this->getItems($restaurantId)->contains(fn (array $item) => !$item['is_available']);
     }
 
-    private function getRawCart(): array
+    public function suggestions(int $restaurantId): Collection
     {
-        $cart = session(self::SESSION_KEY, []);
+        $items = $this->getItems($restaurantId);
+        $categoryIds = $items->pluck('category_id')->filter()->unique()->values();
 
+        if ($categoryIds->isEmpty()) {
+            return collect();
+        }
+
+        return MenuItem::query()
+            ->where('restaurant_id', $restaurantId)
+            ->where('is_available', true)
+            ->whereIn('menu_category_id', $categoryIds)
+            ->whereNotIn('id', $items->pluck('menu_item_id'))
+            ->limit(8)
+            ->get()
+            ->map(fn (MenuItem $item) => [
+                'id' => $item->id,
+                'name' => $item->name,
+                'image_url' => $item->image_url,
+                'price' => (float) $item->price,
+            ])
+            ->values();
+    }
+
+    private function carts(): array
+    {
+        $stored = session(self::SESSION_KEY, []);
+
+        if (isset($stored['carts']) && is_array($stored['carts'])) {
+            return $stored['carts'];
+        }
+
+        $legacyId = $stored['restaurant_id'] ?? null;
+        $legacyItems = $stored['items'] ?? [];
+
+        if (!$legacyId || $legacyItems === []) {
+            return [];
+        }
+
+        $carts = [
+            (string) $legacyId => $this->normalizeCart([
+                'restaurant_id' => (int) $legacyId,
+                'items' => $legacyItems,
+                'fulfillment' => $stored['fulfillment'] ?? Order::FULFILLMENT_DELIVERY,
+            ]),
+        ];
+        $this->saveCarts($carts);
+
+        return $carts;
+    }
+
+    private function saveCarts(array $carts): void
+    {
+        session([self::SESSION_KEY => ['carts' => $carts]]);
+    }
+
+    private function rawCart(?int $restaurantId): array
+    {
+        if ($restaurantId === null) {
+            $id = $this->soleRestaurantId();
+
+            return $id ? $this->rawCart($id) : $this->emptyCart(null);
+        }
+
+        return $this->normalizeCart(
+            $this->carts()[(string) $restaurantId] ?? $this->emptyCart($restaurantId),
+        );
+    }
+
+    private function emptyCart(?int $restaurantId): array
+    {
         return [
-            'restaurant_id' => $cart['restaurant_id'] ?? null,
-            'items' => $cart['items'] ?? [],
+            'restaurant_id' => $restaurantId,
+            'items' => [],
+            'fulfillment' => Order::FULFILLMENT_DELIVERY,
         ];
     }
 
-    private function saveRawCart(array $cart): void
+    private function normalizeCart(array $cart): array
     {
-        session([self::SESSION_KEY => $cart]);
+        $fulfillment = $cart['fulfillment'] ?? Order::FULFILLMENT_DELIVERY;
+
+        if (!in_array($fulfillment, Order::FULFILLMENTS, true)) {
+            $fulfillment = Order::FULFILLMENT_DELIVERY;
+        }
+
+        return [
+            'restaurant_id' => isset($cart['restaurant_id']) ? (int) $cart['restaurant_id'] : null,
+            'items' => $cart['items'] ?? [],
+            'fulfillment' => $fulfillment,
+        ];
+    }
+
+    private function keyForItem(array $carts, int $menuItemId): ?string
+    {
+        foreach ($carts as $key => $cart) {
+            if (array_key_exists($menuItemId, $cart['items'] ?? [])) {
+                return (string) $key;
+            }
+        }
+
+        return null;
     }
 }

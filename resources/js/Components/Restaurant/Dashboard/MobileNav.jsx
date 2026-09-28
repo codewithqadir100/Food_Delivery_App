@@ -119,11 +119,18 @@ export default function MobileNav({
                         className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Profile"
                     >
-                        <img
-                            src={Restaurantlogo}
-                            className="h-10 aspect-square object-cover rounded-[var(--radius-full)]"
-                            alt="Profile Pic"
-                        />
+                        {Restaurantlogo ? (
+                            <img
+                                src={Restaurantlogo}
+                                className="h-10 aspect-square object-cover rounded-[var(--radius-full)]"
+                                alt="Profile Pic"
+                            />
+                        ) : (
+                            <User
+                                size={20}
+                                className="text-[color:var(--color-text-secondary)]"
+                            />
+                        )}
                     </Link>
                 </div>
             </div>

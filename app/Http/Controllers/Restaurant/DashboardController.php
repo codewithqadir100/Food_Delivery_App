@@ -37,6 +37,7 @@ class DashboardController extends Controller
             'restaurant' => $restaurant,
             'stats' => $this->stats->buildStats($restaurant),
             'recentOrders' => $recentOrders,
+            'latest_order_id' => (int) ($recentOrders->max('id') ?? 0),
         ]);
     }
 }

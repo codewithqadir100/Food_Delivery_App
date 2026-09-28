@@ -13,9 +13,10 @@ export default function RestaurantLayout({
     isPending = false,
     onLogout = null,
 }) {
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const { auth } = props;
+    const restaurant = props.restaurant ?? auth?.restaurant ?? null;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const { restaurant, auth } = usePage().props;
     const currentRoute = url;
     const resolvedNotificationCount =
         notificationCount ?? auth?.notifications_count ?? 0;

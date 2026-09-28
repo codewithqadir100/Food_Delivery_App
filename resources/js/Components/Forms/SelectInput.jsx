@@ -10,6 +10,7 @@ const SelectInput = forwardRef(function SelectInput(
         required = false,
         disabled = false,
         placeholder = "Select an option",
+        allowEmpty = true,
         className = "",
         children,
         ...props
@@ -45,7 +46,7 @@ const SelectInput = forwardRef(function SelectInput(
                 `}
                 {...props}
             >
-                <option value="">{placeholder}</option>
+                {allowEmpty && <option value="">{placeholder}</option>}
 
                 {options.map((option) => (
                     <option key={option.value} value={option.value}>

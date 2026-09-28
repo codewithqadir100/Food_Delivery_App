@@ -1,74 +1,18 @@
 import { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
-import axios from "axios";
 import { ArrowLeft, Mail, MapPin, Phone, User } from "lucide-react";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import Alert from "@/Components/Common/Alert";
-import Button from "@/Components/Common/Button";
-import OrderStatusBadge, {
-    ORDER_STATUS_LABELS,
-} from "@/Components/Common/OrderStatusBadge";
+import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
+import OrderStatusSelect from "@/Components/Restaurant/Orders/OrderStatusSelect";
+import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
-export default function OrderDetail({ order: initialOrder, next_statuses }) {
+export default function OrderDetail({ order: initialOrder }) {
     const [order, setOrder] = useState(initialOrder);
-    const [nextStatuses, setNextStatuses] = useState(next_statuses);
-    const [updating, setUpdating] = useState(false);
     const [alert, setAlert] = useState(null);
-
-    const handleStatusChange = async (status) => {
-        if (status === "cancelled") {
-            const reason = window.prompt(
-                "Please provide a reason for cancelling this order:",
-            );
-            if (!reason) return;
-
-            return updateStatus(status, reason);
-        }
-
-        if (
-            !confirm(
-                `Mark this order as "${ORDER_STATUS_LABELS[status]}"?`,
-            )
-        ) {
-            return;
-        }
-
-        updateStatus(status);
-    };
-
-    const updateStatus = async (status, cancellationReason = null) => {
-        try {
-            setUpdating(true);
-            const res = await axios.patch(
-                route("restaurant.orders.update-status", order.id),
-                {
-                    status,
-                    cancellation_reason: cancellationReason,
-                },
-            );
-
-            setOrder(res.data.data);
-            setNextStatuses(res.data.next_statuses);
-            setAlert({
-                type: "success",
-                title: "Updated",
-                message: res.data.message,
-            });
-        } catch (error) {
-            setAlert({
-                type: "error",
-                title: "Error",
-                message:
-                    error.response?.data?.message ||
-                    "Failed to update order status",
-            });
-        } finally {
-            setUpdating(false);
-        }
-    };
-
     const address = order.address;
+    const isPickup = order.fulfillment_type === "pickup";
 
     return (
         <>
@@ -109,7 +53,10 @@ export default function OrderDetail({ order: initialOrder, next_statuses }) {
                                     )}
                                 </p>
                             </div>
-                            <OrderStatusBadge status={order.status} />
+                            <OrderStatusBadge
+                                status={order.status}
+                                fulfillment={order.fulfillment_type}
+                            />
                         </div>
 
                         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-[color:var(--color-border-light)]">
@@ -147,17 +94,19 @@ export default function OrderDetail({ order: initialOrder, next_statuses }) {
                                 />
                                 <div>
                                     <p className="text-xs text-[color:var(--color-text-muted)]">
-                                        Delivery Address
+                                        {isPickup ? "Fulfillment" : "Delivery Address"}
                                     </p>
                                     <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                        {order.delivery_address ||
-                                            [
-                                                address?.street_address,
-                                                address?.area_name,
-                                                address?.city_name,
-                                            ]
-                                                .filter(Boolean)
-                                                .join(", ")}
+                                        {isPickup
+                                            ? "Pickup"
+                                            : order.delivery_address ||
+                                              [
+                                                  address?.street_address,
+                                                  address?.area_name,
+                                                  address?.city_name,
+                                              ]
+                                                  .filter(Boolean)
+                                                  .join(", ")}
                                     </p>
                                 </div>
                             </div>
@@ -241,33 +190,37 @@ export default function OrderDetail({ order: initialOrder, next_statuses }) {
                         </div>
                     </div>
 
-                    {nextStatuses.length > 0 && (
-                        <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
-                            <h2 className="text-sm font-semibold text-[color:var(--color-text-primary)] mb-3">
-                                Update Status
-                            </h2>
-                            <div className="flex flex-wrap gap-3">
-                                {nextStatuses.map((status) => (
-                                    <Button
-                                        key={status}
-                                        variant={
-                                            status === "cancelled"
-                                                ? "danger"
-                                                : "primary"
-                                        }
-                                        loading={updating}
-                                        onClick={() =>
-                                            handleStatusChange(status)
-                                        }
-                                    >
-                                        {status === "cancelled"
-                                            ? "Cancel Order"
-                                            : `Mark as ${ORDER_STATUS_LABELS[status]}`}
-                                    </Button>
-                                ))}
-                            </div>
+                    <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                        <h2 className="text-sm font-semibold text-[color:var(--color-text-primary)] mb-1">
+                            Update Status
+                        </h2>
+                        <p className="mb-3 text-xs text-[color:var(--color-text-muted)]">
+                            {fulfillmentLabel(order.fulfillment_type)}
+                        </p>
+                        <div className="max-w-xs">
+                            <OrderStatusSelect
+                                orderId={order.id}
+                                status={order.status}
+                                fulfillment={order.fulfillment_type}
+                                onUpdated={(updated) => {
+                                    setOrder((current) => ({
+                                        ...current,
+                                        status: updated.status,
+                                        cancellation_reason:
+                                            updated.cancellation_reason,
+                                        confirmed_at: updated.confirmed_at,
+                                        delivered_at: updated.delivered_at,
+                                        cancelled_at: updated.cancelled_at,
+                                    }));
+                                    setAlert({
+                                        type: "success",
+                                        title: "Updated",
+                                        message: "Order status updated.",
+                                    });
+                                }}
+                            />
                         </div>
-                    )}
+                    </div>
                 </div>
             </RestaurantLayout>
         </>

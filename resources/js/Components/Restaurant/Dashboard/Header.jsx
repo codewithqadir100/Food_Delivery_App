@@ -1,6 +1,6 @@
 import { Bell } from "lucide-react";
 
-function RestaurantStatus({ isOpen }) {
+export function RestaurantStatus({ isOpen }) {
     const status = isOpen
         ? {
               label: "Open",

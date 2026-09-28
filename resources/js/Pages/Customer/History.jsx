@@ -3,6 +3,7 @@ import { ClipboardList, ChevronRight } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Button from "@/Components/Common/Button";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
+import { fulfillmentLabel } from "@/Utils/fulfillment";
 import EmptyState from "@/Components/Common/EmptyState";
 import Pagination from "@/Components/Common/Pagination";
 import { formatCurrency } from "@/Utils/formatCurrency";
@@ -57,12 +58,14 @@ export default function History({ orders }) {
                                                 </p>
                                                 <OrderStatusBadge
                                                     status={order.status}
+                                                    fulfillment={order.fulfillment_type}
                                                     size="sm"
                                                 />
                                             </div>
                                             <p className="text-sm text-[color:var(--color-text-secondary)] mt-1 truncate">
                                                 {order.restaurant?.name} &middot;{" "}
-                                                {order.items_count} item
+                                                {fulfillmentLabel(order.fulfillment_type)}{" "}
+                                                &middot; {order.items_count} item
                                                 {order.items_count !== 1
                                                     ? "s"
                                                     : ""}

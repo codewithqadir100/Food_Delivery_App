@@ -194,4 +194,33 @@ test('order total equals subtotal plus delivery fee', function () {
     $order = Order::first();
     expect((float) $order->total)->toBe(round((float) $order->subtotal + (float) $order->delivery_fee, 2));
     expect((float) $order->delivery_fee)->toBeGreaterThan(0);
+    expect($order->fulfillment_type)->toBe(Order::FULFILLMENT_DELIVERY);
+});
+
+test('customer can place a pickup order without an address', function () {
+    Notification::fake();
+
+    $restaurant = Restaurant::factory()->create();
+    $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 200]);
+    $customer = checkoutCustomer();
+
+    addItemToCart($customer, $menuItem, 2);
+
+    $this->actingAs($customer)->patchJson(route('customer.cart.fulfillment'), [
+        'fulfillment' => Order::FULFILLMENT_PICKUP,
+        'restaurant_id' => $restaurant->id,
+    ])->assertOk();
+
+    $response = $this->actingAs($customer)->post(route('customer.checkout.store'), [
+        'notes' => 'I will collect it',
+    ]);
+
+    $response->assertRedirect();
+
+    $order = Order::first();
+    expect($order->fulfillment_type)->toBe(Order::FULFILLMENT_PICKUP);
+    expect((float) $order->delivery_fee)->toBe(0.0);
+    expect((float) $order->total)->toBe(400.0);
+    expect($order->customer_address_id)->toBeNull();
+    expect($order->delivery_address)->toBeNull();
 });
