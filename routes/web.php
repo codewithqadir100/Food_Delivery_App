@@ -97,21 +97,15 @@ Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant'
         Route::post('/profile/update-cover', [RestaurantProfileController::class, 'updateCoverImage'])->name('profile.update-cover');
         Route::post('/profile/update-logo', [RestaurantProfileController::class, 'updateLogoImage'])->name('profile.update-logo');
 
-<<<<<<< HEAD
         Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
         Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
 
         Route::middleware('approved_restaurant')->group(function () {
+            Route::get('/orders/feed', [RestaurantOrderController::class, 'feed'])->name('orders.feed');
             Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
             Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');
             Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])->name('orders.update-status');
         });
-=======
-        Route::get('/orders/feed', [RestaurantOrderController::class, 'feed'])->name('orders.feed');
-        Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');
-        Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])->name('orders.update-status');
->>>>>>> fixing/agent-fixing
     });
 });
 

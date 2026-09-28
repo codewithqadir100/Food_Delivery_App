@@ -33,23 +33,17 @@ class CheckoutController extends Controller
     {
         $restaurant = $this->resolveRestaurant($restaurant);
 
-        if (!$restaurant || $this->cart->isEmpty($restaurant->id)) {
+        if (! $restaurant) {
+            return $this->redirectForMissingRestaurant(
+                'Your cart is empty. Add items before checking out.',
+            );
+        }
+
+        if ($this->cart->isEmpty($restaurant->id)) {
             return redirect()->route('customer.cart.index')
                 ->with('error', 'Your cart is empty. Add items before checking out.');
         }
 
-<<<<<<< HEAD
-        $restaurant = Restaurant::find($this->cart->getRestaurantId());
-
-        if (! $restaurant) {
-            $this->cart->clear();
-
-            return redirect()->route('customer.cart.index')
-                ->with('error', 'The restaurant for this order is no longer available.');
-        }
-
-=======
->>>>>>> fixing/agent-fixing
         $user = Auth::user();
         $addresses = $user->addresses()->orderByDesc('is_primary')->orderByDesc('created_at')->get();
         $items = $this->cart->getItems($restaurant->id);
@@ -65,18 +59,11 @@ class CheckoutController extends Controller
             'items' => $items,
             'subtotal' => $subtotal,
             'addresses' => $addresses,
-<<<<<<< HEAD
-            'delivery_fee' => $deliveryEstimate['valid'] ?? false ? $deliveryEstimate['fee'] : null,
-            'delivery_error' => $deliveryEstimate && ! $deliveryEstimate['valid'] ? $deliveryEstimate['error'] : null,
-            'has_unavailable_items' => $this->cart->hasUnavailableItems(),
-            'restaurant_unavailable' => ! $restaurant->isOrderable(),
-=======
             'fulfillment' => $this->cart->getFulfillment($restaurant->id),
             'delivery_fee' => $isPickup ? 0 : ($deliveryEstimate['valid'] ?? false ? $deliveryEstimate['fee'] : null),
-            'delivery_error' => $isPickup || !$deliveryEstimate || $deliveryEstimate['valid'] ? null : $deliveryEstimate['error'],
+            'delivery_error' => $isPickup || ! $deliveryEstimate || $deliveryEstimate['valid'] ? null : $deliveryEstimate['error'],
             'has_unavailable_items' => $this->cart->hasUnavailableItems($restaurant->id),
-            'restaurant_unavailable' => !$restaurant->isApproved() || !$restaurant->is_open,
->>>>>>> fixing/agent-fixing
+            'restaurant_unavailable' => ! $restaurant->isOrderable(),
         ]);
     }
 
@@ -107,7 +94,11 @@ class CheckoutController extends Controller
     {
         $restaurant = $this->resolveRestaurant($restaurant);
 
-        if (!$restaurant || $this->cart->isEmpty($restaurant->id)) {
+        if (! $restaurant) {
+            return $this->redirectForMissingRestaurant('Your cart is empty.');
+        }
+
+        if ($this->cart->isEmpty($restaurant->id)) {
             return redirect()->route('customer.cart.index')->with('error', 'Your cart is empty.');
         }
 
@@ -119,33 +110,16 @@ class CheckoutController extends Controller
         $isPickup = $this->cart->isPickup($restaurant->id);
         $address = null;
 
-<<<<<<< HEAD
-        if (! $address) {
-            return back()->with('error', 'Please select a valid delivery address.');
-        }
-
-        $restaurant = Restaurant::find($this->cart->getRestaurantId());
-
-        if (! $restaurant) {
-            $this->cart->clear();
-
-            return redirect()->route('customer.cart.index')
-                ->with('error', 'The restaurant for this order is no longer available.');
-        }
-
-        $items = $this->cart->getItems();
-=======
-        if (!$isPickup) {
+        if (! $isPickup) {
             $address = CustomerAddress::where('customer_id', $user->id)
                 ->find($request->validated('customer_address_id'));
 
-            if (!$address) {
+            if (! $address) {
                 return back()->with('error', 'Please select a valid delivery address.');
             }
         }
 
         $items = $this->cart->getItems($restaurant->id);
->>>>>>> fixing/agent-fixing
 
         try {
             $order = DB::transaction(function () use ($user, $restaurant, $address, $items, $request, $isPickup) {
@@ -163,11 +137,7 @@ class CheckoutController extends Controller
                 } else {
                     $deliveryEstimate = $this->estimateDeliveryFee($restaurant, $address);
 
-<<<<<<< HEAD
-                if (! $deliveryEstimate['valid']) {
-                    throw new RuntimeException($deliveryEstimate['error']);
-=======
-                    if (!$deliveryEstimate['valid']) {
+                    if (! $deliveryEstimate['valid']) {
                         throw new RuntimeException($deliveryEstimate['error']);
                     }
 
@@ -178,7 +148,6 @@ class CheckoutController extends Controller
                         $address->area_name,
                         $address->city_name,
                     ]));
->>>>>>> fixing/agent-fixing
                 }
 
                 $order = Order::create([
@@ -217,6 +186,20 @@ class CheckoutController extends Controller
         return redirect()
             ->route('customer.orders.show', $order)
             ->with('success', 'Order placed successfully! The restaurant has been notified.');
+    }
+
+    private function redirectForMissingRestaurant(string $emptyMessage): RedirectResponse
+    {
+        $soleId = $this->cart->soleRestaurantId();
+
+        if ($soleId !== null) {
+            $this->cart->clear($soleId);
+
+            return redirect()->route('customer.cart.index')
+                ->with('error', 'The restaurant for this order is no longer available.');
+        }
+
+        return redirect()->route('customer.cart.index')->with('error', $emptyMessage);
     }
 
     private function resolveRestaurant(?Restaurant $restaurant): ?Restaurant

@@ -15,17 +15,12 @@ export default function RestaurantLayout({
 }) {
     const { url, props } = usePage();
     const { auth } = props;
-    const restaurant = props.restaurant ?? auth?.restaurant ?? null;
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-<<<<<<< HEAD
-    const { restaurant, auth } = usePage().props;
-    const restaurantRecord = restaurant ?? auth?.restaurant;
+    const restaurantRecord = props.restaurant ?? auth?.restaurant ?? null;
     const isApproved =
         auth?.user?.status === "approved" &&
         restaurantRecord?.status === "approved";
     const onboardingComplete = Boolean(auth?.onboarding?.complete);
-=======
->>>>>>> fixing/agent-fixing
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const currentRoute = url;
     const resolvedNotificationCount =
         notificationCount ?? auth?.notifications_count ?? 0;

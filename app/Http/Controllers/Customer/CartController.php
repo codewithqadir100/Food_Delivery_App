@@ -65,7 +65,6 @@ class CartController extends Controller
         $menuItem = MenuItem::with('restaurant')->where('is_available', true)
             ->findOrFail($request->validated('menu_item_id'));
 
-<<<<<<< HEAD
         if (! $menuItem->restaurant?->isOrderable()) {
             return response()->json([
                 'success' => false,
@@ -74,14 +73,11 @@ class CartController extends Controller
         }
 
         $switchedRestaurant = $this->cart->addItem($menuItem, (int) ($request->validated('quantity') ?? 1));
-=======
-        $this->cart->addItem($menuItem, (int) ($request->validated('quantity') ?? 1));
->>>>>>> fixing/agent-fixing
 
         return response()->json([
             'success' => true,
             'message' => 'Item added to cart.',
-            'switched_restaurant' => false,
+            'switched_restaurant' => $switchedRestaurant,
             'cart_count' => $this->cart->count(),
             'data' => $this->payload($menuItem->restaurant_id),
         ]);
