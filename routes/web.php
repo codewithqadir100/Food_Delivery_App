@@ -42,30 +42,39 @@ Route::get('/restaurants', function () {
     ]);
 })->name('restaurants.index');
 
-Route::middleware(['auth', 'customer'])->prefix('customer')->name('customer.')->group(function () {
-    Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
-    Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
-    Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');
+Route::prefix('customer')->name('customer.')->group(function () {
+    Route::middleware(['auth', 'customer'])->group(function () {
+        Route::get('/checkout/delivery-fee', [CheckoutController::class, 'deliveryFee'])->name('checkout.delivery-fee');
+    });
 
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
-    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/wishlist', [ProfileController::class, 'wishlist'])->name('wishlist');
+    Route::middleware('customer_or_guest')->group(function () {
+        Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+        Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
+        Route::patch('/cart/fulfillment', [CartController::class, 'updateFulfillment'])->name('cart.fulfillment');
+        Route::post('/cart/items', [CartController::class, 'store'])->name('cart.store');
+        Route::patch('/cart/items/{menuItem}', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/cart/items/{menuItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+        Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
-    Route::patch('/cart/fulfillment', [CartController::class, 'updateFulfillment'])->name('cart.fulfillment');
-    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.store');
-    Route::patch('/cart/items/{menuItem}', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/items/{menuItem}', [CartController::class, 'destroy'])->name('cart.destroy');
-    Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+        Route::get('/checkout/{restaurant}/login', [CheckoutController::class, 'redirectToLogin'])->name('checkout.login');
+        Route::get('/checkout/{restaurant?}', [CheckoutController::class, 'show'])->name('checkout.show');
+    });
 
-    Route::get('/checkout/delivery-fee', [CheckoutController::class, 'deliveryFee'])->name('checkout.delivery-fee');
-    Route::get('/checkout/{restaurant?}', [CheckoutController::class, 'show'])->name('checkout.show');
-    Route::post('/checkout/{restaurant?}', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::middleware(['auth', 'customer'])->group(function () {
+        Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
+        Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+        Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');
 
-    Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
+        Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+        Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('/wishlist', [ProfileController::class, 'wishlist'])->name('wishlist');
+
+        Route::post('/checkout/{restaurant?}', [CheckoutController::class, 'store'])->name('checkout.store');
+
+        Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
+    });
 });
 
 Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant')->name('restaurant.')->group(function () {

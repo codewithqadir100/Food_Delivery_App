@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureApprovedAdmin;
 use App\Http\Middleware\EnsureApprovedRestaurant;
 use App\Http\Middleware\EnsureCustomer;
+use App\Http\Middleware\EnsureGuestOrCustomer;
 use App\Http\Middleware\EnsureRestaurantExists;
 use App\Http\Middleware\EnsureRestaurantOwner;
 use App\Http\Middleware\EnsureSuperAdmin;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'customer' => EnsureCustomer::class,
+            'customer_or_guest' => EnsureGuestOrCustomer::class,
             'restaurant_owner' => EnsureRestaurantOwner::class,
             'approved_restaurant' => EnsureApprovedRestaurant::class,
             'restaurant_exists' => EnsureRestaurantExists::class,

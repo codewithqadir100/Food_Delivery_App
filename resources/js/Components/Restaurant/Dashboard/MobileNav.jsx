@@ -31,12 +31,6 @@ const NAV_ITEMS = [
         key: "menu",
     },
     {
-        label: "Subscription",
-        icon: CreditCard,
-        href: "/restaurant/subscription",
-        key: "subscription",
-    },
-    {
         label: "Orders",
         icon: ShoppingCart,
         href: "/restaurant/orders",
@@ -77,7 +71,7 @@ export default function MobileNav({
 
     useEffect(() => {
         const checkScreenSize = () => {
-            setHideLabels(window.innerWidth < 360);
+            setHideLabels(window.innerWidth < 340);
         };
 
         checkScreenSize();

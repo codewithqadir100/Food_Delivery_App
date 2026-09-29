@@ -59,7 +59,7 @@ class HandleInertiaRequests extends Middleware
                     ? $user->primaryAddress
                     : null,
 
-                'cart' => fn () => $user?->isCustomer()
+                'cart' => fn () => ($user === null || $user->isCustomer())
                     ? ['count' => app(CartService::class)->count()]
                     : null,
 

@@ -39,7 +39,10 @@ class CheckoutController extends Controller
         }
 
         $user = Auth::user();
-        $addresses = $user->addresses()->orderByDesc('is_primary')->orderByDesc('created_at')->get();
+        $requiresLogin = $user === null;
+        $addresses = $requiresLogin
+            ? collect()
+            : $user->addresses()->orderByDesc('is_primary')->orderByDesc('created_at')->get();
         $items = $this->cart->getItems($restaurant->id);
         $subtotal = $this->cart->getSubtotal($restaurant->id);
 
@@ -58,7 +61,19 @@ class CheckoutController extends Controller
             'delivery_error' => $isPickup || !$deliveryEstimate || $deliveryEstimate['valid'] ? null : $deliveryEstimate['error'],
             'has_unavailable_items' => $this->cart->hasUnavailableItems($restaurant->id),
             'restaurant_unavailable' => ! $restaurant->isOrderable(),
+            'requires_login' => $requiresLogin,
         ]);
+    }
+
+    public function redirectToLogin(Restaurant $restaurant): RedirectResponse
+    {
+        if (Auth::user()?->isCustomer()) {
+            return redirect()->route('customer.checkout.show', $restaurant);
+        }
+
+        redirect()->setIntendedUrl(route('customer.checkout.show', $restaurant));
+
+        return redirect()->route('login');
     }
 
     public function deliveryFee(Request $request): JsonResponse

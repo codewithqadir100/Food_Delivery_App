@@ -7,6 +7,7 @@ import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
 import Spinner from "@/Components/Common/Spinner";
 import EmptyState from "@/Components/Common/EmptyState";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import Toggle from "@/Components/Common/Toggle";
 import {
     FULFILLMENT_DELIVERY,
@@ -228,15 +229,7 @@ function RestaurantCart({
                             key={item.menu_item_id}
                             className="flex items-start gap-3"
                         >
-                            <div className="aspect-square w-16 shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
-                                {item.image_url && (
-                                    <img
-                                        src={item.image_url}
-                                        alt=""
-                                        className="h-full w-full object-cover"
-                                    />
-                                )}
-                            </div>
+                            <ItemThumb src={item.image_url} alt={item.name} />
                             <div className="min-w-0 flex-1">
                                 <p className="font-medium text-[color:var(--color-text-primary)]">
                                     {item.name}
@@ -313,15 +306,11 @@ function RestaurantCart({
                     <ul className="flex gap-3 overflow-x-auto pb-1">
                         {suggestions.map((item) => (
                             <li key={item.id} className="w-32 shrink-0">
-                                <div className="aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">
-                                    {item.image_url && (
-                                        <img
-                                            src={item.image_url}
-                                            alt=""
-                                            className="h-full w-full object-cover"
-                                        />
-                                    )}
-                                </div>
+                                <ItemThumb
+                                    src={item.image_url}
+                                    alt={item.name}
+                                    className="w-full"
+                                />
                                 <p className="mt-2 truncate text-sm font-medium text-[color:var(--color-text-primary)]">
                                     {item.name}
                                 </p>

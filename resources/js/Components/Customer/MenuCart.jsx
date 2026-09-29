@@ -2,25 +2,10 @@ import { Link } from "@inertiajs/react";
 import { Plus } from "lucide-react";
 import Button from "@/Components/Common/Button";
 import Card from "@/Components/Common/Card";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import Toggle from "@/Components/Common/Toggle";
 import { FULFILLMENT_DELIVERY, FULFILLMENT_PICKUP } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
-
-function ItemImage({ item, size = "w-12" }) {
-    return (
-        <div
-            className={`aspect-square ${size} shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-[color:var(--color-bg-secondary)]`}
-        >
-            {item.image_url && (
-                <img
-                    src={item.image_url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                />
-            )}
-        </div>
-    );
-}
 
 export default function MenuCart({
     cart,
@@ -88,7 +73,11 @@ export default function MenuCart({
                                     key={item.menu_item_id}
                                     className="flex items-center gap-3"
                                 >
-                                    <ItemImage item={item} />
+                                    <ItemThumb
+                                        src={item.image_url}
+                                        alt={item.name}
+                                        className="w-12"
+                                    />
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-medium text-[color:var(--color-text-primary)]">
                                             {item.name}
@@ -131,7 +120,11 @@ export default function MenuCart({
                                         key={item.id}
                                         className="w-28 shrink-0"
                                     >
-                                        <ItemImage item={item} size="w-full" />
+                                        <ItemThumb
+                                            src={item.image_url}
+                                            alt={item.name}
+                                            className="w-full"
+                                        />
                                         <p className="mt-1 truncate text-xs font-medium text-[color:var(--color-text-primary)]">
                                             {item.name}
                                         </p>

@@ -4,6 +4,7 @@ import axios from "axios";
 import { MapPin, Plus } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import Button from "@/Components/Common/Button";
 import TextArea from "@/Components/Forms/TextArea";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
@@ -19,6 +20,7 @@ export default function Checkout({
     fulfillment = "delivery",
     has_unavailable_items,
     restaurant_unavailable,
+    requires_login = false,
 }) {
     const primaryAddress =
         addresses.find((address) => address.is_primary) ?? addresses[0] ?? null;
@@ -36,8 +38,10 @@ export default function Checkout({
     const [fetchingFee, setFetchingFee] = useState(false);
 
     const isPickup = fulfillment === "pickup";
-    const deliveryFeeUnavailable = !isPickup && deliveryEstimate.fee === null;
-    const deliveryFee = isPickup ? 0 : (deliveryEstimate.fee ?? 0);
+    const deliveryFeeLater = requires_login && !isPickup;
+    const deliveryFeeUnavailable =
+        !requires_login && !isPickup && deliveryEstimate.fee === null;
+    const deliveryFee = isPickup || deliveryFeeLater ? 0 : (deliveryEstimate.fee ?? 0);
     const total = Number(subtotal) + Number(deliveryFee);
     const canPlaceOrder =
         !deliveryFeeUnavailable && !restaurant_unavailable && !has_unavailable_items;
@@ -100,11 +104,23 @@ export default function Checkout({
                         Checkout
                     </h1>
                     <p className="text-sm text-[color:var(--color-text-muted)] mb-6">
-                        Review your order from{" "}
-                        <span className="font-medium text-[color:var(--color-text-primary)]">
-                            {restaurant.name}
-                        </span>{" "}
-                        before placing it.
+                        {requires_login ? (
+                            <>
+                                Log in to place your order from{" "}
+                                <span className="font-medium text-[color:var(--color-text-primary)]">
+                                    {restaurant.name}
+                                </span>
+                                {". Your cart stays as it is."}
+                            </>
+                        ) : (
+                            <>
+                                Review your order from{" "}
+                                <span className="font-medium text-[color:var(--color-text-primary)]">
+                                    {restaurant.name}
+                                </span>{" "}
+                                before placing it.
+                            </>
+                        )}
                     </p>
 
                     {alert && (
@@ -192,6 +208,15 @@ export default function Checkout({
                                             Open map
                                         </a>
                                     )}
+                                </div>
+                            ) : requires_login ? (
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                                    <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                                        Delivery Address
+                                    </h2>
+                                    <p className="mt-2 text-sm text-[color:var(--color-text-secondary)]">
+                                        Log in to choose where this order should be delivered.
+                                    </p>
                                 </div>
                             ) : (
                             <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
@@ -296,15 +321,11 @@ export default function Checkout({
                                             className="flex items-center justify-between gap-3 py-3"
                                         >
                                             <div className="flex min-w-0 items-center gap-3">
-                                                <div className="aspect-square w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-[color:var(--color-bg-secondary)]">
-                                                    {item.image_url && (
-                                                        <img
-                                                            src={item.image_url}
-                                                            alt=""
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    )}
-                                                </div>
+                                                <ItemThumb
+                                                    src={item.image_url}
+                                                    alt={item.name}
+                                                    className="w-12"
+                                                />
                                                 <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
                                                     {item.name}{" "}
                                                     <span className="text-[color:var(--color-text-muted)]">
@@ -320,19 +341,20 @@ export default function Checkout({
                                 </ul>
                             </div>
 
-                            {/* Notes */}
-                            <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
-                                <TextArea
-                                    label="Notes for the restaurant (optional)"
-                                    value={data.notes}
-                                    onChange={(e) =>
-                                        setData("notes", e.target.value)
-                                    }
-                                    placeholder="e.g. No onions, ring the doorbell twice..."
-                                    rows={3}
-                                    error={errors.notes}
-                                />
-                            </div>
+                            {!requires_login && (
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                                    <TextArea
+                                        label="Notes for the restaurant (optional)"
+                                        value={data.notes}
+                                        onChange={(e) =>
+                                            setData("notes", e.target.value)
+                                        }
+                                        placeholder="e.g. No onions, ring the doorbell twice..."
+                                        rows={3}
+                                        error={errors.notes}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Summary */}
@@ -357,11 +379,13 @@ export default function Checkout({
                                     <span className="font-medium text-[color:var(--color-text-primary)]">
                                         {isPickup
                                             ? "Free"
-                                            : fetchingFee
-                                              ? "..."
-                                              : deliveryFeeUnavailable
-                                                ? "—"
-                                                : formatCurrency(deliveryFee)}
+                                            : deliveryFeeLater
+                                              ? "At login"
+                                              : fetchingFee
+                                                ? "..."
+                                                : deliveryFeeUnavailable
+                                                  ? "—"
+                                                  : formatCurrency(deliveryFee)}
                                     </span>
                                 </div>
                                 <p className="text-xs text-[color:var(--color-text-muted)]">
@@ -377,19 +401,49 @@ export default function Checkout({
                                 </div>
                             </div>
 
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                fullWidth
-                                loading={processing}
-                                disabled={
-                                    processing ||
-                                    (!isPickup && (fetchingFee || addresses.length === 0)) ||
-                                    !canPlaceOrder
-                                }
-                            >
-                                Place Order
-                            </Button>
+                            {requires_login ? (
+                                <div className="space-y-3">
+                                    <Link
+                                        href={route(
+                                            "customer.checkout.login",
+                                            restaurant.id,
+                                        )}
+                                    >
+                                        <Button
+                                            variant="primary"
+                                            fullWidth
+                                            type="button"
+                                        >
+                                            Login
+                                        </Button>
+                                    </Link>
+                                    <p className="text-center text-sm text-[color:var(--color-text-secondary)]">
+                                        New here?{" "}
+                                        <Link
+                                            href={route("register")}
+                                            className="font-medium text-[color:var(--color-primary-600)] hover:underline"
+                                        >
+                                            Create an account
+                                        </Link>
+                                    </p>
+                                </div>
+                            ) : (
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    fullWidth
+                                    loading={processing}
+                                    disabled={
+                                        processing ||
+                                        (!isPickup &&
+                                            (fetchingFee ||
+                                                addresses.length === 0)) ||
+                                        !canPlaceOrder
+                                    }
+                                >
+                                    Place Order
+                                </Button>
+                            )}
 
                             <Link href={route("customer.cart.index")}>
                                 <Button variant="secondary" fullWidth type="button">

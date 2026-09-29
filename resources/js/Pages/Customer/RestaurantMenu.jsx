@@ -21,11 +21,12 @@ export default function RestaurantMenu({
     const [alert, setAlert] = useState(null);
     const [cart, setCart] = useState(null);
     const [updatingFulfillment, setUpdatingFulfillment] = useState(false);
-    const isCustomer = Boolean(usePage().props.auth?.user?.is_customer);
+    const user = usePage().props.auth?.user ?? null;
+    const canOrder = user === null || Boolean(user.is_customer);
 
     useEffect(() => {
         fetchMenu();
-        if (isCustomer) {
+        if (canOrder) {
             fetchCart();
         }
     }, []);
@@ -83,12 +84,7 @@ export default function RestaurantMenu({
     };
 
     const handleAddToCart = async (item, quantity) => {
-        if (!isCustomer) {
-            setAlert({
-                type: "warning",
-                title: "Sign in required",
-                message: "Please sign in as a customer to add items.",
-            });
+        if (!canOrder) {
             return;
         }
 
@@ -195,7 +191,7 @@ export default function RestaurantMenu({
                                     <MenuItemOrderCard
                                         key={item.id}
                                         item={item}
-                                        canOrder={isCustomer}
+                                        canOrder={canOrder}
                                         adding={addingItemId === item.id}
                                         onAddToCart={handleAddToCart}
                                     />
@@ -210,7 +206,7 @@ export default function RestaurantMenu({
                     onFulfillmentChange={changeFulfillment}
                     onAddSuggestion={(item) => handleAddToCart(item, 1)}
                     addingItemId={addingItemId}
-                    updatingFulfillment={updatingFulfillment || !isCustomer}
+                    updatingFulfillment={updatingFulfillment || !canOrder}
                 />
             </AppLayout>
         </>

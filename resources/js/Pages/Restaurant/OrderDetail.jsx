@@ -5,6 +5,7 @@ import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import Alert from "@/Components/Common/Alert";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
 import OrderStatusSelect from "@/Components/Restaurant/Orders/OrderStatusSelect";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
@@ -132,9 +133,13 @@ export default function OrderDetail({ order: initialOrder }) {
                                 {order.items.map((item) => (
                                     <li
                                         key={item.id}
-                                        className="flex items-center justify-between py-3"
+                                        className="flex items-center gap-3 py-3"
                                     >
-                                        <div>
+                                        <ItemThumb
+                                            src={item.menu_item?.image_url}
+                                            alt={item.name}
+                                        />
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
                                                 {item.name}
                                             </p>

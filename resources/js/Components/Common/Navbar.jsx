@@ -23,6 +23,26 @@ import Button from "./Button";
 import Modal from "./Modal";
 import TextInput from "../Forms/TextInput";
 
+function CartIconLink({ count, className = "" }) {
+    return (
+        <Link
+            href={route("customer.cart.index")}
+            aria-label="Cart"
+            className={`relative rounded-lg p-2 transition-colors hover:bg-[color:var(--color-bg-secondary)] ${className}`}
+        >
+            <ShoppingCart
+                size={20}
+                className="text-[color:var(--color-text-secondary)]"
+            />
+            {count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--color-danger-600)] text-[10px] font-bold text-white">
+                    {count > 9 ? "9+" : count}
+                </span>
+            )}
+        </Link>
+    );
+}
+
 function RestaurantLogoMark({ src, className = "" }) {
     if (src) {
         return (
@@ -489,24 +509,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                         </div>
                                     ) : (
                                         <>
-                                            <Link
-                                                href={route(
-                                                    "customer.cart.index",
-                                                )}
-                                                className="relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            >
-                                                <ShoppingCart
-                                                    size={20}
-                                                    className="text-[color:var(--color-text-secondary)]"
-                                                />
-                                                {cartCount > 0 && (
-                                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                                        {cartCount > 9
-                                                            ? "9+"
-                                                            : cartCount}
-                                                    </span>
-                                                )}
-                                            </Link>
+                                            <CartIconLink count={cartCount} />
 
                                             <Link
                                                 href={route(
@@ -675,6 +678,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     )
                                 ) : (
                                     <>
+                                        <CartIconLink count={cartCount} />
                                         <Link href={route("login")}>
                                             <Button
                                                 variant="secondary"
@@ -719,33 +723,27 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                         />
                                     </Link>
                                 ) : (
+                                    <CartIconLink
+                                        count={cartCount}
+                                        className="md:hidden"
+                                    />
+                                )
+                            ) : (
+                                <>
+                                    <CartIconLink
+                                        count={cartCount}
+                                        className="md:hidden"
+                                    />
                                     <Link
-                                        href={route("customer.cart.index")}
-                                        className="md:hidden relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                        href={route("login")}
+                                        className="md:hidden p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                     >
-                                        <ShoppingCart
+                                        <User
                                             size={20}
                                             className="text-[color:var(--color-text-secondary)]"
                                         />
-                                        {cartCount > 0 && (
-                                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                                {cartCount > 9
-                                                    ? "9+"
-                                                    : cartCount}
-                                            </span>
-                                        )}
                                     </Link>
-                                )
-                            ) : (
-                                <Link
-                                    href={route("login")}
-                                    className="md:hidden p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                >
-                                    <User
-                                        size={20}
-                                        className="text-[color:var(--color-text-secondary)]"
-                                    />
-                                </Link>
+                                </>
                             )}
                         </div>
                     </div>

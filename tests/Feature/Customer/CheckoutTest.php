@@ -194,7 +194,7 @@ test('order total equals subtotal plus delivery fee', function () {
 test('customer can place a pickup order without an address', function () {
     Notification::fake();
 
-    $restaurant = Restaurant::factory()->create();
+    $restaurant = Restaurant::factory()->subscribed()->create();
     $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 200]);
     $customer = checkoutCustomer();
 
