@@ -60,7 +60,9 @@ class RestaurantVerificationController extends Controller
             $user = $restaurant->user;
             $restaurant->delete();
 
-            $user?->update(['status' => User::STATUS_REJECTED]);
+            $user?->forceFill([
+                'status' => User::STATUS_BANNED,
+            ])->save();
         });
 
         return back()->with('success', 'Restaurant deleted.');

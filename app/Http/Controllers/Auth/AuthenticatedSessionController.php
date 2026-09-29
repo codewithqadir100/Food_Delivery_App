@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\CustomerLoginRequest;
-use App\Models\User;
+use App\Services\BannedAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +16,8 @@ use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(private readonly BannedAccountService $bannedAccounts) {}
+
     public function create(): Response
     {
         return Inertia::render('Auth/Login', [
@@ -26,7 +30,7 @@ class AuthenticatedSessionController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (!Auth::attempt($credentials, $remember)) {
+        if (! Auth::attempt($credentials, $remember)) {
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
@@ -34,7 +38,11 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->isCustomer()) {
+        if ($user->isBanned()) {
+            return $this->bannedAccounts->refuseLogin($request);
+        }
+
+        if (! $user->isCustomer()) {
             Auth::logout();
             throw ValidationException::withMessages([
                 'email' => 'These credentials do not match our records.',

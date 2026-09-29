@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Requests\Auth;
 
@@ -19,6 +21,7 @@ class RestaurantRegisterRequest extends FormRequest
             'password' => ['required', 'confirmed', Password::defaults()],
             'restaurant_name' => ['required', 'string', 'max:255'],
             'restaurant_category_id' => ['required', 'exists:restaurant_categories,id'],
+            'is_home_chef' => ['sometimes', 'boolean'],
             'phone' => ['nullable', 'string', 'max:20'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountNotBanned;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureApprovedAdmin;
 use App\Http\Middleware\EnsureApprovedRestaurant;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            EnsureAccountNotBanned::class,
         ]);
 
         $middleware->alias([

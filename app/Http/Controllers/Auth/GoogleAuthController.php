@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\RestaurantCompletionRequest;
 use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use App\Models\User;
+use App\Services\BannedAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,8 @@ use Throwable;
 
 class GoogleAuthController extends Controller
 {
+    public function __construct(private readonly BannedAccountService $bannedAccounts) {}
+
     public function redirect(): RedirectResponse
     {
         return Socialite::driver('google')->redirect();
@@ -51,6 +54,10 @@ class GoogleAuthController extends Controller
             return redirect()->route('restaurant.login')->withErrors([
                 'email' => 'This email is already registered with a different account type.',
             ]);
+        }
+
+        if ($user?->isBanned()) {
+            return $this->bannedAccounts->refuseLogin($request);
         }
 
         if (! $user) {
@@ -102,8 +109,9 @@ class GoogleAuthController extends Controller
         }
 
         $validated = $request->validated();
+        $isHomeChef = $request->boolean('is_home_chef');
 
-        DB::transaction(function () use ($user, $validated) {
+        DB::transaction(function () use ($user, $validated, $isHomeChef) {
             $user->update([
                 'name' => $validated['restaurant_name'],
             ]);
@@ -112,6 +120,7 @@ class GoogleAuthController extends Controller
                 'user_id' => $user->id,
                 'name' => $validated['restaurant_name'],
                 'restaurant_category_id' => $validated['restaurant_category_id'],
+                'is_home_chef' => $isHomeChef,
                 'phone' => $validated['phone'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'status' => Restaurant::STATUS_PENDING,

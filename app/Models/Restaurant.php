@@ -45,6 +45,7 @@ class Restaurant extends Model
         'is_open',
         'status',
         'restaurant_category_id',
+        'is_home_chef',
         'approved_since',
     ];
 
@@ -57,6 +58,7 @@ class Restaurant extends Model
     {
         return [
             'is_open' => 'boolean',
+            'is_home_chef' => 'boolean',
             'approved_since' => 'datetime',
         ];
     }

@@ -9,6 +9,7 @@ import Checkbox from "@/Components/Forms/Checkbox";
 import PasswordInput from "@/Components/Forms/PasswordInput";
 import FormLabel from "@/Components/Forms/FormLabel";
 import GoogleAuthButton from "@/Components/Auth/GoogleAuthButton";
+import HomeChefChoice from "@/Components/Restaurant/HomeChefChoice";
 import { Mail, Building2, Phone, Store } from "lucide-react";
 
 export default function RestaurantRegister({ categories }) {
@@ -18,6 +19,7 @@ export default function RestaurantRegister({ categories }) {
         password_confirmation: "",
         restaurant_name: "",
         restaurant_category_id: "",
+        is_home_chef: false,
         phone: "",
         description: "",
         remember: false,
@@ -102,6 +104,12 @@ export default function RestaurantRegister({ categories }) {
                                 placeholder="Select a category"
                             />
                         </div>
+
+                        <HomeChefChoice
+                            value={data.is_home_chef}
+                            onChange={(value) => setData("is_home_chef", value)}
+                            error={errors.is_home_chef}
+                        />
 
                         <div className="grid grid-cols-1 gap-4">
                             <TextInput

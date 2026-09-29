@@ -23,6 +23,7 @@ use App\Http\Controllers\Restaurant\MenuItemController;
 use App\Http\Controllers\Restaurant\MenuItemFormPageController;
 use App\Http\Controllers\Restaurant\OrderController as RestaurantOrderController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
+use App\Http\Controllers\Restaurant\RestaurantSettingsController;
 use App\Http\Controllers\Restaurant\SubscriptionController;
 use App\Models\RestaurantCategory;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +91,9 @@ Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant'
             Route::delete('items/{item}', [MenuItemController::class, 'destroy'])->name('menu.items.destroy');
             Route::patch('items/{item}/toggle-availability', [MenuItemController::class, 'toggleAvailability'])->name('menu.items.toggle');
         });
+
+        Route::get('/settings', [RestaurantSettingsController::class, 'edit'])->name('settings.edit');
+        Route::patch('/settings', [RestaurantSettingsController::class, 'update'])->name('settings.update');
 
         Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');

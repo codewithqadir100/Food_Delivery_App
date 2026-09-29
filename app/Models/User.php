@@ -29,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public const STATUS_REJECTED = 'rejected';
 
+    public const STATUS_BANNED = 'banned';
+
     protected $fillable = [
         'name',
         'email',
@@ -88,6 +90,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRejected(): bool
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->status === self::STATUS_BANNED;
     }
 
     public function restaurant(): HasOne
