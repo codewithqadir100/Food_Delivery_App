@@ -111,6 +111,44 @@ export default function RestaurantMenu({
         }
     };
 
+    const handleSetQuantity = async (item, quantity) => {
+        if (!canOrder) {
+            return;
+        }
+
+        try {
+            setAddingItemId(item.id);
+
+            const res =
+                quantity <= 0
+                    ? await axios.delete(
+                          route("customer.cart.destroy", item.id),
+                      )
+                    : await axios.patch(
+                          route("customer.cart.update", item.id),
+                          {
+                              quantity,
+                          },
+                      );
+
+            setCart(res.data.data);
+            router.reload({ only: ["auth"] });
+        } catch (error) {
+            setAlert({
+                type: "error",
+                title: "Error",
+                message:
+                    error.response?.data?.message || "Failed to update cart",
+            });
+        } finally {
+            setAddingItemId(null);
+        }
+    };
+
+    const quantityFor = (itemId) =>
+        (cart?.items ?? []).find((line) => line.menu_item_id === itemId)
+            ?.quantity ?? 0;
+
     if (loading) {
         return (
             <>
@@ -187,14 +225,26 @@ export default function RestaurantMenu({
                                     </p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                                <div className="grid grid-cols-1 gap-[var(--spacing-6)] sm:grid-cols-2">
                                     {filteredItems.map((item) => (
                                         <MenuItemOrderCard
                                             key={item.id}
                                             item={item}
+                                            quantity={quantityFor(item.id)}
                                             canOrder={canOrder}
-                                            adding={addingItemId === item.id}
-                                            onAddToCart={handleAddToCart}
+                                            busy={addingItemId === item.id}
+                                            onAdd={() =>
+                                                handleAddToCart(item, 1)
+                                            }
+                                            onChangeQuantity={(quantity) =>
+                                                handleSetQuantity(
+                                                    item,
+                                                    quantity,
+                                                )
+                                            }
+                                            onRemove={() =>
+                                                handleSetQuantity(item, 0)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -206,7 +256,9 @@ export default function RestaurantMenu({
                             onFulfillmentChange={changeFulfillment}
                             onAddSuggestion={(item) => handleAddToCart(item, 1)}
                             addingItemId={addingItemId}
-                            updatingFulfillment={updatingFulfillment || !canOrder}
+                            updatingFulfillment={
+                                updatingFulfillment || !canOrder
+                            }
                         />
                     </div>
                 </div>
