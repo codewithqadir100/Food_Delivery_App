@@ -6,6 +6,7 @@ use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -75,4 +76,57 @@ test('a restaurant owner can change the home chef choice from settings', functio
         ->assertSessionHas('success');
 
     expect($restaurant->fresh()->is_home_chef)->toBeTrue();
+});
+
+test('a restaurant owner can change their password from settings', function () {
+    $restaurant = Restaurant::factory()->create();
+    $owner = $restaurant->user;
+    $owner->update([
+        'role' => User::ROLE_RESTAURANT_OWNER,
+        'status' => User::STATUS_APPROVED,
+        'email' => 'settings-pass@example.com',
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('restaurant.settings.password'), [
+            'current_password' => 'password',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Password updated.');
+
+    expect(Hash::check('new-password', $owner->fresh()->password))->toBeTrue();
+
+    $this->post(route('restaurant.logout'));
+
+    $this->post(route('restaurant.login'), [
+        'email' => 'settings-pass@example.com',
+        'password' => 'new-password',
+    ]);
+
+    $this->assertAuthenticatedAs($owner);
+});
+
+test('settings password change rejects the wrong current password', function () {
+    $restaurant = Restaurant::factory()->create();
+    $owner = $restaurant->user;
+    $owner->update([
+        'role' => User::ROLE_RESTAURANT_OWNER,
+        'status' => User::STATUS_APPROVED,
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('restaurant.settings.edit'))
+        ->put(route('restaurant.settings.password'), [
+            'current_password' => 'wrong-password',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])
+        ->assertRedirect(route('restaurant.settings.edit'))
+        ->assertSessionHasErrors('current_password');
+
+    expect(Hash::check('password', $owner->fresh()->password))->toBeTrue();
 });

@@ -7,6 +7,7 @@ import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
 import Spinner from "@/Components/Common/Spinner";
 import EmptyState from "@/Components/Common/EmptyState";
+import HorizontalCarousel from "@/Components/Common/HorizontalCarousel";
 import ItemThumb from "@/Components/Common/ItemThumb";
 import Toggle from "@/Components/Common/Toggle";
 import {
@@ -14,6 +15,44 @@ import {
     FULFILLMENT_PICKUP,
 } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
+
+function QuantityControl({ item, busy, onQuantity, onRemove }) {
+    const isLast = item.quantity <= 1;
+
+    return (
+        <div className="inline-flex w-fit items-center rounded-[var(--radius-md)] border border-[color:var(--color-border-light)]">
+            <button
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                    isLast
+                        ? onRemove(item.menu_item_id)
+                        : onQuantity(item.menu_item_id, item.quantity - 1)
+                }
+                className={`p-2 disabled:opacity-50 ${
+                    isLast
+                        ? "text-[color:var(--color-danger-600)]"
+                        : "text-[color:var(--color-text-secondary)]"
+                }`}
+                aria-label={isLast ? "Remove item" : "Decrease quantity"}
+            >
+                {isLast ? <Trash2 size={14} /> : <Minus size={14} />}
+            </button>
+            <span className="w-6 text-center text-sm font-medium text-[color:var(--color-text-primary)]">
+                {item.quantity}
+            </span>
+            <button
+                type="button"
+                disabled={busy}
+                onClick={() => onQuantity(item.menu_item_id, item.quantity + 1)}
+                className="p-2 text-[color:var(--color-text-secondary)] disabled:opacity-50"
+                aria-label="Increase quantity"
+            >
+                <Plus size={14} />
+            </button>
+        </div>
+    );
+}
 
 function applyCarts(data) {
     if (Array.isArray(data?.carts)) {
@@ -146,7 +185,7 @@ export default function Cart() {
                 )}
 
                 <div className={`mx-auto max-w-3xl ${singleCart ? "pb-24 md:pb-0" : ""}`}>
-                    <h1 className="mb-6 text-2xl font-semibold text-[color:var(--color-text-primary)]">
+                    <h1 className="mb-4 text-2xl font-semibold text-[color:var(--color-text-primary)]">
                         My Cart
                     </h1>
 
@@ -168,7 +207,7 @@ export default function Cart() {
                             }
                         />
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-4">
                             {carts.map((cart) => (
                                 <RestaurantCart
                                     key={cart.restaurant?.id}
@@ -210,7 +249,7 @@ function RestaurantCart({
 
     return (
         <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)]">
-            <div className="border-b border-[color:var(--color-border-light)] px-4 py-4">
+            <div className="border-b border-[color:var(--color-border-light)] p-4 sm:p-5">
                 <p className="text-sm text-[color:var(--color-text-muted)]">
                     Ordering from
                 </p>
@@ -219,7 +258,23 @@ function RestaurantCart({
                 </h2>
             </div>
 
-            <div className="px-4 pt-4">
+            <div className="border-b border-[color:var(--color-border-light)] px-4 py-4 sm:px-5">
+                <Toggle
+                    fullWidth
+                    value={!isPickup}
+                    onChange={(isDelivery) =>
+                        onFulfillment(
+                            restaurantId,
+                            isDelivery ? FULFILLMENT_DELIVERY : FULFILLMENT_PICKUP,
+                        )
+                    }
+                    activeLabel="Delivery"
+                    inactiveLabel="Pickup"
+                    disabled={updatingFulfillment}
+                />
+            </div>
+
+            <div className="p-4 sm:p-5">
                 <h3 className="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
                     Your items
                 </h3>
@@ -231,15 +286,15 @@ function RestaurantCart({
                         >
                             <ItemThumb src={item.image_url} alt={item.name} />
                             <div className="min-w-0 flex-1">
-                                <p className="font-medium text-[color:var(--color-text-primary)]">
-                                    {item.name}
-                                </p>
-                                {item.description && (
-                                    <p className="line-clamp-2 text-xs text-[color:var(--color-text-muted)]">
-                                        {item.description}
+                                <div className="flex items-start justify-between gap-3">
+                                    <p className="font-medium text-[color:var(--color-text-primary)]">
+                                        {item.name}
                                     </p>
-                                )}
-                                <p className="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    <p className="shrink-0 text-sm font-semibold text-[color:var(--color-text-primary)] sm:hidden">
+                                        {formatCurrency(item.subtotal)}
+                                    </p>
+                                </div>
+                                <p className="mt-1 hidden text-sm font-semibold text-[color:var(--color-text-primary)] sm:block">
                                     {formatCurrency(item.subtotal)}
                                 </p>
                                 {!item.is_available && (
@@ -247,65 +302,47 @@ function RestaurantCart({
                                         No longer available
                                     </p>
                                 )}
+                                <div className="mt-2 sm:hidden">
+                                    <QuantityControl
+                                        item={item}
+                                        busy={busyItemId === item.menu_item_id}
+                                        onQuantity={onQuantity}
+                                        onRemove={onRemove}
+                                    />
+                                </div>
                             </div>
-                            <button
-                                type="button"
-                                disabled={busyItemId === item.menu_item_id}
-                                onClick={() => onRemove(item.menu_item_id)}
-                                className="p-2 text-[color:var(--color-danger-600)] disabled:opacity-50"
-                                aria-label="Remove item"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                            <div className="flex items-center rounded-[var(--radius-md)] border border-[color:var(--color-border-light)]">
-                                <button
-                                    type="button"
-                                    disabled={busyItemId === item.menu_item_id}
-                                    onClick={() =>
-                                        onQuantity(item.menu_item_id, item.quantity - 1)
-                                    }
-                                    className="p-2 text-[color:var(--color-text-secondary)] disabled:opacity-50"
-                                    aria-label="Decrease quantity"
-                                >
-                                    <Minus size={14} />
-                                </button>
-                                <span className="w-6 text-center text-sm font-medium">
-                                    {item.quantity}
-                                </span>
-                                <button
-                                    type="button"
-                                    disabled={busyItemId === item.menu_item_id}
-                                    onClick={() =>
-                                        onQuantity(item.menu_item_id, item.quantity + 1)
-                                    }
-                                    className="p-2 text-[color:var(--color-text-secondary)] disabled:opacity-50"
-                                    aria-label="Increase quantity"
-                                >
-                                    <Plus size={14} />
-                                </button>
+                            <div className="hidden shrink-0 sm:block">
+                                <QuantityControl
+                                    item={item}
+                                    busy={busyItemId === item.menu_item_id}
+                                    onQuantity={onQuantity}
+                                    onRemove={onRemove}
+                                />
                             </div>
                         </li>
                     ))}
                 </ul>
 
                 {restaurantId && (
-                    <Link
-                        href={route("customer.restaurant.menu", restaurantId)}
-                        className="mt-4 inline-block text-sm font-medium text-[var(--color-primary-500)]"
-                    >
-                        Add more items
-                    </Link>
+                    <div className="mt-4 flex justify-center">
+                        <Link
+                            href={route("customer.restaurant.menu", restaurantId)}
+                            className="text-sm font-medium text-[color:var(--color-primary-600)]"
+                        >
+                            Add more items
+                        </Link>
+                    </div>
                 )}
             </div>
 
             {suggestions.length > 0 && (
-                <div className="px-4 pt-6">
+                <div className="px-4 sm:px-5">
                     <h3 className="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
                         Popular with your order
                     </h3>
-                    <ul className="flex gap-3 overflow-x-auto pb-1">
+                    <HorizontalCarousel>
                         {suggestions.map((item) => (
-                            <li key={item.id} className="w-32 shrink-0">
+                            <div key={item.id} className="w-32 shrink-0">
                                 <ItemThumb
                                     src={item.image_url}
                                     alt={item.name}
@@ -322,31 +359,19 @@ function RestaurantCart({
                                         type="button"
                                         disabled={busyItemId === item.id}
                                         onClick={() => onAddSuggestion(item)}
-                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-500)] text-white disabled:opacity-50"
+                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--color-primary-600)] text-white disabled:opacity-50"
                                         aria-label={`Add ${item.name}`}
                                     >
                                         <Plus size={14} />
                                     </button>
                                 </div>
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </HorizontalCarousel>
                 </div>
             )}
 
-            <div className="space-y-3 px-4 py-4">
-                <Toggle
-                    value={!isPickup}
-                    onChange={(isDelivery) =>
-                        onFulfillment(
-                            restaurantId,
-                            isDelivery ? FULFILLMENT_DELIVERY : FULFILLMENT_PICKUP,
-                        )
-                    }
-                    activeLabel="Delivery"
-                    inactiveLabel="Pickup"
-                    disabled={updatingFulfillment}
-                />
+            <div className="space-y-3 p-4 sm:p-5">
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-[color:var(--color-text-secondary)]">
                         Subtotal
@@ -384,8 +409,8 @@ function RestaurantCart({
             <div
                 className={
                     stickyCheckout
-                        ? "fixed inset-x-0 bottom-0 z-[var(--z-fixed)] border-t border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)] p-4 md:static md:border-0 md:bg-transparent md:px-4 md:pb-4 md:pt-0"
-                        : "px-4 pb-4"
+                        ? "fixed inset-x-0 bottom-0 z-[var(--z-fixed)] border-t border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)] p-4 sm:p-5 md:static md:border-0 md:bg-transparent md:px-5 md:pb-5 md:pt-0"
+                        : "px-4 pb-4 sm:px-5 sm:pb-5"
                 }
             >
                 {restaurantId ? (

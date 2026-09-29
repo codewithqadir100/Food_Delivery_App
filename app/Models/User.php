@@ -57,6 +57,29 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function loginRouteName(): string
+    {
+        return self::loginRouteForRole($this->role);
+    }
+
+    public static function loginRouteForAccount(?string $account): string
+    {
+        return match ($account) {
+            'restaurant' => 'restaurant.login',
+            'admin' => 'admin.login',
+            default => 'login',
+        };
+    }
+
+    public static function loginRouteForRole(?string $role): string
+    {
+        return match ($role) {
+            self::ROLE_RESTAURANT_OWNER => 'restaurant.login',
+            self::ROLE_ADMIN => 'admin.login',
+            default => 'login',
+        };
+    }
+
     public function isCustomer(): bool
     {
         return $this->role === self::ROLE_CUSTOMER;

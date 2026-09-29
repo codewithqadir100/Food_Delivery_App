@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Restaurant\UpdateRestaurantHomeChefRequest;
+use App\Http\Requests\Restaurant\UpdateRestaurantPasswordRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -38,6 +39,21 @@ class RestaurantSettingsController extends Controller
             'is_home_chef' => $request->boolean('is_home_chef'),
         ]);
 
-        return back()->with('success', 'Kitchen type updated.');
+        return back()->with('success', 'Restaurant type updated.');
+    }
+
+    public function updatePassword(UpdateRestaurantPasswordRequest $request): RedirectResponse
+    {
+        $restaurant = $request->user()->restaurant;
+
+        abort_unless($restaurant, 404);
+
+        $this->authorize('update', $restaurant);
+
+        $request->user()->update([
+            'password' => $request->validated('password'),
+        ]);
+
+        return back()->with('success', 'Password updated.');
     }
 }

@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('reset password link screen can be rendered', function () {
     $response = $this->get('/forgot-password');
@@ -15,7 +16,9 @@ test('reset password link can be requested', function () {
 
     $user = User::factory()->create();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['email' => $user->email])
+        ->assertRedirect(route('password.request'))
+        ->assertSessionHas('status');
 
     Notification::assertSentTo($user, ResetPassword::class);
 });
@@ -57,4 +60,49 @@ test('password can be reset with valid token', function () {
 
         return true;
     });
+});
+
+test('a restaurant owner resets a password from the emailed link', function () {
+    Notification::fake();
+
+    $owner = User::factory()->create([
+        'role' => User::ROLE_RESTAURANT_OWNER,
+        'status' => User::STATUS_APPROVED,
+        'email' => 'reset-owner@example.com',
+    ]);
+
+    $this->get(route('password.request', ['account' => 'restaurant']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Auth/ForgotPassword')
+            ->where('loginRoute', 'restaurant.login'));
+
+    $this->post(route('password.email'), [
+        'email' => $owner->email,
+        'account' => 'restaurant',
+    ])->assertRedirect(route('password.request', ['account' => 'restaurant']));
+
+    Notification::assertSentTo($owner, ResetPassword::class, function (ResetPassword $notification) use ($owner) {
+        $this->get(route('password.reset', [
+            'token' => $notification->token,
+            'email' => $owner->email,
+        ]))->assertOk();
+
+        $this->post(route('password.store'), [
+            'token' => $notification->token,
+            'email' => $owner->email,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])->assertSessionHasNoErrors()
+            ->assertRedirect(route('restaurant.login'));
+
+        return true;
+    });
+
+    $this->post(route('restaurant.login'), [
+        'email' => $owner->email,
+        'password' => 'new-password',
+    ]);
+
+    $this->assertAuthenticatedAs($owner);
 });

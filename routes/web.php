@@ -103,6 +103,7 @@ Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant'
 
         Route::get('/settings', [RestaurantSettingsController::class, 'edit'])->name('settings.edit');
         Route::patch('/settings', [RestaurantSettingsController::class, 'update'])->name('settings.update');
+        Route::put('/settings/password', [RestaurantSettingsController::class, 'updatePassword'])->name('settings.password');
 
         Route::get('/profile', [RestaurantProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [RestaurantProfileController::class, 'update'])->name('profile.update');

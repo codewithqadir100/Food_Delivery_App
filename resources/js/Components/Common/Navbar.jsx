@@ -854,7 +854,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
             {/* ===== MOBILE SEARCH OVERLAY ===== */}
             {(mobileSearchOpen || searchAnimating) && (
                 <div
-                    className={`fixed inset-0 z-[var(--z-modal)] transition-opacity duration-200 ${
+                    className={`fixed inset-0 z-[var(--z-drawer)] transition-opacity duration-200 ${
                         mobileSearchOpen
                             ? "opacity-100 pointer-events-auto"
                             : "opacity-0 pointer-events-none"
@@ -908,13 +908,13 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
             {(mobileMenuOpen || menuAnimating) && (
                 <>
                     <div
-                        className={`fixed inset-0 z-[var(--z-modal-backdrop)] bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+                        className={`fixed inset-0 z-[var(--z-drawer)] bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
                             mobileMenuOpen ? "opacity-100" : "opacity-0"
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                     />
                     <div
-                        className={`fixed inset-y-0 left-0 z-[var(--z-modal)] w-full max-w-sm bg-[color:var(--color-bg-primary)] shadow-2xl transform transition-transform duration-300 ease-out overflow-y-auto ${
+                        className={`fixed inset-y-0 left-0 z-[var(--z-drawer)] w-full max-w-sm bg-[color:var(--color-bg-primary)] shadow-2xl transform transition-transform duration-300 ease-out overflow-y-auto ${
                             mobileMenuOpen
                                 ? "translate-x-0"
                                 : "-translate-x-full"

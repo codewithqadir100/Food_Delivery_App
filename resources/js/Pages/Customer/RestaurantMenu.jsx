@@ -175,39 +175,41 @@ export default function RestaurantMenu({
                     />
 
                     <div
-                        className={`max-w-6xl mx-auto px-4 py-8 ${
+                        className={`mx-auto flex max-w-6xl items-start gap-6 px-4 py-8 ${
                             cart?.items?.length ? "pb-24 md:pb-8" : ""
                         }`}
                     >
-                        {filteredItems.length === 0 ? (
-                            <div className="text-center py-12">
-                                <p className="text-[color:var(--color-text-muted)]">
-                                    No items available in this category
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {filteredItems.map((item) => (
-                                    <MenuItemOrderCard
-                                        key={item.id}
-                                        item={item}
-                                        canOrder={canOrder}
-                                        adding={addingItemId === item.id}
-                                        onAddToCart={handleAddToCart}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        <div className="min-w-0 flex-1">
+                            {filteredItems.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <p className="text-[color:var(--color-text-muted)]">
+                                        No items available in this category
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                                    {filteredItems.map((item) => (
+                                        <MenuItemOrderCard
+                                            key={item.id}
+                                            item={item}
+                                            canOrder={canOrder}
+                                            adding={addingItemId === item.id}
+                                            onAddToCart={handleAddToCart}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <MenuCart
+                            cart={cart}
+                            onFulfillmentChange={changeFulfillment}
+                            onAddSuggestion={(item) => handleAddToCart(item, 1)}
+                            addingItemId={addingItemId}
+                            updatingFulfillment={updatingFulfillment || !canOrder}
+                        />
                     </div>
                 </div>
-
-                <MenuCart
-                    cart={cart}
-                    onFulfillmentChange={changeFulfillment}
-                    onAddSuggestion={(item) => handleAddToCart(item, 1)}
-                    addingItemId={addingItemId}
-                    updatingFulfillment={updatingFulfillment || !canOrder}
-                />
             </AppLayout>
         </>
     );

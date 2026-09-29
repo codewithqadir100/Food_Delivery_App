@@ -41,22 +41,28 @@ export default function Checkout({
     const deliveryFeeLater = requires_login && !isPickup;
     const deliveryFeeUnavailable =
         !requires_login && !isPickup && deliveryEstimate.fee === null;
-    const deliveryFee = isPickup || deliveryFeeLater ? 0 : (deliveryEstimate.fee ?? 0);
+    const deliveryFee =
+        isPickup || deliveryFeeLater ? 0 : (deliveryEstimate.fee ?? 0);
     const total = Number(subtotal) + Number(deliveryFee);
     const canPlaceOrder =
-        !deliveryFeeUnavailable && !restaurant_unavailable && !has_unavailable_items;
+        !deliveryFeeUnavailable &&
+        !restaurant_unavailable &&
+        !has_unavailable_items;
 
     const selectAddress = async (addressId) => {
         setData("customer_address_id", addressId);
 
         try {
             setFetchingFee(true);
-            const res = await axios.get(route("customer.checkout.delivery-fee"), {
-                params: {
-                    customer_address_id: addressId,
-                    restaurant_id: restaurant.id,
+            const res = await axios.get(
+                route("customer.checkout.delivery-fee"),
+                {
+                    params: {
+                        customer_address_id: addressId,
+                        restaurant_id: restaurant.id,
+                    },
                 },
-            });
+            );
             setDeliveryEstimate({
                 fee: res.data.valid ? res.data.fee : null,
                 error: res.data.valid ? null : res.data.error,
@@ -83,7 +89,8 @@ export default function Checkout({
                     setAlert({
                         type: "error",
                         title: "Something Went Wrong",
-                        message: "Unable to place your order. Please try again.",
+                        message:
+                            "Unable to place your order. Please try again.",
                     });
                 }
             },
@@ -103,7 +110,7 @@ export default function Checkout({
                     <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)] mb-1">
                         Checkout
                     </h1>
-                    <p className="text-sm text-[color:var(--color-text-muted)] mb-6">
+                    <p className="mb-4 text-sm text-[color:var(--color-text-muted)]">
                         {requires_login ? (
                             <>
                                 Log in to place your order from{" "}
@@ -156,27 +163,30 @@ export default function Checkout({
                         </div>
                     )}
 
-                    {!isPickup && !restaurant_unavailable && deliveryFeeUnavailable && !fetchingFee && (
-                        <div className="mb-4">
-                            <Alert
-                                type="warning"
-                                title="Delivery unavailable"
-                                message={
-                                    deliveryEstimate.error ||
-                                    "We couldn't calculate delivery for the selected address. Please choose a different address."
-                                }
-                                closeable={false}
-                            />
-                        </div>
-                    )}
+                    {!isPickup &&
+                        !restaurant_unavailable &&
+                        deliveryFeeUnavailable &&
+                        !fetchingFee && (
+                            <div className="mb-4">
+                                <Alert
+                                    type="warning"
+                                    title="Delivery unavailable"
+                                    message={
+                                        deliveryEstimate.error ||
+                                        "We couldn't calculate delivery for the selected address. Please choose a different address."
+                                    }
+                                    closeable={false}
+                                />
+                            </div>
+                        )}
 
                     <form
                         onSubmit={handleSubmit}
-                        className="grid grid-cols-1 gap-[var(--spacing-5)] lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]"
+                        className="grid grid-cols-1 gap-[var(--spacing-4)] lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]"
                     >
-                        <div className="space-y-5">
+                        <div className="space-y-4">
                             {isPickup ? (
-                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-4 sm:p-5">
                                     <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
                                         Pickup from {restaurant.name}
                                     </h2>
@@ -195,121 +205,124 @@ export default function Checkout({
                                                 restaurant.city_name,
                                             ]
                                                 .filter(Boolean)
-                                                .join(", ") || "Address not available"}
+                                                .join(", ") ||
+                                                "Address not available"}
                                         </span>
                                     </p>
-                                    {restaurant.latitude && restaurant.longitude && (
-                                        <a
-                                            href={`https://www.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="mt-3 inline-flex text-sm font-medium text-[color:var(--color-primary-600)] hover:underline"
-                                        >
-                                            Open map
-                                        </a>
-                                    )}
+                                    {restaurant.latitude &&
+                                        restaurant.longitude && (
+                                            <a
+                                                href={`https://www.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="mt-3 inline-flex text-sm font-medium text-[color:var(--color-primary-600)] hover:underline"
+                                            >
+                                                Open map
+                                            </a>
+                                        )}
                                 </div>
                             ) : requires_login ? (
-                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-4 sm:p-5">
                                     <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
                                         Delivery Address
                                     </h2>
                                     <p className="mt-2 text-sm text-[color:var(--color-text-secondary)]">
-                                        Log in to choose where this order should be delivered.
+                                        Log in to choose where this order should
+                                        be delivered.
                                     </p>
                                 </div>
                             ) : (
-                            <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                                        Delivery Address
-                                    </h2>
-                                    <Link
-                                        href={route(
-                                            "customer.addresses.create",
-                                        )}
-                                        className="text-sm font-medium text-[color:var(--color-primary-600)] flex items-center gap-1 hover:underline"
-                                    >
-                                        <Plus size={14} />
-                                        Add New
-                                    </Link>
-                                </div>
-
-                                {addresses.length === 0 ? (
-                                    <p className="text-sm text-[color:var(--color-text-muted)]">
-                                        You have no saved addresses.{" "}
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-4 sm:p-5">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                                            Delivery Address
+                                        </h2>
                                         <Link
                                             href={route(
                                                 "customer.addresses.create",
                                             )}
-                                            className="text-[color:var(--color-primary-600)] hover:underline"
+                                            className="text-sm font-medium text-[color:var(--color-primary-600)] flex items-center gap-1 hover:underline"
                                         >
-                                            Add one now
+                                            <Plus size={14} />
+                                            Add New
                                         </Link>
-                                        .
-                                    </p>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {addresses.map((address) => (
-                                            <label
-                                                key={address.id}
-                                                className={`flex items-start gap-3 p-3 rounded-[var(--radius-md)] border cursor-pointer transition-colors ${
-                                                    Number(
-                                                        data.customer_address_id,
-                                                    ) === address.id
-                                                        ? "border-[color:var(--color-primary-500)] bg-[color:var(--color-primary-50)]"
-                                                        : "border-[color:var(--color-border-light)] hover:bg-[color:var(--color-bg-secondary)]"
-                                                }`}
+                                    </div>
+
+                                    {addresses.length === 0 ? (
+                                        <p className="text-sm text-[color:var(--color-text-muted)]">
+                                            You have no saved addresses.{" "}
+                                            <Link
+                                                href={route(
+                                                    "customer.addresses.create",
+                                                )}
+                                                className="text-[color:var(--color-primary-600)] hover:underline"
                                             >
-                                                <input
-                                                    type="radio"
-                                                    name="customer_address_id"
-                                                    value={address.id}
-                                                    checked={
+                                                Add one now
+                                            </Link>
+                                            .
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {addresses.map((address) => (
+                                                <label
+                                                    key={address.id}
+                                                    className={`flex items-start gap-3 p-3 rounded-[var(--radius-md)] border cursor-pointer transition-colors ${
                                                         Number(
                                                             data.customer_address_id,
                                                         ) === address.id
-                                                    }
-                                                    onChange={() =>
-                                                        selectAddress(
-                                                            address.id,
-                                                        )
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin
-                                                            size={14}
-                                                            className="text-[color:var(--color-primary-600)]"
-                                                        />
-                                                        <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                            {address.is_primary
-                                                                ? "Primary Address"
-                                                                : "Address"}
-                                                        </span>
+                                                            ? "border-[color:var(--color-primary-500)] bg-[color:var(--color-primary-50)]"
+                                                            : "border-[color:var(--color-border-light)] hover:bg-[color:var(--color-bg-secondary)]"
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="customer_address_id"
+                                                        value={address.id}
+                                                        checked={
+                                                            Number(
+                                                                data.customer_address_id,
+                                                            ) === address.id
+                                                        }
+                                                        onChange={() =>
+                                                            selectAddress(
+                                                                address.id,
+                                                            )
+                                                        }
+                                                        className="mt-1"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <MapPin
+                                                                size={14}
+                                                                className="text-[color:var(--color-primary-600)]"
+                                                            />
+                                                            <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                                                {address.is_primary
+                                                                    ? "Primary Address"
+                                                                    : "Address"}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-[color:var(--color-text-secondary)] mt-1">
+                                                            {formatAddress(
+                                                                address,
+                                                            )}
+                                                        </p>
                                                     </div>
-                                                    <p className="text-sm text-[color:var(--color-text-secondary)] mt-1">
-                                                        {formatAddress(
-                                                            address,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {errors.customer_address_id && (
-                                    <p className="mt-2 text-sm text-[color:var(--color-danger-600)]">
-                                        {errors.customer_address_id}
-                                    </p>
-                                )}
-                            </div>
+                                    {errors.customer_address_id && (
+                                        <p className="mt-2 text-sm text-[color:var(--color-danger-600)]">
+                                            {errors.customer_address_id}
+                                        </p>
+                                    )}
+                                </div>
                             )}
 
                             {/* Order Items */}
-                            <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                            <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-4 sm:p-5">
                                 <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)] mb-4">
                                     Order Items
                                 </h2>
@@ -342,7 +355,7 @@ export default function Checkout({
                             </div>
 
                             {!requires_login && (
-                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5">
+                                <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-4 sm:p-5">
                                     <TextArea
                                         label="Notes for the restaurant (optional)"
                                         value={data.notes}
@@ -358,7 +371,7 @@ export default function Checkout({
                         </div>
 
                         {/* Summary */}
-                        <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-5 h-fit space-y-4">
+                        <div className="rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-sm)] p-4 sm:p-5 h-fit space-y-4">
                             <h2 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
                                 Order Summary
                             </h2>
@@ -445,8 +458,15 @@ export default function Checkout({
                                 </Button>
                             )}
 
-                            <Link href={route("customer.cart.index")}>
-                                <Button variant="secondary" fullWidth type="button">
+                            <Link
+                                href={route("customer.cart.index")}
+                                className="block"
+                            >
+                                <Button
+                                    variant="secondary"
+                                    fullWidth
+                                    type="button"
+                                >
                                     Back to Cart
                                 </Button>
                             </Link>

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Requests\Auth;
 
@@ -15,6 +17,7 @@ class PasswordResetRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email', 'exists:users,email'],
+            'account' => ['nullable', 'in:restaurant,admin'],
         ];
     }
 }
