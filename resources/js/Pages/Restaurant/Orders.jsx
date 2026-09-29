@@ -127,7 +127,7 @@ export default function Orders({ orders, filters, stats, latest_order_id = 0 }) 
                     </div>
 
                     <DashboardCard title="All Orders">
-                        <div className="flex items-center gap-2 overflow-x-auto pb-4 -mt-2">
+                        <div className="scrollbar-none-mobile flex items-center gap-2 overflow-x-auto pb-1 -mt-2 md:pb-4">
                             {STATUS_TABS.map((tab) => (
                                 <button
                                     key={tab.key}

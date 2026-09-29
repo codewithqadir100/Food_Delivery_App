@@ -184,6 +184,19 @@ body {
     background: var(--color-gray-400);
 }
 
+@media (max-width: 767px) {
+    .scrollbar-none-mobile {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .scrollbar-none-mobile::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+}
+
 input::-ms-reveal,
 input::-ms-clear {
     display: none;

@@ -9,6 +9,7 @@ import {
     BarChart3,
     MoreHorizontal,
     Settings,
+    CreditCard,
     User,
     LogOut,
 } from "lucide-react";
@@ -46,10 +47,10 @@ const MORE_OPTIONS = [
     { label: "Help & Support", icon: HelpCircle, href: "#", key: "help" },
     { label: "Feedback", icon: MessageSquare, href: "#", key: "feedback" },
     {
-        label: "Settings",
-        icon: Settings,
-        href: "/restaurant/settings",
-        key: "settings",
+        label: "Subscription",
+        icon: CreditCard,
+        href: "/restaurant/subscription",
+        key: "subscription",
     },
 ];
 

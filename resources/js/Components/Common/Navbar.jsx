@@ -23,6 +23,27 @@ import Button from "./Button";
 import Modal from "./Modal";
 import TextInput from "../Forms/TextInput";
 
+function RestaurantLogoMark({ src, className = "" }) {
+    if (src) {
+        return (
+            <img
+                src={src}
+                className={`h-8 aspect-square rounded-[var(--radius-full)] object-cover ${className}`}
+                alt="Restaurant Logo"
+            />
+        );
+    }
+
+    return (
+        <span
+            className={`flex h-8 w-8 items-center justify-center rounded-[var(--radius-full)] bg-[color:var(--color-bg-tertiary)] text-[color:var(--color-text-secondary)] ${className}`}
+            aria-hidden="true"
+        >
+            <User size={18} />
+        </span>
+    );
+}
+
 export default function Navbar({ categories = [], RestaurantLogo }) {
     const { auth } = usePage().props;
     const user = auth?.user;
@@ -382,11 +403,10 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 href={route(
                                                     "restaurant.profile.edit",
                                                 )}
+                                                title="Restaurant profile"
                                             >
-                                                <img
+                                                <RestaurantLogoMark
                                                     src={RestaurantLogo}
-                                                    className="rounded-[var(--radius-full)] aspect-square object-cover h-8"
-                                                    alt="Restaurant Logo"
                                                 />
                                             </Link>
                                         </div>
@@ -680,11 +700,11 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             href={route(
                                                 "restaurant.profile.edit",
                                             )}
+                                            className="md:hidden"
+                                            title="Restaurant profile"
                                         >
-                                            <img
+                                            <RestaurantLogoMark
                                                 src={RestaurantLogo}
-                                                className="flex md:hidden rounded-[var(--radius-full)] aspect-square object-cover h-8"
-                                                alt="Restaurant Logo"
                                             />
                                         </Link>
                                     </>
