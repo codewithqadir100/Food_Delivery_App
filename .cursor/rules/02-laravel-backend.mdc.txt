@@ -1,0 +1,118 @@
+---
+description: Laravel backend architecture, validation, authorization, database design, controllers, models, services and API/server-side best practices.
+globs: app/**/*.php
+alwaysApply: false
+---
+
+# Laravel Backend Rules
+
+## Architecture
+
+Follow Laravel conventions and the existing project architecture.
+
+Controllers should remain focused on HTTP concerns.
+
+Do not place large amounts of business logic directly inside controllers.
+
+Use services/actions when business logic is sufficiently complex or reused.
+
+Do not create unnecessary abstractions for simple operations.
+
+## Validation
+
+Use Form Requests for non-trivial request validation.
+
+Never rely only on frontend validation.
+
+All important user input must be validated server-side.
+
+Validation rules must reflect the actual business requirements.
+
+## Authorization
+
+Authorization must be enforced server-side.
+
+Use:
+
+- Middleware
+- Policies
+- Gates
+- Role/permission checks
+
+according to the existing architecture.
+
+Never rely on frontend visibility as authorization.
+
+## Models
+
+Models must:
+
+- Protect mass assignment
+- Define appropriate relationships
+- Avoid unnecessary logic
+- Avoid unnecessary queries
+
+Use relationships instead of manually querying related records when appropriate.
+
+## Database
+
+Before changing database behavior:
+
+- Inspect existing migrations.
+- Inspect existing relationships.
+- Inspect relevant models.
+- Preserve existing data integrity.
+
+Use:
+
+- Foreign keys where appropriate
+- Indexes where appropriate
+- Appropriate column types
+- Constraints where appropriate
+
+Avoid duplicate or redundant data unless there is a clear reason.
+
+## Queries
+
+Avoid N+1 queries.
+
+Use eager loading when appropriate.
+
+Do not load entire large datasets unnecessarily.
+
+Use pagination for large collections where appropriate.
+
+Do not execute the same database query repeatedly when the result can safely be reused.
+
+## Routes
+
+Follow existing route naming conventions.
+
+Keep routes clear and appropriately protected by middleware.
+
+Do not expose sensitive functionality through unprotected routes.
+
+## File Uploads
+
+File uploads must validate:
+
+- File type
+- MIME type
+- File size
+- Appropriate storage location
+
+Never trust client-provided filenames or MIME information blindly.
+
+Follow the project's existing storage architecture.
+
+## Responses
+
+Do not expose:
+
+- Passwords
+- Tokens
+- Sensitive internal information
+- Raw exception details
+- Unnecessary private fields
+
+Use appropriate response structures consistent with the existing application.

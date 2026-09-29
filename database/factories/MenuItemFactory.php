@@ -14,7 +14,7 @@ class MenuItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'restaurant_id' => Restaurant::factory(),
+            'restaurant_id' => Restaurant::factory()->subscribed(),
             'menu_category_id' => MenuCategory::factory(),
             'name' => fake()->words(2, true),
             'description' => fake()->sentence(),

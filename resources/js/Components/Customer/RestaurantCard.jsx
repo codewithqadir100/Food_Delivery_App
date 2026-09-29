@@ -1,9 +1,12 @@
 import { router } from "@inertiajs/react";
 import Button from "@/Components/Common/Button";
 import Card from "@/Components/Common/Card";
+import Badge from "@/Components/Common/Badge";
 import { MapPin, Star, Motorbike } from "lucide-react";
 
 export default function RestaurantCard({ restaurant, user, onCardClick }) {
+    const unavailable = restaurant.listing_availability === "unavailable";
+
     const handleLoginClick = (e) => {
         e.stopPropagation();
         router.visit(route("login"));
@@ -14,8 +17,10 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
             key={restaurant.id}
             shadow={true}
             padding="none"
-            className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={onCardClick}
+            className={`overflow-hidden transition-shadow ${
+                unavailable ? "cursor-default" : "hover:shadow-lg cursor-pointer"
+            }`}
+            onClick={unavailable ? undefined : onCardClick}
         >
             {/* Cover Image */}
             <div className="aspect-video overflow-hidden bg-[color:var(--color-bg-tertiary)]">
@@ -38,10 +43,22 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
             {/* Content */}
             <div className="p-[var(--spacing-4)] space-y-[var(--spacing-3)]">
                 {/* Name */}
-                <div className=" flex items-center justify-between">
-                    <h3 className="restaurant-card-title line-clamp-2">
-                        {restaurant.name}
-                    </h3>
+                <div className=" flex items-center justify-between gap-2">
+                    <div className="min-w-0 space-y-1">
+                        <h3 className="restaurant-card-title line-clamp-2">
+                            {restaurant.name}
+                        </h3>
+                        {unavailable && (
+                            <Badge variant="warning" size="sm">
+                                Unavailable
+                            </Badge>
+                        )}
+                        {restaurant.is_featured && !unavailable && (
+                            <Badge variant="primary" size="sm">
+                                Featured
+                            </Badge>
+                        )}
+                    </div>
 
                     {/* Rating & Reviews */}
                     {restaurant.rating ? (
@@ -99,7 +116,11 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                 </div>
 
                 {/* View Menu / Login Button */}
-                {user ? (
+                {unavailable ? (
+                    <Button variant="secondary" size="md" fullWidth disabled>
+                        Unavailable
+                    </Button>
+                ) : user ? (
                     <Button
                         variant="primary"
                         size="md"

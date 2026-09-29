@@ -1,0 +1,108 @@
+---
+description: Core rules for the Food Delivery App. Defines project architecture, coding philosophy, maintainability, scalability, and repository-first development.
+globs: ""
+alwaysApply: true
+---
+
+# Food Delivery App — Core Rules
+
+## Project
+
+This is a production-level Food Delivery App built with:
+
+- Laravel
+- React
+- Inertia.js
+- MySQL
+
+The application must be treated as a long-term, scalable and maintainable product.
+
+## Repository First
+
+Before making any change:
+
+1. Inspect the existing repository structure.
+2. Inspect the relevant existing implementation.
+3. Inspect related routes, controllers, models, migrations, middleware, policies, requests, pages, components, hooks and contexts where relevant.
+4. ALWAYS inspect the existing frontend components before creating new components.
+5. Follow the architecture and patterns already established in the repository.
+
+Do not implement features based only on assumptions.
+
+## Existing Code First
+
+If functionality already exists:
+
+- Reuse it.
+- Extend it when appropriate.
+- Refactor it when necessary.
+- Do not create a second implementation of the same functionality.
+
+Do not replace working architecture unnecessarily.
+
+## Code Quality
+
+Code must be:
+
+- Production-ready
+- Secure
+- Maintainable
+- Scalable
+- Reusable
+- Performant
+- Easy to understand
+
+Do not write temporary, hacky or "just make it work" solutions.
+
+Avoid:
+
+- Duplicate code
+- Dead code
+- Unnecessary abstractions
+- Unnecessary dependencies
+- Magic values
+- Hardcoded business logic
+- Unnecessary database queries
+- Unnecessary frontend state
+
+Follow DRY and YAGNI, but do not over-engineer simple functionality.
+
+## Scope
+
+Only change what is required for the requested task.
+
+Do not modify unrelated functionality simply because you notice something that could be improved.
+
+If an existing implementation must be changed to safely support the requested feature, make the smallest appropriate architectural change.
+
+## Comments
+
+Do not add unnecessary comments to the code.
+
+Code should be self-explanatory through good naming and structure.
+
+## Architecture
+
+Prefer reusable and composable architecture.
+
+Keep responsibilities separated:
+
+- UI logic in components
+- Shared frontend state in appropriate contexts/hooks
+- Validation in Laravel Form Requests
+- Authorization in middleware/policies
+- Business logic in appropriate services/actions when justified
+- Persistence in models/repositories where appropriate
+- Configuration in config/environment rather than hardcoded values
+
+Do not force everything into a service or abstraction when simple Laravel architecture is sufficient.
+
+## Roles
+
+The application has different user types and permissions.
+
+Customer, restaurant owner, admin and super admin functionality must remain properly separated.
+
+Never assume that hiding something in React provides security.
+
+Authorization must always be enforced server-side.

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
@@ -8,6 +10,7 @@ use App\Http\Requests\Auth\RestaurantRegisterRequest;
 use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +33,7 @@ class RestaurantAuthController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated) {
+        $user = DB::transaction(function () use ($validated) {
             $user = User::create([
                 'name' => $validated['restaurant_name'],
                 'email' => $validated['email'],
@@ -47,13 +50,15 @@ class RestaurantAuthController extends Controller
                 'description' => $validated['description'] ?? null,
                 'status' => Restaurant::STATUS_PENDING,
             ]);
+
+            return $user;
         });
 
-        $user = User::where('email', $validated['email'])->first();
+        event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect()->route('restaurant.dashboard');
+        return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
     }
 
     public function createLogin(): Response
@@ -68,7 +73,7 @@ class RestaurantAuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (!Auth::attempt($credentials, $remember)) {
+        if (! Auth::attempt($credentials, $remember)) {
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
@@ -76,7 +81,7 @@ class RestaurantAuthController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->isRestaurantOwner()) {
+        if (! $user->isRestaurantOwner()) {
             Auth::logout();
             throw ValidationException::withMessages([
                 'email' => 'These credentials do not match our records.',

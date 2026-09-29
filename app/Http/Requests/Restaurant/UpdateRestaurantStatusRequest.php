@@ -11,7 +11,8 @@ class UpdateRestaurantStatusRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()?->isRestaurantOwner() === true
-            && $this->user()->isApproved()
+            && $this->user()->hasVerifiedEmail()
+            && ! $this->user()->isRejected()
             && $this->user()->restaurant !== null;
     }
 

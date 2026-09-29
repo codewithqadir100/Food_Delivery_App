@@ -6,141 +6,108 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\RestaurantResource;
 use App\Models\Restaurant;
 use App\Services\DeliveryCalculationService;
+use App\Services\RestaurantListingService;
 use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
 {
-    private const PER_PAGE = 12;
-    private const BASE_DELIVERY_FEE = 100;
-    private const PER_KM_FEE = 50;
-
     public function __construct(
-        private DeliveryCalculationService $deliveryService
+        private DeliveryCalculationService $deliveryService,
+        private RestaurantListingService $listing,
     ) {}
 
     public function index(Request $request)
     {
         $user = auth()->user();
         $categoryId = $request->get('category_id');
-        
-        $query = Restaurant::where('status', Restaurant::STATUS_APPROVED)->where('is_open', true)
-            ->with('restaurantCategory');
-        
+
+        $query = Restaurant::query()
+            ->visibleToCustomers()
+            ->with(['restaurantCategory', 'subscription.plan']);
+
         if ($categoryId) {
             $query->where('restaurant_category_id', $categoryId);
         }
-        
-        $restaurants = $query->get();
 
-        $customerAddress = $user?->isCustomer()
-                ? $user->primaryAddress
-                : null;
+        $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
+        $restaurants = $this->listing->present($query->get(), $customerAddress);
 
-            if ($customerAddress && $customerAddress->latitude !== null &&
-                $customerAddress->longitude !== null ) {
-                $restaurants = $restaurants
-                    
-                ->filter(function ($restaurant) use ($customerAddress) {
-                    $distance = $this->deliveryService->calculateDistance(
-                        $restaurant->latitude,
-                        $restaurant->longitude,
-                        $customerAddress->latitude,
-                        $customerAddress->longitude,
-                    );
-                    
-                    return $distance <= $restaurant->service_radius_km;
-                })
-                ->values()
-                ->each(function($restaurant) use ($customerAddress) {
-                    $distance = $this->deliveryService->calculateDistance(
-                        $restaurant->latitude,
-                        $restaurant->longitude,
-                        $customerAddress->latitude,
-                        $customerAddress->longitude,
-                    );
-                    
-                    $restaurant->distance_km = round($distance, 2);
-                    $restaurant->delivery_charge = $this->deliveryService->calculateDeliveryCharge(
-                        $distance,
-                        self::BASE_DELIVERY_FEE,
-                        self::PER_KM_FEE
-                    );
-                });
-        } else {
-            $restaurants = $restaurants->each(function($restaurant) {
-                $restaurant->distance_km = null;
-                $restaurant->delivery_charge = null;
-            });
-        }
-
-        $page = $request->get('page', 1);
-        $paginated = $restaurants->forPage($page, self::PER_PAGE);
+        $page = (int) $request->get('page', 1);
+        $perPage = 12;
+        $paginated = $restaurants->forPage($page, $perPage);
         $total = $restaurants->count();
 
         return response()->json([
             'data' => RestaurantResource::collection($paginated),
             'meta' => [
                 'current_page' => $page,
-                'per_page' => self::PER_PAGE,
+                'per_page' => $perPage,
                 'total' => $total,
-                'last_page' => ceil($total / self::PER_PAGE),
-            ]
+                'last_page' => (int) ceil($total / $perPage),
+            ],
         ]);
     }
 
     public function show($id)
     {
         $user = auth()->user();
-        
-        $restaurant = Restaurant::where('status', Restaurant::STATUS_APPROVED)
-            ->with('restaurantCategory')
+
+        $restaurant = Restaurant::query()
+            ->with(['restaurantCategory', 'subscription.plan'])
             ->findOrFail($id);
 
-        $customerAddress = $user?->isCustomer()
-            ? $user->primaryAddress
-            : null;
+        if ($restaurant->listingAvailability() === Restaurant::LISTING_HIDDEN) {
+            abort(404);
+        }
+
+        $restaurant->listing_availability = $restaurant->listingAvailability();
+        $restaurant->is_featured = (bool) $restaurant->subscription?->plan?->isFeatured();
+
+        $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
 
         $distance_km = null;
         $delivery_charge = null;
 
-        if ( $customerAddress && $customerAddress->latitude !== null &&
-                $customerAddress->longitude !== null
-            ) {
+        if (
+            $customerAddress
+            && $customerAddress->latitude !== null
+            && $customerAddress->longitude !== null
+            && $restaurant->latitude !== null
+            && $restaurant->longitude !== null
+        ) {
             $distance = $this->deliveryService->calculateDistance(
-                $restaurant->latitude,
-                $restaurant->longitude,
-                $customerAddress->latitude,
-                $customerAddress->longitude,
+                (float) $restaurant->latitude,
+                (float) $restaurant->longitude,
+                (float) $customerAddress->latitude,
+                (float) $customerAddress->longitude,
             );
 
-            $validation = $this->deliveryService->validateDeliveryLocation(
-                $restaurant->latitude,
-                $restaurant->longitude,
-                $restaurant->service_radius_km,
-                $customerAddress->latitude,
-                $customerAddress->longitude,
-            );
+            if ($restaurant->isOrderable()) {
+                $validation = $this->deliveryService->validateDeliveryLocation(
+                    (float) $restaurant->latitude,
+                    (float) $restaurant->longitude,
+                    (int) $restaurant->service_radius_km,
+                    (float) $customerAddress->latitude,
+                    (float) $customerAddress->longitude,
+                );
 
-            if (!$validation['valid']) {
-                return response()->json([
-                    'message' => $validation['error'],
-                    'restaurant' => null
-                ], 400);
+                if (! $validation['valid']) {
+                    return response()->json([
+                        'message' => $validation['error'],
+                        'restaurant' => null,
+                    ], 400);
+                }
             }
 
             $distance_km = round($distance, 2);
-            $delivery_charge = $this->deliveryService->calculateDeliveryCharge(
-                $distance,
-                self::BASE_DELIVERY_FEE,
-                self::PER_KM_FEE
-            );
+            $delivery_charge = $this->deliveryService->calculateDeliveryCharge($distance);
         }
 
         $restaurant->distance_km = $distance_km;
         $restaurant->delivery_charge = $delivery_charge;
 
         return response()->json([
-            'data' => RestaurantResource::make($restaurant)
+            'data' => RestaurantResource::make($restaurant),
         ]);
     }
 
@@ -149,65 +116,27 @@ class RestaurantController extends Controller
         $query = $request->get('q', '');
         $categoryId = $request->get('category_id');
         $user = auth()->user();
- 
-        $restaurants = Restaurant::where('status', Restaurant::STATUS_APPROVED)
-            ->where(function($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%")
-                  ->orWhereHas('restaurantCategory', function($subQ) use ($query) {
-                      $subQ->where('name', 'LIKE', "%{$query}%");
-                  });
-            })
-            ->with('restaurantCategory');
-        
-        if ($categoryId) {
-            $restaurants = $restaurants->where('restaurant_category_id', $categoryId);
-        }
-        
-        $restaurants = $restaurants->get();
 
-        $customerAddress = $user?->isCustomer()
-            ? $user->primaryAddress
-            : null;
- 
-        if ( $customerAddress && $customerAddress->latitude !== null &&
-                $customerAddress->longitude !== null
-            ) {
-            $restaurants = $restaurants
-                ->filter(function($restaurant) use ($customerAddress) {
-                    $distance = $this->deliveryService->calculateDistance(
-                        $restaurant->latitude,
-                        $restaurant->longitude,
-                        $customerAddress->latitude,
-                        $customerAddress->longitude,
-                    );
-                    
-                    return $distance <= $restaurant->service_radius_km;
-                })
-                ->values()
-                ->each(function ($restaurant) use ($customerAddress) {
-                    $distance = $this->deliveryService->calculateDistance(
-                        $restaurant->latitude,
-                        $restaurant->longitude,
-                        $customerAddress->latitude,
-                        $customerAddress->longitude,
-                    );
-                    
-                    $restaurant->distance_km = round($distance, 2);
-                    $restaurant->delivery_charge = $this->deliveryService->calculateDeliveryCharge(
-                        $distance,
-                        self::BASE_DELIVERY_FEE,
-                        self::PER_KM_FEE
-                    );
-                });
-        } else {
-            $restaurants = $restaurants->each(function($restaurant) {
-                $restaurant->distance_km = null;
-                $restaurant->delivery_charge = null;
-            });
+        $restaurants = Restaurant::query()
+            ->visibleToCustomers()
+            ->where(function ($builder) use ($query) {
+                $builder->where('name', 'LIKE', "%{$query}%")
+                    ->orWhereHas('restaurantCategory', function ($subQuery) use ($query) {
+                        $subQuery->where('name', 'LIKE', "%{$query}%");
+                    });
+            })
+            ->with(['restaurantCategory', 'subscription.plan']);
+
+        if ($categoryId) {
+            $restaurants->where('restaurant_category_id', $categoryId);
         }
- 
+
+        $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
+
         return response()->json([
-            'data' => RestaurantResource::collection($restaurants->take(12))
+            'data' => RestaurantResource::collection(
+                $this->listing->present($restaurants->get(), $customerAddress)->take(12)
+            ),
         ]);
     }
 }

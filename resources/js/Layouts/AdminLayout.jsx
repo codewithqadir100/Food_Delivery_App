@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, router, usePage } from "@inertiajs/react";
-import { LayoutDashboard, Store, ShieldCheck, LogOut } from "lucide-react";
+import { LayoutDashboard, Store, ShieldCheck, Wallet, LogOut } from "lucide-react";
 import Logo from "@/assets/logo.png";
 import Button from "@/Components/Common/Button";
 import Modal from "@/Components/Common/Modal";
@@ -27,7 +27,15 @@ export default function AdminLayout({ title, subtitle, children }) {
                       label: "Restaurants",
                       href: route("super-admin.restaurants.pending"),
                       icon: Store,
-                      active: Boolean(url?.startsWith("/super-admin/restaurants")),
+                      active: Boolean(
+                          url?.startsWith("/super-admin/restaurants"),
+                      ),
+                  },
+                  {
+                      label: "Payments",
+                      href: route("super-admin.payments.pending"),
+                      icon: Wallet,
+                      active: Boolean(url?.startsWith("/super-admin/payments")),
                   },
                   {
                       label: "Admins",
@@ -87,7 +95,7 @@ export default function AdminLayout({ title, subtitle, children }) {
 
             <aside className="hidden md:flex md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-fixed)] md:w-64 md:flex-col md:border-r md:border-[color:var(--color-border)] md:bg-[color:var(--color-bg-primary)]">
                 <div className="flex h-16 items-center border-b border-[color:var(--color-border-light)] px-4">
-                    <Link href={route("admin.dashboard")}>
+                    <Link href={route("home")}>
                         <img src={Logo} alt="FoodHub" className="h-8 w-auto" />
                     </Link>
                 </div>
@@ -142,10 +150,18 @@ export default function AdminLayout({ title, subtitle, children }) {
 
                 <div className="space-y-6 p-4 sm:p-8">
                     {flash?.success && (
-                        <Alert type="success" title="Success" message={flash.success} />
+                        <Alert
+                            type="success"
+                            title="Success"
+                            message={flash.success}
+                        />
                     )}
                     {flash?.error && (
-                        <Alert type="error" title="Error" message={flash.error} />
+                        <Alert
+                            type="error"
+                            title="Error"
+                            message={flash.error}
+                        />
                     )}
 
                     <div className="flex gap-2 overflow-x-auto md:hidden">

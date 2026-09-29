@@ -10,6 +10,7 @@ use Inertia\Inertia;
 class CustomerRestaurantMenuController extends Controller
 {
     private const BASE_DELIVERY_FEE = 100;
+
     private const PER_KM_FEE = 50;
 
     public function __construct(
@@ -18,7 +19,9 @@ class CustomerRestaurantMenuController extends Controller
 
     public function show(Restaurant $restaurant)
     {
-        if ($restaurant->status !== 'approved' || !$restaurant->is_open) {
+        $restaurant->loadMissing('subscription');
+
+        if (! $restaurant->isOrderable()) {
             abort(404);
         }
 

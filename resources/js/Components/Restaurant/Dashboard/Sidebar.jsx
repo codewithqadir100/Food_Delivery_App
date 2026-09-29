@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { useMemo } from "react";
 import {
     LayoutDashboard,
     Menu,
@@ -8,8 +9,9 @@ import {
     User,
     LogOut,
     ChevronDown,
+    CreditCard,
 } from "lucide-react";
-import { useMemo } from "react";
+import { isRestaurantNavLocked } from "./restaurantNavLocked";
 import SidebarItem from "./SidebarItem";
 import Logo from "@/assets/logo.png";
 
@@ -25,6 +27,12 @@ const MENU_ITEMS = [
         icon: Menu,
         href: "/restaurant/menu",
         key: "menu",
+    },
+    {
+        label: "Subscription",
+        icon: CreditCard,
+        href: "/restaurant/subscription",
+        key: "subscription",
     },
     {
         label: "Orders",
@@ -43,7 +51,8 @@ const MENU_ITEMS = [
 export default function Sidebar({
     restaurantName,
     currentRoute = "",
-    isPending = false,
+    isApproved = false,
+    onboardingComplete = false,
     isCollapsed = false,
     onCollapsedChange,
     onLogout = null,
@@ -80,7 +89,10 @@ export default function Sidebar({
                     image={item.image}
                     isActive={isActive(item.key)}
                     badge={item.badge}
-                    disabled={isPending && item.key !== "dashboard"}
+                    disabled={isRestaurantNavLocked(item.key, {
+                        isApproved,
+                        onboardingComplete,
+                    })}
                 />
             </div>
         ));

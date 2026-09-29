@@ -7,13 +7,14 @@ import {
     MessageSquare,
     ShoppingCart,
     BarChart3,
+    CreditCard,
     MoreHorizontal,
     Settings,
-    CreditCard,
     User,
     LogOut,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { isRestaurantNavLocked } from "./restaurantNavLocked";
 import Logo from "@/assets/logo.png";
 
 const NAV_ITEMS = [
@@ -28,6 +29,12 @@ const NAV_ITEMS = [
         icon: Menu,
         href: "/restaurant/menu",
         key: "menu",
+    },
+    {
+        label: "Subscription",
+        icon: CreditCard,
+        href: "/restaurant/subscription",
+        key: "subscription",
     },
     {
         label: "Orders",
@@ -56,7 +63,8 @@ const MORE_OPTIONS = [
 
 export default function MobileNav({
     currentRoute = "dashboard",
-    isPending = false,
+    isApproved = false,
+    onboardingComplete = false,
     onLogout = null,
     notificationCount = 0,
     onNotificationsClick,
@@ -150,16 +158,28 @@ export default function MobileNav({
                         {MORE_OPTIONS.map((item) => {
                             const Icon = item.icon;
                             const active = isActive(item.key);
+                            const disabled = isRestaurantNavLocked(item.key, {
+                                isApproved,
+                                onboardingComplete,
+                            });
 
                             return (
                                 <Link
                                     key={item.key}
-                                    href={item.href}
-                                    onClick={() => setShowMore(false)}
+                                    href={disabled ? "#" : item.href}
+                                    onClick={(e) => {
+                                        if (disabled) {
+                                            e.preventDefault();
+                                            return;
+                                        }
+                                        setShowMore(false);
+                                    }}
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-sm)] text-sm font-medium transition-colors ${
-                                        active
-                                            ? "text-[color:var(--color-primary-600)] bg-[color:var(--color-primary-100)]"
-                                            : "text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-bg-tertiary)]"
+                                        disabled
+                                            ? "cursor-not-allowed opacity-50 text-[color:var(--color-text-muted)]"
+                                            : active
+                                              ? "text-[color:var(--color-primary-600)] bg-[color:var(--color-primary-100)]"
+                                              : "text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-bg-tertiary)]"
                                     }`}
                                 >
                                     <Icon size={18} />
@@ -189,7 +209,10 @@ export default function MobileNav({
                 {NAV_ITEMS.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.key);
-                    const disabled = isPending && item.key !== "dashboard";
+                    const disabled = isRestaurantNavLocked(item.key, {
+                        isApproved,
+                        onboardingComplete,
+                    });
 
                     return (
                         <Link

@@ -12,7 +12,11 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call(RestaurantCategorySeeder::class,AdminSeeder::class);
+        $this->call([
+            RestaurantCategorySeeder::class,
+            AdminSeeder::class,
+            PlanSeeder::class,
+        ]);
 
         User::factory()->create([
             'name' => 'Test User',

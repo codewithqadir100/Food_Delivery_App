@@ -15,8 +15,12 @@ export default function RestaurantLayout({
 }) {
     const { url, props } = usePage();
     const { auth } = props;
-    const restaurant = props.restaurant ?? auth?.restaurant ?? null;
+    const restaurantRecord = props.restaurant ?? auth?.restaurant ?? null;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const isApproved =
+        auth?.user?.status === "approved" &&
+        restaurantRecord?.status === "approved";
+    const onboardingComplete = Boolean(auth?.onboarding?.complete);
     const currentRoute = url;
     const resolvedNotificationCount =
         notificationCount ?? auth?.notifications_count ?? 0;
@@ -86,19 +90,21 @@ export default function RestaurantLayout({
             </div>
             <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
                 <Sidebar
-                    Restaurantlogo={restaurant?.logo_url}
-                    restaurantName={restaurant?.name}
+                    Restaurantlogo={restaurantRecord?.logo_url}
+                    restaurantName={restaurantRecord?.name}
                     currentRoute={currentRoute}
-                    isPending={isPending}
+                    isApproved={isApproved}
+                    onboardingComplete={onboardingComplete}
                     isCollapsed={isSidebarCollapsed}
                     onCollapsedChange={setIsSidebarCollapsed}
                     onLogout={handleLogout}
                 />
 
                 <MobileNav
-                    Restaurantlogo={restaurant?.logo_url}
+                    Restaurantlogo={restaurantRecord?.logo_url}
                     currentRoute={currentRoute}
-                    isPending={isPending}
+                    isApproved={isApproved}
+                    onboardingComplete={onboardingComplete}
                     onLogout={handleLogout}
                     notificationCount={resolvedNotificationCount}
                     onNotificationsClick={onNotificationsClick}
@@ -113,7 +119,7 @@ export default function RestaurantLayout({
                         <Header
                             title={pageTitle}
                             subtitle={pageSubtitle}
-                            isRestaurantOpen={restaurant?.is_open ?? false}
+                            isRestaurantOpen={restaurantRecord?.is_open ?? false}
                             notificationCount={resolvedNotificationCount}
                             onNotificationsClick={onNotificationsClick}
                         />

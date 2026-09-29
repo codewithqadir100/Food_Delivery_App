@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
@@ -25,8 +27,7 @@ class CheckoutController extends Controller
     public function __construct(
         private readonly CartService $cart,
         private readonly DeliveryCalculationService $deliveryService,
-    ) {
-    }
+    ) {}
 
     public function show(?Restaurant $restaurant = null): Response|RedirectResponse
     {
@@ -56,7 +57,7 @@ class CheckoutController extends Controller
             'delivery_fee' => $isPickup ? 0 : ($deliveryEstimate['valid'] ?? false ? $deliveryEstimate['fee'] : null),
             'delivery_error' => $isPickup || !$deliveryEstimate || $deliveryEstimate['valid'] ? null : $deliveryEstimate['error'],
             'has_unavailable_items' => $this->cart->hasUnavailableItems($restaurant->id),
-            'restaurant_unavailable' => !$restaurant->isApproved() || !$restaurant->is_open,
+            'restaurant_unavailable' => ! $restaurant->isOrderable(),
         ]);
     }
 
@@ -67,14 +68,14 @@ class CheckoutController extends Controller
             : $this->cart->soleRestaurantId();
         $restaurant = $restaurantId ? Restaurant::find($restaurantId) : null;
 
-        if (!$restaurant) {
+        if (! $restaurant) {
             return response()->json(['valid' => false, 'error' => 'Restaurant not found.'], 404);
         }
 
         $address = CustomerAddress::where('customer_id', Auth::id())
             ->find($request->query('customer_address_id'));
 
-        if (!$address) {
+        if (! $address) {
             return response()->json(['valid' => false, 'error' => 'Address not found.'], 404);
         }
 
@@ -190,12 +191,8 @@ class CheckoutController extends Controller
 
     private function assertRestaurantCanReceiveOrders(Restaurant $restaurant): void
     {
-        if (!$restaurant->isApproved()) {
-            throw new RuntimeException('This restaurant is not currently accepting orders.');
-        }
-
-        if (!$restaurant->is_open) {
-            throw new RuntimeException('This restaurant is currently closed. Please try again later.');
+        if (! $restaurant->isOrderable()) {
+            throw new RuntimeException('This restaurant is currently unavailable.');
         }
     }
 
@@ -233,11 +230,11 @@ class CheckoutController extends Controller
 
     private function estimateDeliveryFee(Restaurant $restaurant, CustomerAddress $address): array
     {
-        if (!$restaurant->latitude || !$restaurant->longitude) {
+        if (! $restaurant->latitude || ! $restaurant->longitude) {
             return ['valid' => false, 'error' => 'This restaurant has not configured its delivery location yet.'];
         }
 
-        if (!$address->latitude || !$address->longitude) {
+        if (! $address->latitude || ! $address->longitude) {
             return ['valid' => false, 'error' => 'Your selected address is missing location coordinates.'];
         }
 
@@ -249,7 +246,7 @@ class CheckoutController extends Controller
             (float) $address->longitude,
         );
 
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'valid' => false,
                 'error' => $validation['error'] === 'Delivery location is outside service zone'

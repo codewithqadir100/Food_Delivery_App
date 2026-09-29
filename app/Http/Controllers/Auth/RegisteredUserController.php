@@ -1,11 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\CustomerRegisterRequest;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,8 +30,6 @@ class RegisteredUserController extends Controller
             'role' => User::ROLE_CUSTOMER,
             'status' => User::STATUS_APPROVED,
         ]);
-
-        event(new Registered($user));
 
         Auth::login($user);
 

@@ -19,11 +19,22 @@ class HandleRestaurantLocationUpdate
         $newLat = $event->newLocation['latitude'];
         $newLon = $event->newLocation['longitude'];
 
+        if ($oldLat === null || $oldLon === null || $newLat === null || $newLon === null) {
+            Log::channel('delivery')->info('Restaurant location set', [
+                'restaurant_id' => $event->restaurant->id,
+                'restaurant_name' => $event->restaurant->name,
+                'new_city' => $event->newLocation['city_name'],
+                'timestamp' => now(),
+            ]);
+
+            return;
+        }
+
         $distanceMoved = $this->deliveryService->calculateDistance(
-            $oldLat,
-            $oldLon,
-            $newLat,
-            $newLon
+            (float) $oldLat,
+            (float) $oldLon,
+            (float) $newLat,
+            (float) $newLon
         );
 
         Log::channel('delivery')->info('Restaurant location updated', [
