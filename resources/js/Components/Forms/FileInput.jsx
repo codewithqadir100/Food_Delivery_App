@@ -93,6 +93,7 @@ export default function FileInput({
                             src={preview}
                             alt="Preview"
                             className="max-h-48 mx-auto rounded-lg object-cover"
+                            loading="lazy"
                         />
                         <button
                             type="button"

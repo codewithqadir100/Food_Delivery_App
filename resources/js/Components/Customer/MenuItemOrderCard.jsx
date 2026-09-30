@@ -19,10 +19,10 @@ export default function MenuItemOrderCard({
     return (
         <article className="flex items-start gap-[var(--spacing-4)] rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-bg-secondary)] p-[var(--spacing-3)]">
             <div className="min-w-0 flex-1 space-y-1">
-                <h3 className="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                <h3 className="text-base font-semibold text-[color:var(--color-text-primary)]">
                     {item.name}
                 </h3>
-                <p className="text-sm font-semibold text-[color:var(--color-primary-600)]">
+                <p className="text-base font-semibold text-[color:var(--color-primary-600)]">
                     {formatCurrency(item.price)}
                 </p>
                 {item.description ? (

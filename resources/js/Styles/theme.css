@@ -137,10 +137,11 @@
     --restaurant-mobile-top-nav: 3.5rem;
     --restaurant-mobile-bottom-nav: 4rem;
 
-    /* Desktop customer navbar: 4rem top bar plus the 4rem link bar */
-    --customer-nav-height: 10rem;
+    /* Mobile navbar is the 4rem top bar. Desktop adds the link bar. */
+    --customer-nav-height: calc(4rem + 1px);
+    --menu-filter-height: 4rem;
     --menu-cart-height: calc(
-        100dvh - var(--customer-nav-height) - var(--spacing-6)
+        100dvh - var(--customer-nav-height) - var(--menu-filter-height)
     );
 
     /* Z-index */
@@ -152,6 +153,13 @@
     --z-tooltip: 1070;
     --z-modal-backdrop: 1080;
     --z-modal: 1090;
+}
+
+@media (min-width: 768px) {
+    :root {
+        /* h-16 top bar, border, py-2 link bar, h-12, border */
+        --customer-nav-height: calc(8rem + 2px);
+    }
 }
 
 * {

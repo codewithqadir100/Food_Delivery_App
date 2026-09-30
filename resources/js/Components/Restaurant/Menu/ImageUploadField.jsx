@@ -21,7 +21,11 @@ export default function ImageUploadField({
             return;
         }
 
-        if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+        if (
+            !["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+                file.type,
+            )
+        ) {
             return;
         }
 
@@ -78,6 +82,7 @@ export default function ImageUploadField({
                         src={previewUrl}
                         alt="Preview"
                         className="w-full h-48 object-cover rounded-[var(--radius-md)] border border-[color:var(--color-border)]"
+                        loading="lazy"
                     />
                     <button
                         type="button"
@@ -118,7 +123,7 @@ export default function ImageUploadField({
                         Drop your image here or click to select
                     </p>
                     <p className="text-xs text-[color:var(--color-text-muted)] mt-1">
-                        Supported: JPG, PNG (Max {maxSize}MB)
+                        Supported: JPG, PNG, WEBP (Max {maxSize}MB)
                     </p>
                 </div>
             )}
@@ -126,7 +131,7 @@ export default function ImageUploadField({
             <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/jpg"
+                accept="image/jpeg,image/png,image/jpg/webp"
                 onChange={(e) => handleFileSelect(e.target.files?.[0])}
                 className="hidden"
             />

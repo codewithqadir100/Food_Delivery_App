@@ -8,6 +8,7 @@ export default function ItemThumb({ src, alt = "", className = "w-16" }) {
                     src={src}
                     alt={alt}
                     className="h-full w-full object-cover"
+                    loading="lazy"
                 />
             ) : null}
         </div>

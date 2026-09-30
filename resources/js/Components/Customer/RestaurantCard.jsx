@@ -30,6 +30,7 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                                 ? ""
                                 : "transition-transform hover:scale-105"
                         }`}
+                        loading="lazy"
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center">
@@ -101,7 +102,8 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                     </div>
 
                     <p className="restaurant-card-delivery-charges font-semibold">
-                        Rs. {showDeliveryCharge ? restaurant.delivery_charge : "--"}
+                        Rs.{" "}
+                        {showDeliveryCharge ? restaurant.delivery_charge : "--"}
                     </p>
                 </div>
             </div>

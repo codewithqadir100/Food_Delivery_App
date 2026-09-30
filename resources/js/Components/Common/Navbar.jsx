@@ -50,6 +50,7 @@ function RestaurantLogoMark({ src, className = "" }) {
                 src={src}
                 className={`h-8 aspect-square rounded-[var(--radius-full)] object-cover ${className}`}
                 alt="Restaurant Logo"
+                loading="lazy"
             />
         );
     }
@@ -259,6 +260,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     src={Logo}
                                     alt="FoodHub"
                                     className="h-9 w-auto"
+                                    loading="lazy"
                                 />
                             </Link>
                         </div>
@@ -433,9 +435,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     ) : isAdminUser ? (
                                         <div className="flex gap-[var(--spacing-4)] items-center">
                                             <Link
-                                                href={route(
-                                                    "admin.dashboard",
-                                                )}
+                                                href={route("admin.dashboard")}
                                             >
                                                 <Button size="sm">
                                                     <LayoutDashboard
@@ -926,6 +926,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                 src={Logo}
                                 alt="FoodHub"
                                 className="h-8 w-auto"
+                                loading="lazy"
                             />
                             <button
                                 onClick={() => setMobileMenuOpen(false)}
@@ -1091,9 +1092,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 </div>
                                             </div>
                                             <Link
-                                                href={route(
-                                                    "admin.dashboard",
-                                                )}
+                                                href={route("admin.dashboard")}
                                                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                                 onClick={() =>
                                                     setMobileMenuOpen(false)

@@ -16,6 +16,7 @@ export default function MenuItemCard({
                         src={item.image_url}
                         alt={item.name}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">

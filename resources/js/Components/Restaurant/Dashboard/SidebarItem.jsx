@@ -17,6 +17,7 @@ export default function SidebarItem({
                         src={image}
                         className="h-8 aspect-square object-cover rounded-[var(--radius-full)]"
                         alt="Restaurant Logo"
+                        loading="lazy"
                     />
                 ) : (
                     Icon && <Icon size={20} className="flex-shrink-0" />
@@ -44,7 +45,8 @@ export default function SidebarItem({
                 <img
                     src={image}
                     className="h-8 aspect-square object-cover rounded-[var(--radius-full)]"
-                    alt=""
+                    alt="Restaurant Logo"
+                    loading="lazy"
                 />
             ) : (
                 Icon && <Icon size={20} className="flex-shrink-0" />

@@ -64,6 +64,7 @@ export default function Footer() {
                                 src={Logo}
                                 alt="FoodHub"
                                 className="h-9 w-auto"
+                                loading="lazy"
                             />
                         </Link>
 

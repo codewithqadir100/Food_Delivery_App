@@ -30,6 +30,7 @@ export default function AuthLayout({ children }) {
                                     src={Logo}
                                     alt="FoodHub"
                                     className="h-20 w-auto"
+                                    loading="lazy"
                                 />
                             </Link>
                         </div>
@@ -54,6 +55,7 @@ export default function AuthLayout({ children }) {
                                 src={Logo}
                                 alt="FoodHub"
                                 className="h-14 w-auto"
+                                loading="lazy"
                             />
                         </Link>
                     </div>

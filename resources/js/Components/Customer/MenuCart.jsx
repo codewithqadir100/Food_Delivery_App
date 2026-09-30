@@ -23,7 +23,7 @@ export default function MenuCart({
 
     return (
         <>
-            <aside className="sticky top-[var(--customer-nav-height)] z-[var(--z-sticky)] hidden h-[var(--menu-cart-height)] w-80 shrink-0 self-start md:block">
+            <aside className="sticky top-[calc(var(--customer-nav-height)+var(--menu-filter-height))] z-[var(--z-sticky)] hidden h-[var(--menu-cart-height)] w-80 shrink-0 self-start md:block">
                 <Card
                     padding="none"
                     className="flex h-full flex-col overflow-hidden"

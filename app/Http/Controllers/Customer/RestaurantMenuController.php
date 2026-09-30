@@ -41,6 +41,7 @@ class RestaurantMenuController extends Controller
                     'name' => $restaurant->name,
                     'logo' => $restaurant->logo_url,
                     'logo_url' => $restaurant->logo_url,
+                    'cover_image_url' => $restaurant->cover_image_url,
                     'rating' => $restaurant->rating,
                     'review_count' => $restaurant->review_count ?? 0,
                     'category' => $restaurant->restaurantCategory?->name,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import RestaurantHeader from "@/Components/Customer/RestaurantHeader";
@@ -16,6 +16,9 @@ export default function RestaurantMenu({
 }) {
     const [menuData, setMenuData] = useState(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const [query, setQuery] = useState("");
+    const ignoreSpy = useRef(false);
+    const [pendingScrollId, setPendingScrollId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [addingItemId, setAddingItemId] = useState(null);
     const [alert, setAlert] = useState(null);
@@ -149,6 +152,79 @@ export default function RestaurantMenu({
         (cart?.items ?? []).find((line) => line.menu_item_id === itemId)
             ?.quantity ?? 0;
 
+    const selectCategory = (id) => {
+        ignoreSpy.current = true;
+        setQuery("");
+        setSelectedCategoryId(id);
+        setPendingScrollId(id);
+    };
+
+    useEffect(() => {
+        if (pendingScrollId == null) {
+            return undefined;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            document
+                .getElementById(`menu-category-${pendingScrollId}`)
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        const timer = window.setTimeout(() => {
+            ignoreSpy.current = false;
+            setPendingScrollId(null);
+        }, 800);
+
+        return () => {
+            cancelAnimationFrame(frame);
+            window.clearTimeout(timer);
+        };
+    }, [pendingScrollId]);
+
+    useEffect(() => {
+        if (!menuData) {
+            return undefined;
+        }
+
+        const sections = [...document.querySelectorAll("[data-menu-section]")];
+        if (sections.length === 0) {
+            return undefined;
+        }
+
+        let frame = 0;
+        const updateActiveSection = () => {
+            if (ignoreSpy.current) {
+                return;
+            }
+
+            const marker =
+                document
+                    .querySelector("[data-menu-filter]")
+                    ?.getBoundingClientRect().bottom ?? 0;
+            let active = sections[0];
+
+            sections.forEach((section) => {
+                if (section.getBoundingClientRect().top <= marker + 8) {
+                    active = section;
+                }
+            });
+
+            const id = Number(active.dataset.menuSection);
+            setSelectedCategoryId((current) => (current === id ? current : id));
+        };
+        const onScroll = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(updateActiveSection);
+        };
+
+        updateActiveSection();
+        window.addEventListener("scroll", onScroll, { passive: true });
+
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener("scroll", onScroll);
+        };
+    }, [menuData, query]);
+
     if (loading) {
         return (
             <>
@@ -177,11 +253,33 @@ export default function RestaurantMenu({
         );
     }
 
-    const filteredItems = selectedCategoryId
-        ? menuData.items.filter(
-              (item) => item.category_id === selectedCategoryId,
+    const search = query.trim().toLowerCase();
+    const sections = menuData.categories
+        .map((category) => ({
+            ...category,
+            items: menuData.items.filter(
+                (item) => item.category_id === category.id,
+            ),
+        }))
+        .filter((section) => section.items.length > 0);
+    const results = search
+        ? menuData.items.filter((item) =>
+              item.name.toLowerCase().includes(search),
           )
-        : menuData.items;
+        : [];
+
+    const renderMenuItem = (item) => (
+        <MenuItemOrderCard
+            key={item.id}
+            item={item}
+            quantity={quantityFor(item.id)}
+            canOrder={canOrder}
+            busy={addingItemId === item.id}
+            onAdd={() => handleAddToCart(item, 1)}
+            onChangeQuantity={(next) => handleSetQuantity(item, next)}
+            onRemove={() => handleSetQuantity(item, 0)}
+        />
+    );
 
     return (
         <>
@@ -203,66 +301,103 @@ export default function RestaurantMenu({
                         restaurant={menuData.restaurant}
                         deliveryCharge={delivery_charge}
                         distance={distance_km}
-                        onBack={() => window.history.back()}
-                    />
-
-                    <CategoryFilterTabs
-                        categories={menuData.categories}
-                        selectedCategoryId={selectedCategoryId}
-                        onSelect={setSelectedCategoryId}
                     />
 
                     <div
-                        className={`mx-auto flex max-w-6xl items-start gap-6 px-4 py-8 ${
-                            cart?.items?.length ? "pb-24 md:pb-8" : ""
+                        className={`mx-auto max-w-6xl ${
+                            cart?.items?.length ? "pb-24 md:pb-8" : "pb-8"
                         }`}
                     >
-                        <div className="min-w-0 flex-1">
-                            {filteredItems.length === 0 ? (
-                                <div className="py-12 text-center">
-                                    <p className="text-[color:var(--color-text-muted)]">
-                                        No items available in this category
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 gap-[var(--spacing-6)] sm:grid-cols-2">
-                                    {filteredItems.map((item) => (
-                                        <MenuItemOrderCard
-                                            key={item.id}
-                                            item={item}
-                                            quantity={quantityFor(item.id)}
-                                            canOrder={canOrder}
-                                            busy={addingItemId === item.id}
-                                            onAdd={() =>
-                                                handleAddToCart(item, 1)
-                                            }
-                                            onChangeQuantity={(quantity) =>
-                                                handleSetQuantity(
-                                                    item,
-                                                    quantity,
-                                                )
-                                            }
-                                            onRemove={() =>
-                                                handleSetQuantity(item, 0)
+                        <CategoryFilterTabs
+                            categories={menuData.categories}
+                            selectedCategoryId={selectedCategoryId}
+                            onSelect={selectCategory}
+                            query={query}
+                            onQueryChange={setQuery}
+                        />
+
+                        <div className="flex items-start gap-6">
+                            <div className="min-w-0 flex-1">
+                                <div className="space-y-[var(--spacing-8)] py-[var(--spacing-6)]">
+                                    {search && (
+                                        <SearchResults
+                                            query={query.trim()}
+                                            items={results}
+                                            renderItem={(item) =>
+                                                renderMenuItem(item)
                                             }
                                         />
-                                    ))}
+                                    )}
+                                    {sections.length === 0 ? (
+                                        <p className="py-12 text-center text-sm text-[color:var(--color-text-muted)]">
+                                            No items available
+                                        </p>
+                                    ) : (
+                                        sections.map((section) => (
+                                            <section
+                                                key={section.id}
+                                                id={`menu-category-${section.id}`}
+                                                data-menu-section={section.id}
+                                                className="scroll-mt-[calc(var(--customer-nav-height)+var(--menu-filter-height))]"
+                                            >
+                                                <h2 className="mb-[var(--spacing-4)] text-lg sm:text-xl font-semibold text-[color:var(--color-text-primary)]">
+                                                    {section.name}
+                                                </h2>
+                                                <ItemGrid>
+                                                    {section.items.map((item) =>
+                                                        renderMenuItem(item),
+                                                    )}
+                                                </ItemGrid>
+                                            </section>
+                                        ))
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
 
-                        <MenuCart
-                            cart={cart}
-                            onFulfillmentChange={changeFulfillment}
-                            onAddSuggestion={(item) => handleAddToCart(item, 1)}
-                            addingItemId={addingItemId}
-                            updatingFulfillment={
-                                updatingFulfillment || !canOrder
-                            }
-                        />
+                            <MenuCart
+                                cart={cart}
+                                onFulfillmentChange={changeFulfillment}
+                                onAddSuggestion={(item) =>
+                                    handleAddToCart(item, 1)
+                                }
+                                addingItemId={addingItemId}
+                                updatingFulfillment={
+                                    updatingFulfillment || !canOrder
+                                }
+                            />
+                        </div>
                     </div>
                 </div>
             </AppLayout>
         </>
+    );
+}
+
+function ItemGrid({ children }) {
+    return (
+        <div className="grid grid-cols-1 gap-[var(--spacing-6)] sm:grid-cols-2 md:grid-cols-1 min-[850px]:grid-cols-2">
+            {children}
+        </div>
+    );
+}
+
+function SearchResults({ query, items, renderItem }) {
+    return (
+        <section
+            id="menu-search-results"
+            className="scroll-mt-[calc(var(--customer-nav-height)+var(--menu-filter-height))]"
+        >
+            <h2 className="mb-[var(--spacing-4)] text-lg font-semibold text-[color:var(--color-text-primary)]">
+                We found {items.length}{" "}
+                {items.length === 1 ? "result" : "results"} for “{query}”
+            </h2>
+            {items.length === 0 ? (
+                <p className="py-12 text-center text-sm text-[color:var(--color-text-muted)]">
+                    No items match your search
+                </p>
+            ) : (
+                <ItemGrid>{items.map((item) => renderItem(item))}</ItemGrid>
+            )}
+        </section>
     );
 }
