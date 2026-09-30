@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import { Plus } from "lucide-react";
 import MenuCategoryList, {
@@ -13,13 +13,14 @@ import Modal from "@/Components/Common/Modal";
 import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 
-export default function Menu() {
-    const [categories, setCategories] = useState([]);
-    const [items, setItems] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState(null);
+export default function Menu({ categories: initialCategories = [], items: initialItems = [] }) {
+    const [categories, setCategories] = useState(initialCategories);
+    const [items, setItems] = useState(initialItems);
+    const [selectedCategory, setSelectedCategory] = useState(
+        initialCategories[0] ?? null,
+    );
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [pendingDelete, setPendingDelete] = useState(null);
@@ -27,36 +28,6 @@ export default function Menu() {
 
     const pageTitle = "Restaurant Menu";
     const subTitle = "Manage your Restaurant Menu";
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const [categoriesRes, itemsRes] = await Promise.all([
-                axios.get(route("restaurant.menu.categories.index")),
-                axios.get(route("restaurant.menu.items.index")),
-            ]);
-
-            setCategories(categoriesRes.data.data);
-            setItems(itemsRes.data.data);
-
-            if (categoriesRes.data.data.length > 0) {
-                setSelectedCategory(categoriesRes.data.data[0]);
-            }
-        } catch (error) {
-            setAlert({
-                type: "error",
-                title: "Error",
-                message:
-                    error.response?.data?.message || "Failed to load menu data",
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleAddCategory = () => {
         setEditingCategory(null);
@@ -246,7 +217,6 @@ export default function Menu() {
                                     onAdd={handleAddCategory}
                                     onEdit={handleEditCategory}
                                     onDelete={handleDeleteCategory}
-                                    loading={loading}
                                     deleting={deleting}
                                 />
                             </Card>
@@ -261,7 +231,6 @@ export default function Menu() {
                             onToggleItem={handleToggleItem}
                             onEditCategory={handleEditCategory}
                             onDeleteCategory={handleDeleteCategory}
-                            loading={loading}
                             deleting={deleting}
                         />
                     </div>

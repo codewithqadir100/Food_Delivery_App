@@ -30,15 +30,13 @@ class RestaurantController extends Controller
         }
 
         $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
-        $restaurants = $this->listing->present($query->get(), $customerAddress);
-
-        $page = (int) $request->get('page', 1);
+        $page = max(1, (int) $request->get('page', 1));
         $perPage = 12;
-        $paginated = $restaurants->forPage($page, $perPage);
-        $total = $restaurants->count();
+        $paginator = $this->listing->paginate($query, $customerAddress, $perPage, $page);
+        $total = $paginator->total();
 
         return response()->json([
-            'data' => RestaurantResource::collection($paginated),
+            'data' => RestaurantResource::collection($paginator->getCollection()),
             'meta' => [
                 'current_page' => $page,
                 'per_page' => $perPage,
@@ -135,7 +133,7 @@ class RestaurantController extends Controller
 
         return response()->json([
             'data' => RestaurantResource::collection(
-                $this->listing->present($restaurants->get(), $customerAddress)->take(12)
+                $this->listing->take($restaurants, $customerAddress, 12)
             ),
         ]);
     }

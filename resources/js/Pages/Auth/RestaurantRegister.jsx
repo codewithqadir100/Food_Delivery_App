@@ -7,7 +7,6 @@ import TextArea from "@/Components/Forms/TextArea";
 import SelectInput from "@/Components/Forms/SelectInput";
 import Checkbox from "@/Components/Forms/Checkbox";
 import PasswordInput from "@/Components/Forms/PasswordInput";
-import FormLabel from "@/Components/Forms/FormLabel";
 import GoogleAuthButton from "@/Components/Auth/GoogleAuthButton";
 import HomeChefChoice from "@/Components/Restaurant/HomeChefChoice";
 import { Mail, Building2, Phone, Store } from "lucide-react";
@@ -36,7 +35,7 @@ export default function RestaurantRegister({ categories }) {
     }));
 
     return (
-        <AuthLayout>
+        <AuthLayout wide>
             <Head title="Restaurant Register" />
 
             <Card padding="lg" className="w-full max-w-2xl mx-auto">
@@ -62,8 +61,9 @@ export default function RestaurantRegister({ categories }) {
                             <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <TextInput
+                                label="Restaurant name"
                                 type="text"
                                 placeholder="Your Restaurant Name"
                                 value={data.restaurant_name}
@@ -75,7 +75,31 @@ export default function RestaurantRegister({ categories }) {
                                 required
                             />
 
+                            <SelectInput
+                                label="Restaurant category"
+                                options={categoryOptions}
+                                value={data.restaurant_category_id}
+                                onChange={(e) =>
+                                    setData(
+                                        "restaurant_category_id",
+                                        e.target.value,
+                                    )
+                                }
+                                error={errors.restaurant_category_id}
+                                placeholder="Select a category"
+                                required
+                            />
+                        </div>
+
+                        <HomeChefChoice
+                            value={data.is_home_chef}
+                            onChange={(value) => setData("is_home_chef", value)}
+                            error={errors.is_home_chef}
+                        />
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <TextInput
+                                label="Email"
                                 type="email"
                                 placeholder="restaurant@email.com"
                                 value={data.email}
@@ -87,32 +111,9 @@ export default function RestaurantRegister({ categories }) {
                                 autoComplete="email"
                                 required
                             />
-                        </div>
 
-                        <div>
-                            <FormLabel required>Restaurant Category</FormLabel>
-                            <SelectInput
-                                options={categoryOptions}
-                                value={data.restaurant_category_id}
-                                onChange={(e) =>
-                                    setData(
-                                        "restaurant_category_id",
-                                        e.target.value,
-                                    )
-                                }
-                                error={errors.restaurant_category_id}
-                                placeholder="Select a category"
-                            />
-                        </div>
-
-                        <HomeChefChoice
-                            value={data.is_home_chef}
-                            onChange={(value) => setData("is_home_chef", value)}
-                            error={errors.is_home_chef}
-                        />
-
-                        <div className="grid grid-cols-1 gap-4">
                             <TextInput
+                                label="Phone"
                                 type="tel"
                                 placeholder="Phone number"
                                 value={data.phone}
@@ -184,20 +185,19 @@ export default function RestaurantRegister({ categories }) {
                         >
                             Register Restaurant
                         </Button>
+
+                        <p className="text-center text-sm text-[color:var(--color-text-secondary)]">
+                            Already registered?{" "}
+                            <Link
+                                href={route("restaurant.login")}
+                                className="font-medium text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)]"
+                            >
+                                Login here
+                            </Link>
+                        </p>
                     </form>
                 </div>
             </Card>
-            <div className="text-center text-sm border-t border-[color:var(--color-border-light)] pt-4">
-                <span className="text-[color:var(--color-text-secondary)]">
-                    Already registered?{" "}
-                </span>
-                <Link
-                    href={route("restaurant.login")}
-                    className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
-                >
-                    Login here
-                </Link>
-            </div>
         </AuthLayout>
     );
 }

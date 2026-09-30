@@ -3,7 +3,8 @@ import Logo from "@/assets/logo.png";
 import AuthBg from "@/assets/authpages-bg-banner.png";
 import { ArrowLeft } from "lucide-react";
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children, wide = false }) {
+    const columnClass = wide ? "max-w-2xl" : "max-w-md";
     return (
         <>
             <div
@@ -22,7 +23,7 @@ export default function AuthLayout({ children }) {
                     Go Back
                 </Link>
 
-                <div className="relative z-10 w-full max-w-md">
+                <div className={`relative z-10 w-full ${columnClass}`}>
                     <div className="mb-8">
                         <div className="mb-8 flex justify-center">
                             <Link href="/" className="flex-shrink-0">
@@ -48,7 +49,7 @@ export default function AuthLayout({ children }) {
                     <ArrowLeft size={16} />
                     Go Back
                 </Link>
-                <div className="relative z-10 w-full max-w-md">
+                <div className={`relative z-10 w-full ${columnClass}`}>
                     <div className="mb-8 flex justify-center">
                         <Link href="/" className="flex-shrink-0">
                             <img

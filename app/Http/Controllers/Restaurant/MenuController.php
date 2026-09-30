@@ -13,6 +13,13 @@ class MenuController extends Controller
         
         return Inertia::render('Restaurant/Menu', [
             'restaurant' => $restaurant,
+            'categories' => $restaurant->menuCategories()
+                ->withCount('menuItems')
+                ->orderByDesc('created_at')
+                ->get(),
+            'items' => $restaurant->menuItems()
+                ->orderByDesc('created_at')
+                ->get(),
         ]);
     }
 }

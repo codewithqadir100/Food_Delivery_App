@@ -101,7 +101,7 @@ class Restaurant extends Model
     public function scopeVisibleToCustomers(Builder $query): Builder
     {
         return $query
-            ->where('status', self::STATUS_APPROVED)
+            ->where($query->getModel()->getTable().'.status', self::STATUS_APPROVED)
             ->whereHas('subscription', function (Builder $subscription) {
                 $subscription->whereNotNull('activated_at');
             });
