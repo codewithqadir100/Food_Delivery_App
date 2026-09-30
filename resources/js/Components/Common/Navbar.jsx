@@ -236,7 +236,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                     </p>
                 </Modal>
             </div>
-            <header className="bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] sticky top-0 z-[var(--z-fixed)] shadow-sm">
+            <header className="bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] sticky top-0 z-[var(--z-navbar)] shadow-sm">
                 {/* ===== TOP BAR ===== */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16 gap-3">

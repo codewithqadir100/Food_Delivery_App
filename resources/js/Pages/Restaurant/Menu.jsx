@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
-import { Menu as MenuIcon, X } from "lucide-react";
-import MenuCategoryList from "@/Components/Restaurant/Menu/MenuCategoryList";
+import { Plus } from "lucide-react";
+import MenuCategoryList, {
+    MenuCategoryCarousel,
+} from "@/Components/Restaurant/Menu/MenuCategoryList";
 import MenuItemsGrid from "@/Components/Restaurant/Menu/MenuItemsGrid";
 import MenuCategoryModal from "@/Components/Restaurant/Menu/MenuCategoryModal";
 import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
+import Card from "@/Components/Common/Card";
 import Modal from "@/Components/Common/Modal";
 import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
@@ -14,7 +17,6 @@ export default function Menu() {
     const [categories, setCategories] = useState([]);
     const [items, setItems] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -203,9 +205,9 @@ export default function Menu() {
         <>
             <Head title="Menu Management" />
             <RestaurantLayout pageTitle={pageTitle} pageSubtitle={subTitle}>
-                <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
+                <div className="space-y-[var(--spacing-4)]">
                     {alert && (
-                        <div className="fixed top-4 right-4 z-50">
+                        <div className="fixed right-4 top-[calc(var(--restaurant-mobile-top-nav)+1rem)] z-[var(--z-popover)] md:top-6">
                             <Alert
                                 type={alert.type}
                                 title={alert.title}
@@ -215,32 +217,28 @@ export default function Menu() {
                         </div>
                     )}
 
-                    <div className="flex h-full">
-                        <div
-                            className={`
-                                fixed lg:static inset-0 z-40 lg:z-0
-                                w-full lg:w-64 bg-[color:var(--color-bg-primary)]
-                                border-r border-[color:var(--color-border)]
-                                transform transition-transform duration-[var(--transition-normal)]
-                                ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-                                overflow-y-auto
-                            `}
+                    <div className="space-y-[var(--spacing-3)] lg:hidden">
+                        <Button
+                            size="sm"
+                            fullWidth
+                            icon={Plus}
+                            onClick={handleAddCategory}
                         >
-                            <div className="sticky top-0 p-4 border-b border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)]">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="font-bold text-[color:var(--color-text-primary)]">
-                                        Categories
-                                    </h2>
-                                    <button
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="lg:hidden p-1 rounded-[var(--radius-md)] hover:bg-[color:var(--color-bg-secondary)]"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
+                            Add Category
+                        </Button>
+                        <MenuCategoryCarousel
+                            categories={categories}
+                            selectedCategory={selectedCategory}
+                            onSelect={setSelectedCategory}
+                        />
+                    </div>
 
-                            <div className="p-4">
+                    <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-[var(--spacing-6)]">
+                        <aside className="hidden self-start lg:sticky lg:top-4 lg:block">
+                            <Card padding="sm">
+                                <h2 className="mb-[var(--spacing-3)] text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    Categories
+                                </h2>
                                 <MenuCategoryList
                                     categories={categories}
                                     selectedCategory={selectedCategory}
@@ -251,40 +249,21 @@ export default function Menu() {
                                     loading={loading}
                                     deleting={deleting}
                                 />
-                            </div>
-                        </div>
+                            </Card>
+                        </aside>
 
-                        {sidebarOpen && (
-                            <div
-                                className="fixed inset-0 z-30 lg:hidden bg-black/20"
-                                onClick={() => setSidebarOpen(false)}
-                            />
-                        )}
-
-                        <div className="flex-1 p-4 lg:p-8 space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h1 className="text-2xl font-bold text-[color:var(--color-text-primary)]">
-                                    Menu Management
-                                </h1>
-                                <button
-                                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                                    className="lg:hidden p-2 rounded-[var(--radius-md)] hover:bg-[color:var(--color-bg-secondary)]"
-                                >
-                                    <MenuIcon className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <MenuItemsGrid
-                                items={items}
-                                selectedCategory={selectedCategory}
-                                onAddItem={handleAddItem}
-                                onEditItem={handleEditItem}
-                                onDeleteItem={handleDeleteItem}
-                                onToggleItem={handleToggleItem}
-                                loading={loading}
-                                deleting={deleting}
-                            />
-                        </div>
+                        <MenuItemsGrid
+                            items={items}
+                            selectedCategory={selectedCategory}
+                            onAddItem={handleAddItem}
+                            onEditItem={handleEditItem}
+                            onDeleteItem={handleDeleteItem}
+                            onToggleItem={handleToggleItem}
+                            onEditCategory={handleEditCategory}
+                            onDeleteCategory={handleDeleteCategory}
+                            loading={loading}
+                            deleting={deleting}
+                        />
                     </div>
 
                     <Modal

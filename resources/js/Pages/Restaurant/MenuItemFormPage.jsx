@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useForm, Head } from "@inertiajs/react";
+import { useState } from "react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import { ChevronLeft } from "lucide-react";
 import Card from "@/Components/Common/Card";
 import TextInput from "@/Components/Forms/TextInput";
@@ -8,13 +8,11 @@ import SelectInput from "@/Components/Forms/SelectInput";
 import Button from "@/Components/Common/Button";
 import Alert from "@/Components/Common/Alert";
 import ImageUploadField from "@/Components/Restaurant/Menu/ImageUploadField";
-import Spinner from "@/Components/Common/Spinner";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 
 export default function MenuItemFormPage({
     categories,
     item = null,
-    restaurantId,
     selectedCategoryId,
 }) {
     const isEditing = !!item;
@@ -84,23 +82,29 @@ export default function MenuItemFormPage({
         }
     };
 
+    const backToMenu = () => {
+        router.visit(route("restaurant.menu"));
+    };
+
     return (
         <>
             <Head title={isEditing ? "Edit Menu Item" : "Add Menu Item"} />
-            <RestaurantLayout>
-                <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => window.history.back()}
-                            className="p-2 rounded-[var(--radius-md)] hover:bg-[color:var(--color-bg-secondary)] transition-colors duration-[var(--transition-fast)]"
-                            title="Go back"
-                        >
-                            <ChevronLeft className="w-5 h-5 text-[color:var(--color-text-primary)]" />
-                        </button>
-                        <h1 className="text-2xl font-bold text-[color:var(--color-text-primary)]">
-                            {isEditing ? "Edit Menu Item" : "Add Menu Item"}
-                        </h1>
-                    </div>
+            <RestaurantLayout
+                pageTitle={isEditing ? "Edit Menu Item" : "Add Menu Item"}
+                pageSubtitle={
+                    isEditing
+                        ? "Update this dish"
+                        : "Add a dish to your menu"
+                }
+            >
+                <div className="mx-auto max-w-2xl space-y-[var(--spacing-6)]">
+                    <Link
+                        href={route("restaurant.menu")}
+                        className="inline-flex items-center gap-[var(--spacing-1)] text-sm font-medium text-[color:var(--color-text-secondary)] transition-colors duration-[var(--transition-fast)] hover:text-[color:var(--color-text-primary)]"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        Back to menu
+                    </Link>
 
                     {submitError && (
                         <Alert
@@ -178,7 +182,6 @@ export default function MenuItemFormPage({
 
                             <ImageUploadField
                                 label="Item Image"
-                                value={data.image}
                                 onChange={handleImageChange}
                                 error={errors.image || imageError}
                                 preview={imagePreview}
@@ -186,16 +189,21 @@ export default function MenuItemFormPage({
                                 required={!isEditing}
                             />
 
-                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[color:var(--color-border)]">
+                            <div className="flex flex-col-reverse gap-[var(--spacing-3)] border-t border-[color:var(--color-border)] pt-[var(--spacing-4)] sm:flex-row sm:justify-end">
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    onClick={() => window.history.back()}
+                                    onClick={backToMenu}
                                     disabled={processing}
+                                    className="w-full sm:w-auto"
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit" loading={processing}>
+                                <Button
+                                    type="submit"
+                                    loading={processing}
+                                    className="w-full sm:w-auto"
+                                >
                                     {isEditing ? "Update" : "Add"} Item
                                 </Button>
                             </div>
