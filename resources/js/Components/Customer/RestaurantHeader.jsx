@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link } from "@inertiajs/react";
-import { Bike, ChevronRight, Heart, Info, MapPin, Star } from "lucide-react";
-import Modal from "@/Components/Common/Modal";
-import { formatCurrency } from "@/Utils/formatCurrency";
+import { ChevronRight, Heart, Info, Star } from "lucide-react";
+import RestaurantInfoModal from "@/Components/Customer/RestaurantInfoModal";
 
 export default function RestaurantHeader({
     restaurant,
@@ -10,20 +9,6 @@ export default function RestaurantHeader({
     distance = null,
 }) {
     const [infoOpen, setInfoOpen] = useState(false);
-    const address = [
-        restaurant.street_address,
-        restaurant.area_name,
-        restaurant.city_name,
-    ]
-        .filter(Boolean)
-        .join(", ");
-    const hasCharge = deliveryCharge !== null && deliveryCharge !== undefined;
-    const hasDistance = distance !== null && distance !== undefined;
-    const hasInfo =
-        Boolean(restaurant.description) ||
-        Boolean(address) ||
-        hasCharge ||
-        hasDistance;
 
     return (
         <header className="border-b border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)]">
@@ -61,7 +46,6 @@ export default function RestaurantHeader({
             <div className="relative z-10 md:hidden">
                 <Cover restaurant={restaurant} />
                 <HeaderActions
-                    hasInfo={hasInfo}
                     onInfo={() => setInfoOpen(true)}
                     className="absolute right-[var(--spacing-3)] top-[var(--spacing-3)] flex"
                 />
@@ -84,7 +68,6 @@ export default function RestaurantHeader({
                                 {restaurant.name}
                             </h1>
                             <HeaderActions
-                                hasInfo={hasInfo}
                                 onInfo={() => setInfoOpen(true)}
                                 className="hidden shrink-0 md:flex"
                             />
@@ -101,35 +84,13 @@ export default function RestaurantHeader({
                 </div>
             </div>
 
-            <Modal
+            <RestaurantInfoModal
+                restaurant={restaurant}
+                deliveryCharge={deliveryCharge}
+                distance={distance}
                 isOpen={infoOpen}
                 onClose={() => setInfoOpen(false)}
-                title={restaurant.name}
-                size="md"
-            >
-                <div className="space-y-[var(--spacing-4)]">
-                    {restaurant.description && (
-                        <InfoRow icon={Info} label="Description">
-                            {restaurant.description}
-                        </InfoRow>
-                    )}
-                    {address && (
-                        <InfoRow icon={MapPin} label="Location">
-                            {address}
-                        </InfoRow>
-                    )}
-                    {hasCharge && (
-                        <InfoRow icon={Bike} label="Delivery charge">
-                            {formatCurrency(deliveryCharge)}
-                        </InfoRow>
-                    )}
-                    {hasDistance && (
-                        <InfoRow icon={MapPin} label="Distance">
-                            {`${Number(distance).toFixed(2)} km`}
-                        </InfoRow>
-                    )}
-                </div>
-            </Modal>
+            />
         </header>
     );
 }
@@ -175,12 +136,10 @@ function RestaurantLogo({ restaurant, className = "" }) {
     );
 }
 
-function HeaderActions({ hasInfo, onInfo, className = "" }) {
+function HeaderActions({ onInfo, className = "" }) {
     return (
         <div className={`items-center gap-[var(--spacing-2)] ${className}`}>
-            {hasInfo && (
-                <IconButton label="More info" icon={Info} onClick={onInfo} />
-            )}
+            <IconButton label="More info" icon={Info} onClick={onInfo} />
             <IconButton label="Add to favourite" icon={Heart} />
         </div>
     );
@@ -224,23 +183,5 @@ function Rating({ restaurant }) {
                 </span>
             )}
         </span>
-    );
-}
-
-function InfoRow({ icon: Icon, label, children }) {
-    return (
-        <div className="flex items-start gap-[var(--spacing-3)]">
-            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary-50)] text-[color:var(--color-primary-600)]">
-                <Icon size={16} />
-            </span>
-            <div className="min-w-0">
-                <p className="text-xs font-medium text-[color:var(--color-text-muted)]">
-                    {label}
-                </p>
-                <p className="mt-[var(--spacing-1)] text-sm leading-6 text-[color:var(--color-text-primary)]">
-                    {children}
-                </p>
-            </div>
-        </div>
     );
 }

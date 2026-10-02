@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import axios from "axios";
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Plus, ShoppingBag } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
@@ -10,49 +10,13 @@ import EmptyState from "@/Components/Common/EmptyState";
 import HorizontalCarousel from "@/Components/Common/HorizontalCarousel";
 import ItemThumb from "@/Components/Common/ItemThumb";
 import Toggle from "@/Components/Common/Toggle";
+import CutleryOption from "@/Components/Customer/CutleryOption";
+import QuantityStepper from "@/Components/Customer/QuantityStepper";
 import {
     FULFILLMENT_DELIVERY,
     FULFILLMENT_PICKUP,
 } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
-
-function QuantityControl({ item, busy, onQuantity, onRemove }) {
-    const isLast = item.quantity <= 1;
-
-    return (
-        <div className="inline-flex w-fit items-center rounded-[var(--radius-md)] border border-[color:var(--color-border-light)]">
-            <button
-                type="button"
-                disabled={busy}
-                onClick={() =>
-                    isLast
-                        ? onRemove(item.menu_item_id)
-                        : onQuantity(item.menu_item_id, item.quantity - 1)
-                }
-                className={`p-2 disabled:opacity-50 ${
-                    isLast
-                        ? "text-[color:var(--color-danger-600)]"
-                        : "text-[color:var(--color-text-secondary)]"
-                }`}
-                aria-label={isLast ? "Remove item" : "Decrease quantity"}
-            >
-                {isLast ? <Trash2 size={14} /> : <Minus size={14} />}
-            </button>
-            <span className="w-6 text-center text-sm font-medium text-[color:var(--color-text-primary)]">
-                {item.quantity}
-            </span>
-            <button
-                type="button"
-                disabled={busy}
-                onClick={() => onQuantity(item.menu_item_id, item.quantity + 1)}
-                className="p-2 text-[color:var(--color-text-secondary)] disabled:opacity-50"
-                aria-label="Increase quantity"
-            >
-                <Plus size={14} />
-            </button>
-        </div>
-    );
-}
 
 function applyCarts(data) {
     if (Array.isArray(data?.carts)) {
@@ -67,6 +31,7 @@ export default function Cart() {
     const [loading, setLoading] = useState(true);
     const [busyItemId, setBusyItemId] = useState(null);
     const [updatingRestaurantId, setUpdatingRestaurantId] = useState(null);
+    const [updatingCutleryId, setUpdatingCutleryId] = useState(null);
     const [alert, setAlert] = useState(null);
 
     useEffect(() => {
@@ -147,6 +112,25 @@ export default function Cart() {
         }
     };
 
+    const changeCutlery = async (restaurantId, wantsCutlery) => {
+        try {
+            setUpdatingCutleryId(restaurantId);
+            const res = await axios.patch(route("customer.cart.cutlery"), {
+                wants_cutlery: wantsCutlery,
+                restaurant_id: restaurantId,
+            });
+            setCarts(applyCarts(res.data.data));
+        } catch {
+            setAlert({
+                type: "error",
+                title: "Error",
+                message: "Failed to update cutlery",
+            });
+        } finally {
+            setUpdatingCutleryId(null);
+        }
+    };
+
     const addSuggestion = async (item) => {
         try {
             setBusyItemId(item.id);
@@ -216,10 +200,14 @@ export default function Cart() {
                                     updatingFulfillment={
                                         updatingRestaurantId === cart.restaurant?.id
                                     }
+                                    updatingCutlery={
+                                        updatingCutleryId === cart.restaurant?.id
+                                    }
                                     stickyCheckout={singleCart}
                                     onQuantity={updateQuantity}
                                     onRemove={removeItem}
                                     onFulfillment={changeFulfillment}
+                                    onCutlery={changeCutlery}
                                     onAddSuggestion={addSuggestion}
                                 />
                             ))}
@@ -235,10 +223,12 @@ function RestaurantCart({
     cart,
     busyItemId,
     updatingFulfillment,
+    updatingCutlery,
     stickyCheckout,
     onQuantity,
     onRemove,
     onFulfillment,
+    onCutlery,
     onAddSuggestion,
 }) {
     const items = cart.items ?? [];
@@ -302,21 +292,45 @@ function RestaurantCart({
                                         No longer available
                                     </p>
                                 )}
-                                <div className="mt-2 sm:hidden">
-                                    <QuantityControl
-                                        item={item}
-                                        busy={busyItemId === item.menu_item_id}
-                                        onQuantity={onQuantity}
-                                        onRemove={onRemove}
+                                <div className="mt-[var(--spacing-3)] sm:hidden">
+                                    <QuantityStepper
+                                        quantity={item.quantity}
+                                        disabled={busyItemId === item.menu_item_id}
+                                        onDecrease={() =>
+                                            onQuantity(
+                                                item.menu_item_id,
+                                                item.quantity - 1,
+                                            )
+                                        }
+                                        onIncrease={() =>
+                                            onQuantity(
+                                                item.menu_item_id,
+                                                item.quantity + 1,
+                                            )
+                                        }
+                                        onRemove={() =>
+                                            onRemove(item.menu_item_id)
+                                        }
                                     />
                                 </div>
                             </div>
                             <div className="hidden shrink-0 sm:block">
-                                <QuantityControl
-                                    item={item}
-                                    busy={busyItemId === item.menu_item_id}
-                                    onQuantity={onQuantity}
-                                    onRemove={onRemove}
+                                <QuantityStepper
+                                    quantity={item.quantity}
+                                    disabled={busyItemId === item.menu_item_id}
+                                    onDecrease={() =>
+                                        onQuantity(
+                                            item.menu_item_id,
+                                            item.quantity - 1,
+                                        )
+                                    }
+                                    onIncrease={() =>
+                                        onQuantity(
+                                            item.menu_item_id,
+                                            item.quantity + 1,
+                                        )
+                                    }
+                                    onRemove={() => onRemove(item.menu_item_id)}
                                 />
                             </div>
                         </li>
@@ -336,22 +350,25 @@ function RestaurantCart({
             </div>
 
             {suggestions.length > 0 && (
-                <div className="px-4 sm:px-5">
-                    <h3 className="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                <div className="border-t border-[color:var(--color-border-light)] px-4 py-[var(--spacing-6)] sm:px-5">
+                    <h3 className="text-sm font-semibold text-[color:var(--color-text-primary)]">
                         Popular with your order
                     </h3>
-                    <HorizontalCarousel>
+                    <p className="mb-[var(--spacing-5)] mt-[var(--spacing-2)] text-xs leading-5 text-[color:var(--color-text-muted)]">
+                        A few things that go well with what you already picked.
+                    </p>
+                    <HorizontalCarousel gapClassName="gap-[var(--spacing-5)]">
                         {suggestions.map((item) => (
-                            <div key={item.id} className="w-32 shrink-0">
+                            <div key={item.id} className="w-36 shrink-0">
                                 <ItemThumb
                                     src={item.image_url}
                                     alt={item.name}
                                     className="w-full"
                                 />
-                                <p className="mt-2 truncate text-sm font-medium text-[color:var(--color-text-primary)]">
+                                <p className="mt-[var(--spacing-3)] truncate text-sm font-medium text-[color:var(--color-text-primary)]">
                                     {item.name}
                                 </p>
-                                <div className="mt-1 flex items-center justify-between">
+                                <div className="mt-[var(--spacing-3)] flex items-center justify-between gap-[var(--spacing-2)]">
                                     <span className="text-sm text-[color:var(--color-text-secondary)]">
                                         {formatCurrency(item.price)}
                                     </span>
@@ -359,7 +376,7 @@ function RestaurantCart({
                                         type="button"
                                         disabled={busyItemId === item.id}
                                         onClick={() => onAddSuggestion(item)}
-                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--color-primary-600)] text-white disabled:opacity-50"
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary-600)] text-white disabled:opacity-50"
                                         aria-label={`Add ${item.name}`}
                                     >
                                         <Plus size={14} />
@@ -371,7 +388,15 @@ function RestaurantCart({
                 </div>
             )}
 
-            <div className="space-y-3 p-4 sm:p-5">
+            <div className="border-t border-[color:var(--color-border-light)] px-4 py-[var(--spacing-6)] sm:px-5">
+                <CutleryOption
+                    value={cart.wants_cutlery}
+                    onChange={(next) => onCutlery(restaurantId, next)}
+                    disabled={updatingCutlery}
+                />
+            </div>
+
+            <div className="space-y-[var(--spacing-3)] p-4 sm:p-5">
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-[color:var(--color-text-secondary)]">
                         Subtotal

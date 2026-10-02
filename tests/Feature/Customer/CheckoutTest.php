@@ -218,3 +218,39 @@ test('customer can place a pickup order without an address', function () {
     expect($order->customer_address_id)->toBeNull();
     expect($order->delivery_address)->toBeNull();
 });
+
+test('checkout stores the cutlery choice from the cart', function () {
+    $restaurant = Restaurant::factory()->subscribed()->create();
+    $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 200]);
+    $customer = checkoutCustomer();
+    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
+
+    addItemToCart($customer, $menuItem);
+
+    $this->actingAs($customer)->patchJson(route('customer.cart.cutlery'), [
+        'wants_cutlery' => true,
+        'restaurant_id' => $restaurant->id,
+    ])->assertOk()->assertJsonPath('data.wants_cutlery', true);
+
+    $this->actingAs($customer)->post(route('customer.checkout.store'), [
+        'customer_address_id' => $address->id,
+    ])->assertRedirect();
+
+    $order = Order::first();
+    expect($order->wants_cutlery)->toBeTrue();
+});
+
+test('checkout leaves cutlery off when the customer does not ask for it', function () {
+    $restaurant = Restaurant::factory()->subscribed()->create();
+    $menuItem = MenuItem::factory()->create(['restaurant_id' => $restaurant->id, 'price' => 200]);
+    $customer = checkoutCustomer();
+    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
+
+    addItemToCart($customer, $menuItem);
+
+    $this->actingAs($customer)->post(route('customer.checkout.store'), [
+        'customer_address_id' => $address->id,
+    ])->assertRedirect();
+
+    expect(Order::first()->wants_cutlery)->toBeFalse();
+});

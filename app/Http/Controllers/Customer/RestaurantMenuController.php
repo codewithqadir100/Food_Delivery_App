@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Models\Restaurant;
+use App\Services\DeliveryCalculationService;
 use Illuminate\Routing\Controller;
 
 class RestaurantMenuController extends Controller
@@ -51,8 +52,13 @@ class RestaurantMenuController extends Controller
                     'city_name' => $restaurant->city_name,
                     'area_name' => $restaurant->area_name,
                     'street_address' => $restaurant->street_address,
+                    'phone' => $restaurant->phone,
+                    'is_open' => (bool) $restaurant->is_open,
+                    'is_home_chef' => (bool) $restaurant->is_home_chef,
                     'delivery_charge' => null,
                     'service_radius_km' => $restaurant->service_radius_km,
+                    'delivery_fee_base' => DeliveryCalculationService::BASE_DELIVERY_FEE,
+                    'delivery_fee_per_km' => DeliveryCalculationService::PER_KM_FEE,
                 ],
                 'categories' => $categories->map(function ($category) {
                     return [

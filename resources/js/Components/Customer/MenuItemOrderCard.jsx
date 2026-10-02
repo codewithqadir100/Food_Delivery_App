@@ -1,8 +1,7 @@
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import ItemThumb from "@/Components/Common/ItemThumb";
+import QuantityStepper from "@/Components/Customer/QuantityStepper";
 import { formatCurrency } from "@/Utils/formatCurrency";
-
-const MAX_QUANTITY = 20;
 
 export default function MenuItemOrderCard({
     item,
@@ -26,7 +25,7 @@ export default function MenuItemOrderCard({
                     {formatCurrency(item.price)}
                 </p>
                 {item.description ? (
-                    <p className="text-xs leading-5 truncate line-clamp-2 text-[color:var(--color-text-muted)]">
+                    <p className="line-clamp-2 truncate text-xs leading-5 text-[color:var(--color-text-muted)]">
                         {item.description}
                     </p>
                 ) : null}
@@ -36,13 +35,27 @@ export default function MenuItemOrderCard({
                 <ItemThumb src={item.image} alt={item.name} className="w-24" />
                 <div className="absolute bottom-2 right-2 z-10">
                     {inCart ? (
-                        <QuantityStepper
-                            quantity={quantity}
-                            disabled={disabled}
-                            onDecrease={() => onChangeQuantity?.(quantity - 1)}
-                            onIncrease={() => onChangeQuantity?.(quantity + 1)}
-                            onRemove={onRemove}
-                        />
+                        <>
+                            <div className="md:hidden">
+                                <QuantityStepper
+                                    quantity={quantity}
+                                    disabled={disabled}
+                                    onDecrease={() =>
+                                        onChangeQuantity?.(quantity - 1)
+                                    }
+                                    onIncrease={() =>
+                                        onChangeQuantity?.(quantity + 1)
+                                    }
+                                    onRemove={onRemove}
+                                />
+                            </div>
+                            <span
+                                className="hidden h-8 min-w-8 items-center justify-center rounded-full bg-[color:var(--color-gray-800)] px-2 text-sm font-semibold text-[color:var(--color-gray-0)] shadow-[var(--shadow-md)] md:flex"
+                                aria-label={`${quantity} in cart`}
+                            >
+                                {quantity}
+                            </span>
+                        </>
                     ) : (
                         <button
                             type="button"
@@ -57,45 +70,5 @@ export default function MenuItemOrderCard({
                 </div>
             </div>
         </article>
-    );
-}
-
-function QuantityStepper({
-    quantity,
-    disabled,
-    onDecrease,
-    onIncrease,
-    onRemove,
-}) {
-    const isLast = quantity <= 1;
-
-    return (
-        <div className="inline-flex items-center rounded-full bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-md)]">
-            <button
-                type="button"
-                disabled={disabled}
-                onClick={isLast ? onRemove : onDecrease}
-                className={`flex h-8 w-8 items-center justify-center disabled:opacity-50 ${
-                    isLast
-                        ? "text-[color:var(--color-danger-600)]"
-                        : "text-[color:var(--color-text-secondary)]"
-                }`}
-                aria-label={isLast ? "Remove item" : "Decrease quantity"}
-            >
-                {isLast ? <Trash2 size={14} /> : <Minus size={14} />}
-            </button>
-            <span className="w-5 text-center text-sm font-semibold text-[color:var(--color-text-primary)]">
-                {quantity}
-            </span>
-            <button
-                type="button"
-                disabled={disabled || quantity >= MAX_QUANTITY}
-                onClick={onIncrease}
-                className="flex h-8 w-8 items-center justify-center text-[color:var(--color-primary-600)] disabled:opacity-50"
-                aria-label="Increase quantity"
-            >
-                <Plus size={14} />
-            </button>
-        </div>
     );
 }

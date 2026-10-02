@@ -125,9 +125,10 @@ class CheckoutController extends Controller
         }
 
         $items = $this->cart->getItems($restaurant->id);
+        $wantsCutlery = $this->cart->wantsCutlery($restaurant->id);
 
         try {
-            $order = DB::transaction(function () use ($user, $restaurant, $address, $items, $request, $isPickup) {
+            $order = DB::transaction(function () use ($user, $restaurant, $address, $items, $request, $isPickup, $wantsCutlery) {
                 $restaurant->refresh();
 
                 $this->assertRestaurantCanReceiveOrders($restaurant);
@@ -166,6 +167,7 @@ class CheckoutController extends Controller
                     'total' => round($subtotal + $deliveryFee, 2),
                     'delivery_address' => $deliveryAddress,
                     'notes' => $request->validated('notes'),
+                    'wants_cutlery' => $wantsCutlery,
                 ]);
 
                 foreach ($freshItems as $item) {

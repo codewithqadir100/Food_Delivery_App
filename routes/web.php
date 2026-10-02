@@ -51,6 +51,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
         Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
         Route::patch('/cart/fulfillment', [CartController::class, 'updateFulfillment'])->name('cart.fulfillment');
+        Route::patch('/cart/cutlery', [CartController::class, 'updateCutlery'])->name('cart.cutlery');
         Route::post('/cart/items', [CartController::class, 'store'])->name('cart.store');
         Route::patch('/cart/items/{menuItem}', [CartController::class, 'update'])->name('cart.update');
         Route::delete('/cart/items/{menuItem}', [CartController::class, 'destroy'])->name('cart.destroy');

@@ -123,6 +123,25 @@ class CartService
         $this->saveCarts($carts);
     }
 
+    public function wantsCutlery(?int $restaurantId = null): bool
+    {
+        return (bool) ($this->rawCart($restaurantId)['wants_cutlery'] ?? false);
+    }
+
+    public function setWantsCutlery(bool $wantsCutlery, ?int $restaurantId = null): void
+    {
+        if ($restaurantId === null) {
+            return;
+        }
+
+        $carts = $this->carts();
+        $key = (string) $restaurantId;
+        $cart = $carts[$key] ?? $this->emptyCart($restaurantId);
+        $cart['wants_cutlery'] = $wantsCutlery;
+        $carts[$key] = $cart;
+        $this->saveCarts($carts);
+    }
+
     public function isPickup(?int $restaurantId = null): bool
     {
         return $this->getFulfillment($restaurantId) === Order::FULFILLMENT_PICKUP;
@@ -252,6 +271,7 @@ class CartService
             'restaurant_id' => $restaurantId,
             'items' => [],
             'fulfillment' => Order::FULFILLMENT_DELIVERY,
+            'wants_cutlery' => false,
         ];
     }
 
@@ -267,6 +287,7 @@ class CartService
             'restaurant_id' => isset($cart['restaurant_id']) ? (int) $cart['restaurant_id'] : null,
             'items' => $cart['items'] ?? [],
             'fulfillment' => $fulfillment,
+            'wants_cutlery' => (bool) ($cart['wants_cutlery'] ?? false),
         ];
     }
 

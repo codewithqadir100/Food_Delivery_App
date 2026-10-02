@@ -5,6 +5,8 @@ import Card from "@/Components/Common/Card";
 import HorizontalCarousel from "@/Components/Common/HorizontalCarousel";
 import ItemThumb from "@/Components/Common/ItemThumb";
 import Toggle from "@/Components/Common/Toggle";
+import CutleryOption from "@/Components/Customer/CutleryOption";
+import QuantityStepper from "@/Components/Customer/QuantityStepper";
 import { FULFILLMENT_DELIVERY, FULFILLMENT_PICKUP } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
@@ -12,7 +14,10 @@ export default function MenuCart({
     cart,
     onFulfillmentChange,
     onAddSuggestion,
+    onQuantityChange,
+    onCutleryChange,
     updatingFulfillment = false,
+    updatingCutlery = false,
     addingItemId = null,
 }) {
     const items = cart?.items ?? [];
@@ -23,13 +28,13 @@ export default function MenuCart({
 
     return (
         <>
-            <aside className="sticky top-[calc(var(--customer-nav-height)+var(--menu-filter-height))] z-[var(--z-sticky)] hidden h-[var(--menu-cart-height)] w-80 shrink-0 self-start md:block">
+            <aside className="sticky top-[calc(var(--customer-nav-height)+var(--menu-filter-height))] z-[var(--z-sticky)] hidden h-[var(--menu-cart-height)] w-96 shrink-0 self-start md:block">
                 <Card
                     padding="none"
                     className="flex h-full flex-col overflow-hidden"
                     bodyClassName="cart-scroll min-h-0 flex-1"
                     header={
-                        <div className="p-3">
+                        <div className="p-[var(--spacing-4)]">
                             <Toggle
                                 fullWidth
                                 value={
@@ -51,8 +56,8 @@ export default function MenuCart({
                         </div>
                     }
                     footer={
-                        <div className="space-y-3 p-3">
-                            <div className="flex items-center justify-between">
+                        <div className="space-y-[var(--spacing-4)] p-[var(--spacing-4)]">
+                            <div className="flex items-center justify-between gap-[var(--spacing-3)]">
                                 <span className="text-sm text-[color:var(--color-text-secondary)]">
                                     Total
                                 </span>
@@ -80,33 +85,55 @@ export default function MenuCart({
                         </div>
                     }
                 >
-                    <div className="p-3">
-                        <h2 className="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                    <div className="p-[var(--spacing-4)]">
+                        <h2 className="mb-[var(--spacing-4)] text-sm font-semibold text-[color:var(--color-text-primary)]">
                             Your items
                         </h2>
                         {hasItems ? (
-                            <ul className="space-y-3">
+                            <ul className="space-y-[var(--spacing-6)]">
                                 {items.map((item) => (
                                     <li
                                         key={item.menu_item_id}
-                                        className="flex items-center gap-3"
+                                        className="flex items-center gap-[var(--spacing-4)]"
                                     >
                                         <ItemThumb
                                             src={item.image_url}
                                             alt={item.name}
-                                            className="w-12"
+                                            className="w-14"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium text-[color:var(--color-text-primary)]">
+                                            <p className="truncate text-sm font-semibold text-[color:var(--color-text-primary)]">
                                                 {item.name}
                                             </p>
-                                            <p className="text-xs text-[color:var(--color-text-muted)]">
-                                                Qty {item.quantity}
+                                            <p className="mt-1 text-sm font-semibold text-[color:var(--color-primary-600)]">
+                                                {formatCurrency(item.subtotal)}
                                             </p>
                                         </div>
-                                        <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                            {formatCurrency(item.subtotal)}
-                                        </p>
+                                        <QuantityStepper
+                                            quantity={item.quantity}
+                                            disabled={
+                                                addingItemId ===
+                                                item.menu_item_id
+                                            }
+                                            onDecrease={() =>
+                                                onQuantityChange?.(
+                                                    item.menu_item_id,
+                                                    item.quantity - 1,
+                                                )
+                                            }
+                                            onIncrease={() =>
+                                                onQuantityChange?.(
+                                                    item.menu_item_id,
+                                                    item.quantity + 1,
+                                                )
+                                            }
+                                            onRemove={() =>
+                                                onQuantityChange?.(
+                                                    item.menu_item_id,
+                                                    0,
+                                                )
+                                            }
+                                        />
                                     </li>
                                 ))}
                             </ul>
@@ -128,25 +155,29 @@ export default function MenuCart({
                         )}
 
                         {suggestions.length > 0 && (
-                            <div className="mt-4">
-                                <p className="mb-4 text-sm font-bold text-[color:var(--color-text-secondary)]">
-                                    Popular with your order
+                            <div className="mt-[var(--spacing-6)] border-t border-[color:var(--color-border-light)] pt-[var(--spacing-6)]">
+                                <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    Add an extra
+                                </p>
+                                <p className="mb-[var(--spacing-5)] mt-[var(--spacing-2)] text-xs leading-5 text-[color:var(--color-text-muted)]">
+                                    A few things that go well with what you
+                                    already picked.
                                 </p>
                                 <HorizontalCarousel>
                                     {suggestions.map((item) => (
                                         <div
                                             key={item.id}
-                                            className="w-28 shrink-0"
+                                            className="w-32 shrink-0"
                                         >
                                             <ItemThumb
                                                 src={item.image_url}
                                                 alt={item.name}
                                                 className="w-full"
                                             />
-                                            <p className="mt-1 truncate text-xs font-medium text-[color:var(--color-text-primary)]">
+                                            <p className="mt-[var(--spacing-2)] truncate text-xs font-medium text-[color:var(--color-text-primary)]">
                                                 {item.name}
                                             </p>
-                                            <div className="mt-1 flex items-center justify-between gap-1">
+                                            <div className="mt-[var(--spacing-2)] flex items-center justify-between gap-[var(--spacing-2)]">
                                                 <span className="text-xs text-[color:var(--color-text-secondary)]">
                                                     {formatCurrency(item.price)}
                                                 </span>
@@ -158,7 +189,7 @@ export default function MenuCart({
                                                     onClick={() =>
                                                         onAddSuggestion?.(item)
                                                     }
-                                                    className="flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--color-primary-600)] text-white disabled:opacity-50"
+                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--color-primary-600)] text-white disabled:opacity-50"
                                                     aria-label={`Add ${item.name}`}
                                                 >
                                                     <Plus size={14} />
@@ -167,6 +198,16 @@ export default function MenuCart({
                                         </div>
                                     ))}
                                 </HorizontalCarousel>
+                            </div>
+                        )}
+
+                        {hasItems && (
+                            <div className="mt-[var(--spacing-6)] border-t border-[color:var(--color-border-light)] pt-[var(--spacing-5)]">
+                                <CutleryOption
+                                    value={cart?.wants_cutlery}
+                                    onChange={onCutleryChange}
+                                    disabled={updatingCutlery}
+                                />
                             </div>
                         )}
                     </div>

@@ -118,7 +118,7 @@ class RestaurantController extends Controller
         $restaurants = Restaurant::query()
             ->visibleToCustomers()
             ->where(function ($builder) use ($query) {
-                $builder->where('name', 'LIKE', "%{$query}%")
+                $builder->where('restaurants.name', 'LIKE', "%{$query}%")
                     ->orWhereHas('restaurantCategory', function ($subQuery) use ($query) {
                         $subQuery->where('name', 'LIKE', "%{$query}%");
                     });

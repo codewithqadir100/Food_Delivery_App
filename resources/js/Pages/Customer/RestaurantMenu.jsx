@@ -24,6 +24,7 @@ export default function RestaurantMenu({
     const [alert, setAlert] = useState(null);
     const [cart, setCart] = useState(null);
     const [updatingFulfillment, setUpdatingFulfillment] = useState(false);
+    const [updatingCutlery, setUpdatingCutlery] = useState(false);
     const user = usePage().props.auth?.user ?? null;
     const canOrder = user === null || Boolean(user.is_customer);
 
@@ -145,6 +146,25 @@ export default function RestaurantMenu({
             });
         } finally {
             setAddingItemId(null);
+        }
+    };
+
+    const changeCutlery = async (wantsCutlery) => {
+        try {
+            setUpdatingCutlery(true);
+            const res = await axios.patch(route("customer.cart.cutlery"), {
+                wants_cutlery: wantsCutlery,
+                restaurant_id: restaurant.id,
+            });
+            setCart(res.data.data);
+        } catch {
+            setAlert({
+                type: "error",
+                title: "Error",
+                message: "Could not update cutlery.",
+            });
+        } finally {
+            setUpdatingCutlery(false);
         }
     };
 
@@ -360,10 +380,15 @@ export default function RestaurantMenu({
                                 onAddSuggestion={(item) =>
                                     handleAddToCart(item, 1)
                                 }
+                                onQuantityChange={(menuItemId, quantity) =>
+                                    handleSetQuantity({ id: menuItemId }, quantity)
+                                }
+                                onCutleryChange={changeCutlery}
                                 addingItemId={addingItemId}
                                 updatingFulfillment={
                                     updatingFulfillment || !canOrder
                                 }
+                                updatingCutlery={updatingCutlery || !canOrder}
                             />
                         </div>
                     </div>

@@ -34,56 +34,45 @@ export default function Modal({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[var(--z-modal)] overflow-y-auto">
-            {/* Backdrop */}
+        <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4">
             <div
                 className="fixed inset-0 bg-black/50 transition-opacity"
                 onClick={onClose}
                 aria-hidden="true"
             />
 
-            {/* Modal */}
-            <div className="relative flex min-h-full items-center justify-center p-4">
-                <div
-                    className={`
-            bg-[color:var(--color-bg-primary)]
-            rounded-lg
-            shadow-xl
-            transform
-            transition-all
-            w-full
-            ${sizeClasses[size]}
-            animate-in
-          `}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {/* Header */}
-                    {title && (
-                        <div className="flex items-center justify-between border-b border-[color:var(--color-border-light)] px-6 py-4">
-                            <h3 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                                {title}
-                            </h3>
-                            {closeButton && (
-                                <button
-                                    onClick={onClose}
-                                    className="text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)] transition-colors"
-                                >
-                                    <X size={24} />
-                                </button>
-                            )}
-                        </div>
-                    )}
+            <div
+                className={`relative flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-lg bg-[color:var(--color-bg-primary)] shadow-xl ${sizeClasses[size]}`}
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+            >
+                {title && (
+                    <div className="flex shrink-0 items-center justify-between border-b border-[color:var(--color-border-light)] px-6 py-4">
+                        <h3 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                            {title}
+                        </h3>
+                        {closeButton && (
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="text-[color:var(--color-text-muted)] transition-colors hover:text-[color:var(--color-text-primary)]"
+                            >
+                                <X size={24} />
+                            </button>
+                        )}
+                    </div>
+                )}
 
-                    {/* Content */}
-                    <div className="px-6 py-4">{children}</div>
-
-                    {/* Footer */}
-                    {footer && (
-                        <div className="border-t border-[color:var(--color-border-light)] px-6 py-4 flex justify-end gap-3">
-                            {footer}
-                        </div>
-                    )}
+                <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+                    {children}
                 </div>
+
+                {footer && (
+                    <div className="flex shrink-0 justify-end gap-3 border-t border-[color:var(--color-border-light)] px-6 py-4">
+                        {footer}
+                    </div>
+                )}
             </div>
         </div>,
         document.body,

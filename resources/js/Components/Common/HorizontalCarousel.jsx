@@ -1,7 +1,11 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function HorizontalCarousel({ children, className = "" }) {
+export default function HorizontalCarousel({
+    children,
+    className = "",
+    gapClassName = "gap-3",
+}) {
     const scrollerRef = useRef(null);
     const [canPrev, setCanPrev] = useState(false);
     const [canNext, setCanNext] = useState(false);
@@ -53,7 +57,7 @@ export default function HorizontalCarousel({ children, className = "" }) {
         <div className={`relative ${className}`}>
             <div
                 ref={scrollerRef}
-                className={`scrollbar-none flex gap-3 overflow-x-auto scroll-smooth ${
+                className={`scrollbar-none flex overflow-x-auto scroll-smooth ${gapClassName} ${
                     canScroll ? "px-9" : ""
                 }`}
             >
