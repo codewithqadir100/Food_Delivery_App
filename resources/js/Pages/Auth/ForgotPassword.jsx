@@ -4,11 +4,19 @@ import Card from "@/Components/Common/Card";
 import Button from "@/Components/Common/Button";
 import TextInput from "@/Components/Forms/TextInput";
 import Alert from "@/Components/Common/Alert";
-import { Mail, ArrowRight } from "lucide-react";
+import { Mail } from "lucide-react";
 
-export default function ForgotPassword({ status }) {
+export default function ForgotPassword({ status, loginRoute = "login" }) {
+    const account =
+        loginRoute === "restaurant.login"
+            ? "restaurant"
+            : loginRoute === "admin.login"
+              ? "admin"
+              : "";
+
     const { data, setData, post, processing, errors } = useForm({
         email: "",
+        account,
     });
 
     const submit = (e) => {
@@ -29,8 +37,8 @@ export default function ForgotPassword({ status }) {
                             Reset Your Password
                         </h2>
                         <p className="text-sm text-[color:var(--color-text-secondary)]">
-                            Enter your email address and we'll redirect you to
-                            create a new password
+                            Enter your email address and we will send you a
+                            link to choose a new password.
                         </p>
                     </div>
 
@@ -50,9 +58,9 @@ export default function ForgotPassword({ status }) {
                             type="submit"
                             fullWidth
                             loading={processing}
-                            icon={ArrowRight}
+                            icon={Mail}
                         >
-                            Next
+                            Send reset link
                         </Button>
                     </form>
                 </div>
@@ -63,7 +71,7 @@ export default function ForgotPassword({ status }) {
                     Remember your password?{" "}
                 </span>
                 <Link
-                    href={route("login")}
+                    href={route(loginRoute)}
                     className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium"
                 >
                     Sign in

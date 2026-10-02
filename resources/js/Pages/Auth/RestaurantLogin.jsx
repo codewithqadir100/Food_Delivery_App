@@ -102,7 +102,7 @@ export default function RestaurantLogin({ status }) {
 
                     <div className="space-y-3 text-center text-sm">
                         <Link
-                            href={route("password.request")}
+                            href={route("password.request", { account: "restaurant" })}
                             className="text-[color:var(--color-primary-600)] hover:text-[color:var(--color-primary-700)] font-medium block"
                         >
                             Forgot password?

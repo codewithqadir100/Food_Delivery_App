@@ -29,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public const STATUS_REJECTED = 'rejected';
 
+    public const STATUS_BANNED = 'banned';
+
     protected $fillable = [
         'name',
         'email',
@@ -53,6 +55,29 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
         ];
+    }
+
+    public function loginRouteName(): string
+    {
+        return self::loginRouteForRole($this->role);
+    }
+
+    public static function loginRouteForAccount(?string $account): string
+    {
+        return match ($account) {
+            'restaurant' => 'restaurant.login',
+            'admin' => 'admin.login',
+            default => 'login',
+        };
+    }
+
+    public static function loginRouteForRole(?string $role): string
+    {
+        return match ($role) {
+            self::ROLE_RESTAURANT_OWNER => 'restaurant.login',
+            self::ROLE_ADMIN => 'admin.login',
+            default => 'login',
+        };
     }
 
     public function isCustomer(): bool
@@ -88,6 +113,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRejected(): bool
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->status === self::STATUS_BANNED;
     }
 
     public function restaurant(): HasOne

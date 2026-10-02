@@ -10,6 +10,7 @@ use App\Http\Requests\Auth\RestaurantRegisterRequest;
 use App\Models\Restaurant;
 use App\Models\RestaurantCategory;
 use App\Models\User;
+use App\Services\BannedAccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,13 @@ use Inertia\Response;
 
 class RestaurantAuthController extends Controller
 {
+    public function __construct(private readonly BannedAccountService $bannedAccounts) {}
+
+    public function showBanned(): Response
+    {
+        return $this->bannedAccounts->page(signedIn: false);
+    }
+
     public function createRegister(): Response
     {
         return Inertia::render('Auth/RestaurantRegister', [
@@ -33,7 +41,7 @@ class RestaurantAuthController extends Controller
     {
         $validated = $request->validated();
 
-        $user = DB::transaction(function () use ($validated) {
+        $user = DB::transaction(function () use ($validated, $request) {
             $user = User::create([
                 'name' => $validated['restaurant_name'],
                 'email' => $validated['email'],
@@ -46,6 +54,7 @@ class RestaurantAuthController extends Controller
                 'user_id' => $user->id,
                 'name' => $validated['restaurant_name'],
                 'restaurant_category_id' => $validated['restaurant_category_id'],
+                'is_home_chef' => $request->boolean('is_home_chef'),
                 'phone' => $validated['phone'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'status' => Restaurant::STATUS_PENDING,
@@ -80,6 +89,10 @@ class RestaurantAuthController extends Controller
         }
 
         $user = Auth::user();
+
+        if ($user->isBanned()) {
+            return $this->bannedAccounts->refuseLogin($request);
+        }
 
         if (! $user->isRestaurantOwner()) {
             Auth::logout();

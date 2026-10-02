@@ -1,5 +1,8 @@
-import { Edit2, Trash2, Eye, EyeOff } from "lucide-react";
+import { Edit2, Eye, EyeOff, ImageOff, Trash2 } from "lucide-react";
+import Badge from "@/Components/Common/Badge";
 import Button from "@/Components/Common/Button";
+import Card from "@/Components/Common/Card";
+import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function MenuItemCard({
     item,
@@ -9,84 +12,94 @@ export default function MenuItemCard({
     loading = false,
 }) {
     return (
-        <div className="rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] transition-shadow duration-[var(--transition-normal)] bg-[color:var(--color-bg-primary)]">
-            <div className="relative h-40 overflow-hidden bg-[color:var(--color-bg-secondary)]">
-                {item.image ? (
+        <Card padding="none" className="min-w-0">
+            <div className="relative aspect-square overflow-hidden bg-[color:var(--color-bg-secondary)]">
+                {item.image_url ? (
                     <img
                         src={item.image_url}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-[color:var(--color-text-muted)] text-sm">
-                            No image
-                        </span>
+                    <div className="flex h-full w-full items-center justify-center text-[color:var(--color-text-muted)]">
+                        <ImageOff size={20} />
                     </div>
                 )}
                 {!item.is_available && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span className="text-white font-medium text-sm">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 px-2">
+                        <Badge variant="default" size="sm">
                             Unavailable
-                        </span>
+                        </Badge>
                     </div>
                 )}
             </div>
 
-            <div className="p-3 space-y-2">
-                <h3 className="font-semibold text-sm text-[color:var(--color-text-primary)] line-clamp-1">
+            <div className="space-y-[var(--spacing-1)] p-[var(--spacing-2)] sm:p-[var(--spacing-3)]">
+                <h3 className="truncate text-sm font-semibold text-[color:var(--color-text-primary)]">
                     {item.name}
                 </h3>
-
-                <p className="text-xs text-[color:var(--color-text-muted)] line-clamp-2">
-                    {item.description}
+                <p className="truncate text-sm font-semibold text-[color:var(--color-primary-600)]">
+                    {formatCurrency(item.price)}
                 </p>
-
-                <div className="flex items-center justify-between pt-1">
-                    <p className="font-bold text-[color:var(--color-primary-600)]">
-                        Rs. {parseFloat(item.price).toFixed(0)}
+                {item.description ? (
+                    <p className="truncate text-xs text-[color:var(--color-text-muted)]">
+                        {item.description}
                     </p>
-                    <button
-                        onClick={() => onToggle(item.id)}
+                ) : null}
+
+                <div className="grid grid-cols-3 gap-[var(--spacing-1)] pt-[var(--spacing-1)]">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={Edit2}
+                        aria-label={`Edit ${item.name}`}
+                        title="Edit"
                         disabled={loading}
-                        className="p-1.5 rounded-[var(--radius-md)] hover:bg-[color:var(--color-bg-secondary)] transition-colors duration-[var(--transition-fast)]"
+                        onClick={() => onEdit(item)}
+                        className="!h-9 !w-full !px-0"
+                    />
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        aria-label={
+                            item.is_available
+                                ? `Mark ${item.name} unavailable`
+                                : `Mark ${item.name} available`
+                        }
                         title={
                             item.is_available
                                 ? "Mark unavailable"
                                 : "Mark available"
                         }
+                        disabled={loading}
+                        onClick={() => onToggle(item.id)}
+                        className="!h-9 !w-full !px-0"
                     >
                         {item.is_available ? (
-                            <Eye className="w-4 h-4 text-[color:var(--color-success-600)]" />
+                            <Eye
+                                size={16}
+                                className="text-[color:var(--color-success-600)]"
+                            />
                         ) : (
-                            <EyeOff className="w-4 h-4 text-[color:var(--color-danger-600)]" />
+                            <EyeOff
+                                size={16}
+                                className="text-[color:var(--color-danger-600)]"
+                            />
                         )}
-                    </button>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => onEdit(item)}
-                        disabled={loading}
-                        className="flex-1 flex items-center justify-center gap-1.5"
-                    >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Edit</span>
                     </Button>
                     <Button
-                        size="sm"
                         variant="danger"
-                        onClick={() => onDelete(item.id)}
+                        size="sm"
+                        icon={Trash2}
+                        aria-label={`Delete ${item.name}`}
+                        title="Delete"
                         disabled={loading}
-                        className="flex-1 flex items-center justify-center gap-1.5"
-                    >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Delete</span>
-                    </Button>
+                        onClick={() => onDelete(item.id)}
+                        className="!h-9 !w-full !px-0"
+                    />
                 </div>
             </div>
-        </div>
+        </Card>
     );
 }

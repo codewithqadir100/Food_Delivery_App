@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountNotBanned;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureApprovedAdmin;
 use App\Http\Middleware\EnsureApprovedRestaurant;
 use App\Http\Middleware\EnsureCustomer;
+use App\Http\Middleware\EnsureGuestOrCustomer;
 use App\Http\Middleware\EnsureRestaurantExists;
 use App\Http\Middleware\EnsureRestaurantOwner;
 use App\Http\Middleware\EnsureSuperAdmin;
@@ -24,10 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            EnsureAccountNotBanned::class,
         ]);
 
         $middleware->alias([
             'customer' => EnsureCustomer::class,
+            'customer_or_guest' => EnsureGuestOrCustomer::class,
             'restaurant_owner' => EnsureRestaurantOwner::class,
             'approved_restaurant' => EnsureApprovedRestaurant::class,
             'restaurant_exists' => EnsureRestaurantExists::class,

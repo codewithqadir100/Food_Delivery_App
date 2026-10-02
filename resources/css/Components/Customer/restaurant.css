@@ -46,20 +46,23 @@
 .restaurant-grid {
     display: grid;
     gap: var(--spacing-6);
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: minmax(0, 1fr);
 }
 
-@media screen and (max-width: 930px) {
+@media screen and (min-width: 640px) {
     .restaurant-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media screen and (max-width: 640px) {
+@media screen and (min-width: 1280px) {
+    .restaurant-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 639px) {
     .restaurant-main-heading {
         font-size: var(--font-size-2xl);
-    }
-    .restaurant-grid {
-        grid-template-columns: 1fr;
     }
 }

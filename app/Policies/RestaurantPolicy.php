@@ -29,7 +29,8 @@ class RestaurantPolicy
         return $user->id === $restaurant->user_id
             && $user->isRestaurantOwner()
             && $user->hasVerifiedEmail()
-            && ! $user->isRejected();
+            && ! $user->isRejected()
+            && ! $user->isBanned();
     }
 
     public function delete(User $user, Restaurant $restaurant): bool

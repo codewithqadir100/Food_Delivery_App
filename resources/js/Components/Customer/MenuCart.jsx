@@ -1,32 +1,23 @@
 import { Link } from "@inertiajs/react";
-import { Plus } from "lucide-react";
+import { Plus, ShoppingBag } from "lucide-react";
 import Button from "@/Components/Common/Button";
 import Card from "@/Components/Common/Card";
+import HorizontalCarousel from "@/Components/Common/HorizontalCarousel";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import Toggle from "@/Components/Common/Toggle";
+import CutleryOption from "@/Components/Customer/CutleryOption";
+import QuantityStepper from "@/Components/Customer/QuantityStepper";
 import { FULFILLMENT_DELIVERY, FULFILLMENT_PICKUP } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
-
-function ItemImage({ item, size = "w-12" }) {
-    return (
-        <div
-            className={`aspect-square ${size} shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-[color:var(--color-bg-secondary)]`}
-        >
-            {item.image_url && (
-                <img
-                    src={item.image_url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                />
-            )}
-        </div>
-    );
-}
 
 export default function MenuCart({
     cart,
     onFulfillmentChange,
     onAddSuggestion,
+    onQuantityChange,
+    onCutleryChange,
     updatingFulfillment = false,
+    updatingCutlery = false,
     addingItemId = null,
 }) {
     const items = cart?.items ?? [];
@@ -37,143 +28,209 @@ export default function MenuCart({
 
     return (
         <>
-            <div className="hidden md:block fixed bottom-[var(--spacing-6)] right-[var(--spacing-6)] z-[var(--z-sticky)] w-80 max-w-[calc(100vw-var(--spacing-12))]">
+            <aside className="sticky top-[calc(var(--customer-nav-height)+var(--menu-filter-height))] z-[var(--z-sticky)] hidden h-[var(--menu-cart-height)] w-96 shrink-0 self-start md:block">
                 <Card
-                    padding="sm"
+                    padding="none"
+                    className="flex h-full flex-col overflow-hidden"
+                    bodyClassName="cart-scroll min-h-0 flex-1"
                     header={
-                        <h2 className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                            Your cart
-                        </h2>
+                        <div className="p-[var(--spacing-4)]">
+                            <Toggle
+                                fullWidth
+                                value={
+                                    (cart?.fulfillment ??
+                                        FULFILLMENT_DELIVERY) !==
+                                    FULFILLMENT_PICKUP
+                                }
+                                onChange={(isDelivery) =>
+                                    onFulfillmentChange(
+                                        isDelivery
+                                            ? FULFILLMENT_DELIVERY
+                                            : FULFILLMENT_PICKUP,
+                                    )
+                                }
+                                activeLabel="Delivery"
+                                inactiveLabel="Pickup"
+                                disabled={updatingFulfillment}
+                            />
+                        </div>
                     }
                     footer={
-                        hasItems && restaurantId ? (
-                            <Link
-                                href={route("customer.checkout.show", restaurantId)}
-                                className="block"
-                            >
-                                <Button variant="primary" fullWidth>
+                        <div className="space-y-[var(--spacing-4)] p-[var(--spacing-4)]">
+                            <div className="flex items-center justify-between gap-[var(--spacing-3)]">
+                                <span className="text-sm text-[color:var(--color-text-secondary)]">
+                                    Total
+                                </span>
+                                <span className="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    {formatCurrency(cart?.subtotal ?? 0)}
+                                </span>
+                            </div>
+                            {hasItems && restaurantId ? (
+                                <Link
+                                    href={route(
+                                        "customer.checkout.show",
+                                        restaurantId,
+                                    )}
+                                    className="block"
+                                >
+                                    <Button variant="primary" fullWidth>
+                                        Proceed to checkout
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <Button variant="primary" fullWidth disabled>
                                     Proceed to checkout
                                 </Button>
-                            </Link>
-                        ) : (
-                            <Button variant="primary" fullWidth disabled>
-                                Proceed to checkout
-                            </Button>
-                        )
+                            )}
+                        </div>
                     }
                 >
-                    <div className="mb-4 w-full">
-                        <Toggle
-                            fullWidth
-                            value={
-                                (cart?.fulfillment ?? FULFILLMENT_DELIVERY) !==
-                                FULFILLMENT_PICKUP
-                            }
-                            onChange={(isDelivery) =>
-                                onFulfillmentChange(
-                                    isDelivery
-                                        ? FULFILLMENT_DELIVERY
-                                        : FULFILLMENT_PICKUP,
-                                )
-                            }
-                            activeLabel="Delivery"
-                            inactiveLabel="Pickup"
-                            disabled={updatingFulfillment}
-                        />
-                    </div>
-                    {hasItems ? (
-                        <ul className="max-h-48 space-y-3 overflow-y-auto">
-                            {items.map((item) => (
-                                <li
-                                    key={item.menu_item_id}
-                                    className="flex items-center gap-3"
-                                >
-                                    <ItemImage item={item} />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-medium text-[color:var(--color-text-primary)]">
-                                            {item.name}
-                                        </p>
-                                        <p className="text-xs text-[color:var(--color-text-muted)]">
-                                            Qty {item.quantity}
-                                        </p>
-                                    </div>
-                                    <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                        {formatCurrency(item.subtotal)}
-                                    </p>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-sm text-[color:var(--color-text-muted)]">
-                            Your cart is empty
-                        </p>
-                    )}
-
-                    {hasItems && (
-                        <div className="mt-4 flex items-center justify-between border-t border-[color:var(--color-border-light)] pt-3">
-                            <span className="text-sm text-[color:var(--color-text-secondary)]">
-                                Subtotal
-                            </span>
-                            <span className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                {formatCurrency(cart.subtotal)}
-                            </span>
-                        </div>
-                    )}
-
-                    {suggestions.length > 0 && (
-                        <div className="mt-4">
-                            <p className="mb-2 text-xs font-medium text-[color:var(--color-text-secondary)]">
-                                Popular with your order
-                            </p>
-                            <ul className="flex gap-3 overflow-x-auto pb-1">
-                                {suggestions.map((item) => (
+                    <div className="p-[var(--spacing-4)]">
+                        <h2 className="mb-[var(--spacing-4)] text-sm font-semibold text-[color:var(--color-text-primary)]">
+                            Your items
+                        </h2>
+                        {hasItems ? (
+                            <ul className="space-y-[var(--spacing-6)]">
+                                {items.map((item) => (
                                     <li
-                                        key={item.id}
-                                        className="w-28 shrink-0"
+                                        key={item.menu_item_id}
+                                        className="flex items-center gap-[var(--spacing-4)]"
                                     >
-                                        <ItemImage item={item} size="w-full" />
-                                        <p className="mt-1 truncate text-xs font-medium text-[color:var(--color-text-primary)]">
-                                            {item.name}
-                                        </p>
-                                        <div className="mt-1 flex items-center justify-between gap-1">
-                                            <span className="text-xs text-[color:var(--color-text-secondary)]">
-                                                {formatCurrency(item.price)}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                disabled={addingItemId === item.id}
-                                                onClick={() => onAddSuggestion?.(item)}
-                                                className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary-500)] text-white disabled:opacity-50"
-                                                aria-label={`Add ${item.name}`}
-                                            >
-                                                <Plus size={14} />
-                                            </button>
+                                        <ItemThumb
+                                            src={item.image_url}
+                                            alt={item.name}
+                                            className="w-14"
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                                {item.name}
+                                            </p>
+                                            <p className="mt-1 text-sm font-semibold text-[color:var(--color-primary-600)]">
+                                                {formatCurrency(item.subtotal)}
+                                            </p>
                                         </div>
+                                        <QuantityStepper
+                                            quantity={item.quantity}
+                                            disabled={
+                                                addingItemId ===
+                                                item.menu_item_id
+                                            }
+                                            onDecrease={() =>
+                                                onQuantityChange?.(
+                                                    item.menu_item_id,
+                                                    item.quantity - 1,
+                                                )
+                                            }
+                                            onIncrease={() =>
+                                                onQuantityChange?.(
+                                                    item.menu_item_id,
+                                                    item.quantity + 1,
+                                                )
+                                            }
+                                            onRemove={() =>
+                                                onQuantityChange?.(
+                                                    item.menu_item_id,
+                                                    0,
+                                                )
+                                            }
+                                        />
                                     </li>
                                 ))}
                             </ul>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="flex flex-col items-center px-2 py-4 text-center">
+                                <div className="mb-3 rounded-full bg-[color:var(--color-gray-100)] p-3">
+                                    <ShoppingBag
+                                        size={22}
+                                        className="text-[color:var(--color-text-muted)]"
+                                    />
+                                </div>
+                                <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    Your cart is empty
+                                </p>
+                                <p className="mt-1 text-xs text-[color:var(--color-text-secondary)]">
+                                    Add something from the menu
+                                </p>
+                            </div>
+                        )}
+
+                        {suggestions.length > 0 && (
+                            <div className="mt-[var(--spacing-6)] border-t border-[color:var(--color-border-light)] pt-[var(--spacing-6)]">
+                                <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    Add an extra
+                                </p>
+                                <p className="mb-[var(--spacing-5)] mt-[var(--spacing-2)] text-xs leading-5 text-[color:var(--color-text-muted)]">
+                                    A few things that go well with what you
+                                    already picked.
+                                </p>
+                                <HorizontalCarousel>
+                                    {suggestions.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="w-32 shrink-0"
+                                        >
+                                            <ItemThumb
+                                                src={item.image_url}
+                                                alt={item.name}
+                                                className="w-full"
+                                            />
+                                            <p className="mt-[var(--spacing-2)] truncate text-xs font-medium text-[color:var(--color-text-primary)]">
+                                                {item.name}
+                                            </p>
+                                            <div className="mt-[var(--spacing-2)] flex items-center justify-between gap-[var(--spacing-2)]">
+                                                <span className="text-xs text-[color:var(--color-text-secondary)]">
+                                                    {formatCurrency(item.price)}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    disabled={
+                                                        addingItemId === item.id
+                                                    }
+                                                    onClick={() =>
+                                                        onAddSuggestion?.(item)
+                                                    }
+                                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--color-primary-600)] text-white disabled:opacity-50"
+                                                    aria-label={`Add ${item.name}`}
+                                                >
+                                                    <Plus size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </HorizontalCarousel>
+                            </div>
+                        )}
+
+                        {hasItems && (
+                            <div className="mt-[var(--spacing-6)] border-t border-[color:var(--color-border-light)] pt-[var(--spacing-5)]">
+                                <CutleryOption
+                                    value={cart?.wants_cutlery}
+                                    onChange={onCutleryChange}
+                                    disabled={updatingCutlery}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </Card>
-            </div>
+            </aside>
 
             {hasItems && (
-                <div className="md:hidden fixed inset-x-0 bottom-0 z-[var(--z-fixed)] border-t border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)] shadow-[var(--shadow-lg)]">
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                        <div>
-                            <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                                {formatCurrency(cart.subtotal)}
-                            </p>
-                            <p className="text-xs text-[color:var(--color-text-muted)]">
-                                {itemCount} {itemCount === 1 ? "item" : "items"}
-                            </p>
-                        </div>
-                        <Link href={route("customer.cart.index")}>
-                            <Button variant="primary" size="sm">
-                                View your cart
-                            </Button>
-                        </Link>
-                    </div>
+                <div className="fixed inset-x-0 bottom-0 z-[var(--z-fixed)] px-[var(--spacing-4)] pb-[max(var(--spacing-4),env(safe-area-inset-bottom))] md:hidden bg-[var(--color-bg-primary)] p-2">
+                    <Link
+                        href={route("customer.cart.index")}
+                        className="grid grid-cols-[1fr_auto_1fr] items-center rounded-[var(--radius-md)] bg-[color:var(--color-primary-600)] px-[var(--spacing-4)] py-3 text-white shadow-[var(--shadow-lg)] active:bg-[color:var(--color-primary-700)]"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <ShoppingBag size={20} />
+                            <span className="text-sm font-semibold">
+                                {itemCount}
+                            </span>
+                        </span>
+                        <span className="text-sm font-semibold">View cart</span>
+                        <span className="text-right text-sm font-semibold">
+                            {formatCurrency(cart.subtotal)}
+                        </span>
+                    </Link>
                 </div>
             )}
         </>

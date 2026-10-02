@@ -83,6 +83,7 @@ export default function ImageUploadModal({
                                         src={preview}
                                         alt="Preview"
                                         className="h-full w-full object-cover"
+                                        loading="lazy"
                                     />
                                 </div>
                             </div>
@@ -92,6 +93,7 @@ export default function ImageUploadModal({
                                     src={preview}
                                     alt="Preview"
                                     className="w-full h-full object-contain"
+                                    loading="lazy"
                                 />
                             </div>
                         )}

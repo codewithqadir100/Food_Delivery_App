@@ -50,6 +50,7 @@ class CartController extends Controller
             $data['items'] = [];
             $data['subtotal'] = 0;
             $data['fulfillment'] = Order::FULFILLMENT_DELIVERY;
+            $data['wants_cutlery'] = false;
             $data['restaurant'] = null;
             $data['suggestions'] = [];
         }
@@ -91,6 +92,24 @@ class CartController extends Controller
         ]);
 
         $this->cart->setFulfillment($validated['fulfillment'], (int) $validated['restaurant_id']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->payload((int) $validated['restaurant_id']),
+        ]);
+    }
+
+    public function updateCutlery(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'wants_cutlery' => ['required', 'boolean'],
+            'restaurant_id' => ['required', 'integer', 'exists:restaurants,id'],
+        ]);
+
+        $this->cart->setWantsCutlery(
+            $request->boolean('wants_cutlery'),
+            (int) $validated['restaurant_id'],
+        );
 
         return response()->json([
             'success' => true,
@@ -151,6 +170,7 @@ class CartController extends Controller
                     'subtotal' => 0,
                     'count' => 0,
                     'fulfillment' => Order::FULFILLMENT_DELIVERY,
+                    'wants_cutlery' => false,
                     'restaurant' => null,
                     'suggestions' => [],
                 ],
@@ -168,6 +188,7 @@ class CartController extends Controller
             'items' => [],
             'subtotal' => 0,
             'fulfillment' => Order::FULFILLMENT_DELIVERY,
+            'wants_cutlery' => false,
             'restaurant' => null,
             'suggestions' => [],
         ];
@@ -184,6 +205,7 @@ class CartController extends Controller
             'items' => $this->cart->getItems($restaurantId),
             'subtotal' => $this->cart->getSubtotal($restaurantId),
             'fulfillment' => $this->cart->getFulfillment($restaurantId),
+            'wants_cutlery' => $this->cart->wantsCutlery($restaurantId),
             'suggestions' => $this->cart->suggestions($restaurantId),
             'restaurant' => Restaurant::select('id', 'name', 'logo', 'is_open', 'status')->find($restaurantId),
         ];

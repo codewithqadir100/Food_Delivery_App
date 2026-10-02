@@ -5,12 +5,37 @@ import Card from "@/Components/Common/Card";
 import Button from "@/Components/Common/Button";
 import Alert from "@/Components/Common/Alert";
 import Badge from "@/Components/Common/Badge";
+import { formatCurrency } from "@/Utils/formatCurrency";
 
 const PLAN_COPY = {
-    free: "One month on the standard listing. After it ends, a paid plan is required.",
-    normal: "Standard position in customer listings for your delivery area.",
-    featured: "Higher position in customer listings around your restaurant location.",
+    free: {
+        summary: "Try the standard listing before a paid plan.",
+        points: ["Standard position in your area", "One time only"],
+    },
+    normal: {
+        summary: "Stay in the standard customer listing.",
+        points: [
+            "Standard position in your area",
+            "Renews after payment is verified",
+        ],
+    },
+    featured: {
+        summary: "Appear above standard restaurants nearby.",
+        points: ["Listed above standard restaurants", "Same delivery area"],
+    },
 };
+
+function planPrice(plan) {
+    if (plan.price_amount === null || plan.price_amount === undefined) {
+        return "Price to be announced";
+    }
+
+    if (Number(plan.price_amount) === 0) {
+        return "Free";
+    }
+
+    return formatCurrency(plan.price_amount);
+}
 
 export default function Subscription({
     plans = [],
@@ -38,12 +63,16 @@ export default function Subscription({
                 pageTitle="Subscription"
                 pageSubtitle="Choose how your restaurant appears to customers"
             >
-                <div className="space-y-6">
+                <div className="space-y-[var(--spacing-6)]">
                     {flash.success && (
                         <Alert type="success" message={flash.success} />
                     )}
-                    {flash.error && <Alert type="error" message={flash.error} />}
-                    {errors.plan && <Alert type="error" message={errors.plan} />}
+                    {flash.error && (
+                        <Alert type="error" message={flash.error} />
+                    )}
+                    {errors.plan && (
+                        <Alert type="error" message={errors.plan} />
+                    )}
 
                     {!onboardingComplete && (
                         <Alert
@@ -81,45 +110,88 @@ export default function Subscription({
                         />
                     )}
 
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 items-stretch gap-[var(--spacing-4)] xl:grid-cols-3">
                         {plans.map((plan) => {
-                            const isCurrent = subscription?.plan?.code === plan.code
-                                && subscription?.status === "active";
-                            const freeBlocked = plan.code === "free" && freeUsed;
+                            const copy = PLAN_COPY[plan.code];
+                            const isCurrent =
+                                subscription?.plan?.code === plan.code &&
+                                subscription?.status === "active";
+                            const freeBlocked =
+                                plan.code === "free" && freeUsed;
 
                             return (
-                                <Card key={plan.code} padding="lg">
-                                    <div className="flex h-full flex-col gap-4">
+                                <Card
+                                    key={plan.code}
+                                    padding="lg"
+                                    className={`flex h-full flex-col ${
+                                        isCurrent
+                                            ? "ring-2 ring-[color:var(--color-primary-500)]"
+                                            : ""
+                                    }`}
+                                    bodyClassName="flex flex-1 flex-col"
+                                >
+                                    <div className="flex h-full flex-1 flex-col gap-[var(--spacing-4)]">
                                         <div className="flex items-center justify-between gap-2">
                                             <h3 className="text-lg font-semibold text-[color:var(--color-text-primary)]">
                                                 {plan.name}
                                             </h3>
-                                            {plan.listing_tier === "featured" && (
-                                                <Badge variant="primary" size="sm">
+                                            {plan.listing_tier ===
+                                                "featured" && (
+                                                <Badge
+                                                    variant="primary"
+                                                    size="sm"
+                                                >
                                                     Top listing
                                                 </Badge>
                                             )}
                                         </div>
                                         <p className="text-sm text-[color:var(--color-text-secondary)]">
-                                            {PLAN_COPY[plan.code]}
+                                            {copy?.summary}
                                         </p>
-                                        <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                            {plan.code === "free"
-                                                ? "1 month free"
-                                                : "Pricing to be announced"}
-                                        </p>
+                                        {copy?.points?.length > 0 && (
+                                            <ul className="space-y-[var(--spacing-2)] text-sm text-[color:var(--color-text-secondary)]">
+                                                {copy.points.map((point) => (
+                                                    <li
+                                                        key={point}
+                                                        className="flex gap-[var(--spacing-2)]"
+                                                    >
+                                                        <span
+                                                            aria-hidden
+                                                            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--color-primary-500)]"
+                                                        />
+                                                        <span>{point}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-[color:var(--color-text-muted)]">
+                                                {plan.duration_days} days
+                                            </p>
+                                            <p className="text-base font-semibold text-[color:var(--color-text-primary)]">
+                                                {planPrice(plan)}
+                                            </p>
+                                        </div>
                                         <div className="mt-auto">
                                             <Button
                                                 fullWidth
-                                                variant={isCurrent ? "secondary" : "primary"}
-                                                disabled={
-                                                    !onboardingComplete
-                                                    || processingCode !== null
-                                                    || isCurrent
-                                                    || freeBlocked
+                                                variant={
+                                                    isCurrent
+                                                        ? "secondary"
+                                                        : "primary"
                                                 }
-                                                loading={processingCode === plan.code}
-                                                onClick={() => submit(plan.code)}
+                                                disabled={
+                                                    !onboardingComplete ||
+                                                    processingCode !== null ||
+                                                    isCurrent ||
+                                                    freeBlocked
+                                                }
+                                                loading={
+                                                    processingCode === plan.code
+                                                }
+                                                onClick={() =>
+                                                    submit(plan.code)
+                                                }
                                             >
                                                 {isCurrent
                                                     ? "Current plan"

@@ -1,35 +1,40 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\PasswordResetRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PasswordResetLinkController extends Controller
 {
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Auth/ForgotPassword', [
             'status' => session('status'),
+            'loginRoute' => User::loginRouteForAccount($request->query('account')),
         ]);
     }
 
     public function store(PasswordResetRequest $request): RedirectResponse
     {
-        $email = $request->validated('email');
-        $token = Str::random(64);
+        $status = Password::sendResetLink($request->only('email'));
 
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $email],
-            ['token' => $token, 'created_at' => now()]
-        );
+        $redirect = redirect()->route('password.request', array_filter([
+            'account' => $request->validated('account'),
+        ]));
 
-        return redirect()->route('password.reset', ['token' => $token])
-            ->with('email', $email);
+        if ($status !== Password::RESET_LINK_SENT) {
+            return $redirect->withErrors(['email' => __($status)]);
+        }
+
+        return $redirect->with('status', __($status));
     }
 }

@@ -6,12 +6,14 @@ import TextInput from "@/Components/Forms/TextInput";
 import TextArea from "@/Components/Forms/TextArea";
 import SelectInput from "@/Components/Forms/SelectInput";
 import FormLabel from "@/Components/Forms/FormLabel";
+import HomeChefChoice from "@/Components/Restaurant/HomeChefChoice";
 import { Building2, Phone, Store } from "lucide-react";
 
 export default function RestaurantComplete({ categories }) {
     const { data, setData, post, processing, errors } = useForm({
         restaurant_name: "",
         restaurant_category_id: "",
+        is_home_chef: false,
         phone: "",
         description: "",
     });
@@ -70,6 +72,12 @@ export default function RestaurantComplete({ categories }) {
                                 placeholder="Select a category"
                             />
                         </div>
+
+                        <HomeChefChoice
+                            value={data.is_home_chef}
+                            onChange={(value) => setData("is_home_chef", value)}
+                            error={errors.is_home_chef}
+                        />
 
                         <TextInput
                             type="tel"

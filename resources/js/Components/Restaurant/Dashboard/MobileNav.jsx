@@ -31,12 +31,6 @@ const NAV_ITEMS = [
         key: "menu",
     },
     {
-        label: "Subscription",
-        icon: CreditCard,
-        href: "/restaurant/subscription",
-        key: "subscription",
-    },
-    {
         label: "Orders",
         icon: ShoppingCart,
         href: "/restaurant/orders",
@@ -54,10 +48,10 @@ const MORE_OPTIONS = [
     { label: "Help & Support", icon: HelpCircle, href: "#", key: "help" },
     { label: "Feedback", icon: MessageSquare, href: "#", key: "feedback" },
     {
-        label: "Settings",
-        icon: Settings,
-        href: "/restaurant/settings",
-        key: "settings",
+        label: "Subscription",
+        icon: CreditCard,
+        href: "/restaurant/subscription",
+        key: "subscription",
     },
 ];
 
@@ -77,7 +71,7 @@ export default function MobileNav({
 
     useEffect(() => {
         const checkScreenSize = () => {
-            setHideLabels(window.innerWidth < 360);
+            setHideLabels(window.innerWidth < 340);
         };
 
         checkScreenSize();
@@ -91,7 +85,12 @@ export default function MobileNav({
             {/* Top Bar */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] flex items-center justify-between px-4 z-[var(--z-fixed)]">
                 <Link href={route("home")} className="flex items-center">
-                    <img src={Logo} alt="FoodHub" className="h-8 w-auto" />
+                    <img
+                        src={Logo}
+                        alt="FoodHub"
+                        className="h-8 w-auto"
+                        loading="lazy"
+                    />
                 </Link>
 
                 <div className="flex items-center gap-1">
@@ -113,7 +112,7 @@ export default function MobileNav({
                     </button>
 
                     <Link
-                        href={route("restaurant.profile.edit")}
+                        href="/restaurant/settings"
                         className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-[color:var(--color-bg-tertiary)]"
                         title="Settings"
                     >
@@ -132,7 +131,8 @@ export default function MobileNav({
                             <img
                                 src={Restaurantlogo}
                                 className="h-10 aspect-square object-cover rounded-[var(--radius-full)]"
-                                alt="Profile Pic"
+                                alt="Restaurant Profile"
+                                loading="lazy"
                             />
                         ) : (
                             <User

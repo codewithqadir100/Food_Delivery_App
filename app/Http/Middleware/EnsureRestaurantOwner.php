@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
@@ -12,8 +14,12 @@ class EnsureRestaurantOwner
     {
         $user = $request->user();
 
-        if (!$user || !$user->isRestaurantOwner()) {
+        if (! $user || ! $user->isRestaurantOwner()) {
             abort(403, 'Access denied. Restaurant owners only.');
+        }
+
+        if ($user->isBanned()) {
+            abort(403, 'Your account has been banned.');
         }
 
         if ($user->isRejected()) {

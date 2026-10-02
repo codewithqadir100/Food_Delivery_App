@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
-import { ArrowLeft, Mail, MapPin, Phone, User } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, Phone, User, Utensils } from "lucide-react";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import Alert from "@/Components/Common/Alert";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
 import OrderStatusSelect from "@/Components/Restaurant/Orders/OrderStatusSelect";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
@@ -132,9 +133,13 @@ export default function OrderDetail({ order: initialOrder }) {
                                 {order.items.map((item) => (
                                     <li
                                         key={item.id}
-                                        className="flex items-center justify-between py-3"
+                                        className="flex items-center gap-3 py-3"
                                     >
-                                        <div>
+                                        <ItemThumb
+                                            src={item.menu_item?.image_url}
+                                            alt={item.name}
+                                        />
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
                                                 {item.name}
                                             </p>
@@ -149,6 +154,18 @@ export default function OrderDetail({ order: initialOrder }) {
                                     </li>
                                 ))}
                             </ul>
+
+                            {order.wants_cutlery ? (
+                                <div className="mt-[var(--spacing-4)] flex items-start gap-[var(--spacing-3)] rounded-[var(--radius-md)] bg-[color:var(--color-primary-50)] p-[var(--spacing-4)]">
+                                    <Utensils
+                                        size={16}
+                                        className="mt-0.5 shrink-0 text-[color:var(--color-primary-600)]"
+                                    />
+                                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                                        Customer wants cutlery with this order.
+                                    </p>
+                                </div>
+                            ) : null}
 
                             {order.notes && (
                                 <div className="mt-4 p-3 rounded-[var(--radius-md)] bg-[color:var(--color-bg-secondary)]">

@@ -1,58 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
-import { Menu as MenuIcon, X } from "lucide-react";
-import MenuCategoryList from "@/Components/Restaurant/Menu/MenuCategoryList";
+import { Plus } from "lucide-react";
+import MenuCategoryList, {
+    MenuCategoryCarousel,
+} from "@/Components/Restaurant/Menu/MenuCategoryList";
 import MenuItemsGrid from "@/Components/Restaurant/Menu/MenuItemsGrid";
 import MenuCategoryModal from "@/Components/Restaurant/Menu/MenuCategoryModal";
 import Alert from "@/Components/Common/Alert";
 import Button from "@/Components/Common/Button";
+import Card from "@/Components/Common/Card";
+import Modal from "@/Components/Common/Modal";
 import axios from "axios";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 
-export default function Menu() {
-    const [categories, setCategories] = useState([]);
-    const [items, setItems] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+export default function Menu({ categories: initialCategories = [], items: initialItems = [] }) {
+    const [categories, setCategories] = useState(initialCategories);
+    const [items, setItems] = useState(initialItems);
+    const [selectedCategory, setSelectedCategory] = useState(
+        initialCategories[0] ?? null,
+    );
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState(null);
     const [alert, setAlert] = useState(null);
 
     const pageTitle = "Restaurant Menu";
     const subTitle = "Manage your Restaurant Menu";
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const [categoriesRes, itemsRes] = await Promise.all([
-                axios.get(route("restaurant.menu.categories.index")),
-                axios.get(route("restaurant.menu.items.index")),
-            ]);
-
-            setCategories(categoriesRes.data.data);
-            setItems(itemsRes.data.data);
-
-            if (categoriesRes.data.data.length > 0) {
-                setSelectedCategory(categoriesRes.data.data[0]);
-            }
-        } catch (error) {
-            setAlert({
-                type: "error",
-                title: "Error",
-                message:
-                    error.response?.data?.message || "Failed to load menu data",
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleAddCategory = () => {
         setEditingCategory(null);
@@ -99,39 +74,13 @@ export default function Menu() {
         }
     };
 
-    const handleDeleteCategory = async (categoryId) => {
-        if (
-            !confirm(
-                "This will delete the category and all its items. Continue?",
-            )
-        )
-            return;
-
-        try {
-            setDeleting(categoryId);
-            await axios.delete(
-                route("restaurant.menu.categories.destroy", categoryId),
-            );
-            setCategories(categories.filter((c) => c.id !== categoryId));
-            if (selectedCategory?.id === categoryId) {
-                setSelectedCategory(categories[0] || null);
-            }
-            setAlert({
-                type: "success",
-                title: "Success",
-                message: "Category deleted",
-            });
-        } catch (error) {
-            setAlert({
-                type: "error",
-                title: "Error",
-                message:
-                    error.response?.data?.message ||
-                    "Failed to delete category",
-            });
-        } finally {
-            setDeleting(false);
-        }
+    const handleDeleteCategory = (categoryId) => {
+        const category = categories.find((c) => c.id === categoryId);
+        setPendingDelete({
+            type: "category",
+            id: categoryId,
+            name: category?.name,
+        });
     };
 
     const handleAddItem = (category) => {
@@ -144,24 +93,61 @@ export default function Menu() {
         router.get(route("restaurant.menu.items.edit", item.id));
     };
 
-    const handleDeleteItem = async (itemId) => {
-        if (!confirm("Delete this item?")) return;
+    const handleDeleteItem = (itemId) => {
+        const item = items.find((i) => i.id === itemId);
+        setPendingDelete({
+            type: "item",
+            id: itemId,
+            name: item?.name,
+        });
+    };
+
+    const closeDeleteModal = () => {
+        if (!deleting) {
+            setPendingDelete(null);
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!pendingDelete) return;
+
+        const { type, id } = pendingDelete;
 
         try {
-            setDeleting(itemId);
-            await axios.delete(route("restaurant.menu.items.destroy", itemId));
-            setItems(items.filter((i) => i.id !== itemId));
-            setAlert({
-                type: "success",
-                title: "Success",
-                message: "Item deleted",
-            });
+            setDeleting(id);
+
+            if (type === "category") {
+                await axios.delete(route("restaurant.menu.categories.destroy", id));
+                const remaining = categories.filter((c) => c.id !== id);
+                setCategories(remaining);
+                if (selectedCategory?.id === id) {
+                    setSelectedCategory(remaining[0] || null);
+                }
+                setAlert({
+                    type: "success",
+                    title: "Success",
+                    message: "Category deleted",
+                });
+            } else {
+                await axios.delete(route("restaurant.menu.items.destroy", id));
+                setItems(items.filter((i) => i.id !== id));
+                setAlert({
+                    type: "success",
+                    title: "Success",
+                    message: "Item deleted",
+                });
+            }
+
+            setPendingDelete(null);
         } catch (error) {
             setAlert({
                 type: "error",
                 title: "Error",
                 message:
-                    error.response?.data?.message || "Failed to delete item",
+                    error.response?.data?.message ||
+                    (type === "category"
+                        ? "Failed to delete category"
+                        : "Failed to delete item"),
             });
         } finally {
             setDeleting(false);
@@ -190,9 +176,9 @@ export default function Menu() {
         <>
             <Head title="Menu Management" />
             <RestaurantLayout pageTitle={pageTitle} pageSubtitle={subTitle}>
-                <div className="min-h-screen bg-[color:var(--color-bg-secondary)]">
+                <div className="space-y-[var(--spacing-4)]">
                     {alert && (
-                        <div className="fixed top-4 right-4 z-50">
+                        <div className="fixed right-4 top-[calc(var(--restaurant-mobile-top-nav)+1rem)] z-[var(--z-popover)] md:top-6">
                             <Alert
                                 type={alert.type}
                                 title={alert.title}
@@ -202,32 +188,28 @@ export default function Menu() {
                         </div>
                     )}
 
-                    <div className="flex h-full">
-                        <div
-                            className={`
-                                fixed lg:static inset-0 z-40 lg:z-0
-                                w-full lg:w-64 bg-[color:var(--color-bg-primary)]
-                                border-r border-[color:var(--color-border)]
-                                transform transition-transform duration-[var(--transition-normal)]
-                                ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-                                overflow-y-auto
-                            `}
+                    <div className="space-y-[var(--spacing-3)] lg:hidden">
+                        <Button
+                            size="sm"
+                            fullWidth
+                            icon={Plus}
+                            onClick={handleAddCategory}
                         >
-                            <div className="sticky top-0 p-4 border-b border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)]">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="font-bold text-[color:var(--color-text-primary)]">
-                                        Categories
-                                    </h2>
-                                    <button
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="lg:hidden p-1 rounded-[var(--radius-md)] hover:bg-[color:var(--color-bg-secondary)]"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
+                            Add Category
+                        </Button>
+                        <MenuCategoryCarousel
+                            categories={categories}
+                            selectedCategory={selectedCategory}
+                            onSelect={setSelectedCategory}
+                        />
+                    </div>
 
-                            <div className="p-4">
+                    <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-[var(--spacing-6)]">
+                        <aside className="hidden self-start lg:sticky lg:top-4 lg:block">
+                            <Card padding="sm">
+                                <h2 className="mb-[var(--spacing-3)] text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                    Categories
+                                </h2>
                                 <MenuCategoryList
                                     categories={categories}
                                     selectedCategory={selectedCategory}
@@ -235,44 +217,58 @@ export default function Menu() {
                                     onAdd={handleAddCategory}
                                     onEdit={handleEditCategory}
                                     onDelete={handleDeleteCategory}
-                                    loading={loading}
                                     deleting={deleting}
                                 />
-                            </div>
-                        </div>
+                            </Card>
+                        </aside>
 
-                        {sidebarOpen && (
-                            <div
-                                className="fixed inset-0 z-30 lg:hidden bg-black/20"
-                                onClick={() => setSidebarOpen(false)}
-                            />
-                        )}
-
-                        <div className="flex-1 p-4 lg:p-8 space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h1 className="text-2xl font-bold text-[color:var(--color-text-primary)]">
-                                    Menu Management
-                                </h1>
-                                <button
-                                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                                    className="lg:hidden p-2 rounded-[var(--radius-md)] hover:bg-[color:var(--color-bg-secondary)]"
-                                >
-                                    <MenuIcon className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <MenuItemsGrid
-                                items={items}
-                                selectedCategory={selectedCategory}
-                                onAddItem={handleAddItem}
-                                onEditItem={handleEditItem}
-                                onDeleteItem={handleDeleteItem}
-                                onToggleItem={handleToggleItem}
-                                loading={loading}
-                                deleting={deleting}
-                            />
-                        </div>
+                        <MenuItemsGrid
+                            items={items}
+                            selectedCategory={selectedCategory}
+                            onAddItem={handleAddItem}
+                            onEditItem={handleEditItem}
+                            onDeleteItem={handleDeleteItem}
+                            onToggleItem={handleToggleItem}
+                            onEditCategory={handleEditCategory}
+                            onDeleteCategory={handleDeleteCategory}
+                            deleting={deleting}
+                        />
                     </div>
+
+                    <Modal
+                        isOpen={Boolean(pendingDelete)}
+                        onClose={closeDeleteModal}
+                        title={
+                            pendingDelete?.type === "category"
+                                ? "Delete category?"
+                                : "Delete item?"
+                        }
+                        closeButton={!deleting}
+                        footer={
+                            <>
+                                <Button
+                                    variant="secondary"
+                                    onClick={closeDeleteModal}
+                                    disabled={Boolean(deleting)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="danger"
+                                    loading={Boolean(deleting)}
+                                    onClick={confirmDelete}
+                                >
+                                    Delete
+                                </Button>
+                            </>
+                        }
+                    >
+                        <p className="text-sm leading-6 text-[color:var(--color-text-secondary)]">
+                            {pendingDelete?.type === "category"
+                                ? `Delete ${pendingDelete.name || "this category"}? Every item in it will be removed too.`
+                                : `Delete ${pendingDelete?.name || "this item"}? This cannot be undone.`}
+                        </p>
+                    </Modal>
 
                     <MenuCategoryModal
                         isOpen={showCategoryModal}

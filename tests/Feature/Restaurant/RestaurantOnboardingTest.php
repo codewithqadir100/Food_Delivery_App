@@ -316,7 +316,7 @@ test('super admin can manually approve, reject, and delete a restaurant without 
         ->assertRedirect();
 
     $this->assertDatabaseMissing('restaurants', ['id' => $restaurant->id]);
-    expect($restaurant->user->fresh()->status)->toBe(User::STATUS_REJECTED);
+    expect($restaurant->user->fresh()->status)->toBe(User::STATUS_BANNED);
 });
 
 test('super admin cannot delete a restaurant that has orders', function () {

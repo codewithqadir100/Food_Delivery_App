@@ -65,6 +65,7 @@ export default function ProfileCover({
                                 src={coverImage}
                                 alt="Restaurant cover"
                                 className="h-full w-full object-cover object-center"
+                                loading="lazy"
                             />
                         ) : (
                             <div className="h-full w-full bg-gradient-to-br from-[color:var(--color-primary-100)] to-[color:var(--color-primary-50)] flex items-center justify-center">
@@ -91,6 +92,7 @@ export default function ProfileCover({
                                         src={logoImage}
                                         alt="Restaurant logo"
                                         className="h-full w-full object-cover object-center"
+                                        loading="lazy"
                                     />
                                 ) : (
                                     <div className="h-full w-full bg-gradient-to-br from-[color:var(--color-primary-200)] to-[color:var(--color-primary-100)] flex items-center justify-center">

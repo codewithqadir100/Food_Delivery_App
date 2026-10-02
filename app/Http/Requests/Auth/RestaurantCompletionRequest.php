@@ -20,6 +20,7 @@ class RestaurantCompletionRequest extends FormRequest
         return [
             'restaurant_name' => ['required', 'string', 'max:255'],
             'restaurant_category_id' => ['required', 'exists:restaurant_categories,id'],
+            'is_home_chef' => ['sometimes', 'boolean'],
             'phone' => ['nullable', 'string', 'max:20'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];

@@ -15,13 +15,55 @@ import {
     Home,
     Package,
     ClipboardList,
-    ChevronRight,
     LayoutDashboard,
 } from "lucide-react";
 import Logo from "@/assets/logo.png";
 import Button from "./Button";
 import Modal from "./Modal";
+import NavbarMobileMenu from "./NavbarMobileMenu";
 import TextInput from "../Forms/TextInput";
+
+function CartIconLink({ count, className = "" }) {
+    return (
+        <Link
+            href={route("customer.cart.index")}
+            aria-label="Cart"
+            className={`relative rounded-lg p-2 transition-colors hover:bg-[color:var(--color-bg-secondary)] ${className}`}
+        >
+            <ShoppingCart
+                size={20}
+                className="text-[color:var(--color-text-secondary)]"
+            />
+            {count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--color-danger-600)] text-[10px] font-bold text-white">
+                    {count > 9 ? "9+" : count}
+                </span>
+            )}
+        </Link>
+    );
+}
+
+function RestaurantLogoMark({ src, className = "" }) {
+    if (src) {
+        return (
+            <img
+                src={src}
+                className={`h-8 aspect-square rounded-[var(--radius-full)] object-cover ${className}`}
+                alt="Restaurant Logo"
+                loading="lazy"
+            />
+        );
+    }
+
+    return (
+        <span
+            className={`flex h-8 w-8 items-center justify-center rounded-[var(--radius-full)] bg-[color:var(--color-bg-tertiary)] text-[color:var(--color-text-secondary)] ${className}`}
+            aria-hidden="true"
+        >
+            <User size={18} />
+        </span>
+    );
+}
 
 export default function Navbar({ categories = [], RestaurantLogo }) {
     const { auth } = usePage().props;
@@ -194,7 +236,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                     </p>
                 </Modal>
             </div>
-            <header className="bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] sticky top-0 z-[var(--z-fixed)] shadow-sm">
+            <header className="bg-[color:var(--color-bg-primary)] border-b border-[color:var(--color-border-light)] sticky top-0 z-[var(--z-navbar)] shadow-sm">
                 {/* ===== TOP BAR ===== */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16 gap-3">
@@ -218,6 +260,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     src={Logo}
                                     alt="FoodHub"
                                     className="h-9 w-auto"
+                                    loading="lazy"
                                 />
                             </Link>
                         </div>
@@ -382,20 +425,17 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 href={route(
                                                     "restaurant.profile.edit",
                                                 )}
+                                                title="Restaurant profile"
                                             >
-                                                <img
+                                                <RestaurantLogoMark
                                                     src={RestaurantLogo}
-                                                    className="rounded-[var(--radius-full)] aspect-square object-cover h-8"
-                                                    alt="Restaurant Logo"
                                                 />
                                             </Link>
                                         </div>
                                     ) : isAdminUser ? (
                                         <div className="flex gap-[var(--spacing-4)] items-center">
                                             <Link
-                                                href={route(
-                                                    "admin.dashboard",
-                                                )}
+                                                href={route("admin.dashboard")}
                                             >
                                                 <Button size="sm">
                                                     <LayoutDashboard
@@ -469,24 +509,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                         </div>
                                     ) : (
                                         <>
-                                            <Link
-                                                href={route(
-                                                    "customer.cart.index",
-                                                )}
-                                                className="relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            >
-                                                <ShoppingCart
-                                                    size={20}
-                                                    className="text-[color:var(--color-text-secondary)]"
-                                                />
-                                                {cartCount > 0 && (
-                                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                                        {cartCount > 9
-                                                            ? "9+"
-                                                            : cartCount}
-                                                    </span>
-                                                )}
-                                            </Link>
+                                            <CartIconLink count={cartCount} />
 
                                             <Link
                                                 href={route(
@@ -655,6 +678,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     )
                                 ) : (
                                     <>
+                                        <CartIconLink count={cartCount} />
                                         <Link href={route("login")}>
                                             <Button
                                                 variant="secondary"
@@ -680,11 +704,11 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             href={route(
                                                 "restaurant.profile.edit",
                                             )}
+                                            className="md:hidden"
+                                            title="Restaurant profile"
                                         >
-                                            <img
+                                            <RestaurantLogoMark
                                                 src={RestaurantLogo}
-                                                className="flex md:hidden rounded-[var(--radius-full)] aspect-square object-cover h-8"
-                                                alt="Restaurant Logo"
                                             />
                                         </Link>
                                     </>
@@ -699,33 +723,27 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                         />
                                     </Link>
                                 ) : (
+                                    <CartIconLink
+                                        count={cartCount}
+                                        className="md:hidden"
+                                    />
+                                )
+                            ) : (
+                                <>
+                                    <CartIconLink
+                                        count={cartCount}
+                                        className="md:hidden"
+                                    />
                                     <Link
-                                        href={route("customer.cart.index")}
-                                        className="md:hidden relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                        href={route("login")}
+                                        className="md:hidden p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                     >
-                                        <ShoppingCart
+                                        <User
                                             size={20}
                                             className="text-[color:var(--color-text-secondary)]"
                                         />
-                                        {cartCount > 0 && (
-                                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[color:var(--color-danger-600)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                                {cartCount > 9
-                                                    ? "9+"
-                                                    : cartCount}
-                                            </span>
-                                        )}
                                     </Link>
-                                )
-                            ) : (
-                                <Link
-                                    href={route("login")}
-                                    className="md:hidden p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                >
-                                    <User
-                                        size={20}
-                                        className="text-[color:var(--color-text-secondary)]"
-                                    />
-                                </Link>
+                                </>
                             )}
                         </div>
                     </div>
@@ -836,7 +854,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
             {/* ===== MOBILE SEARCH OVERLAY ===== */}
             {(mobileSearchOpen || searchAnimating) && (
                 <div
-                    className={`fixed inset-0 z-[var(--z-modal)] transition-opacity duration-200 ${
+                    className={`fixed inset-0 z-[var(--z-drawer)] transition-opacity duration-200 ${
                         mobileSearchOpen
                             ? "opacity-100 pointer-events-auto"
                             : "opacity-0 pointer-events-none"
@@ -886,364 +904,21 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                 </div>
             )}
 
-            {/* ===== MOBILE MENU OVERLAY ===== */}
-            {(mobileMenuOpen || menuAnimating) && (
-                <>
-                    <div
-                        className={`fixed inset-0 z-[var(--z-modal-backdrop)] bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
-                            mobileMenuOpen ? "opacity-100" : "opacity-0"
-                        }`}
-                        onClick={() => setMobileMenuOpen(false)}
-                    />
-                    <div
-                        className={`fixed inset-y-0 left-0 z-[var(--z-modal)] w-full max-w-sm bg-[color:var(--color-bg-primary)] shadow-2xl transform transition-transform duration-300 ease-out overflow-y-auto ${
-                            mobileMenuOpen
-                                ? "translate-x-0"
-                                : "-translate-x-full"
-                        }`}
-                    >
-                        {/* Menu Header */}
-                        <div className="flex items-center justify-between px-4 py-4 border-b border-[color:var(--color-border-light)]">
-                            <img
-                                src={Logo}
-                                alt="FoodHub"
-                                className="h-8 w-auto"
-                            />
-                            <button
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                            >
-                                <X
-                                    size={22}
-                                    className="text-[color:var(--color-text-primary)]"
-                                />
-                            </button>
-                        </div>
-
-                        <div className="px-4 py-4 space-y-1">
-                            {/* Main Nav */}
-                            <Link
-                                href={route("home")}
-                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                <Home
-                                    size={20}
-                                    className="text-[color:var(--color-primary-600)]"
-                                />
-                                <span className="text-sm font-medium">
-                                    Home
-                                </span>
-                            </Link>
-                            <Link
-                                href="/restaurants"
-                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                <UtensilsCrossed
-                                    size={20}
-                                    className="text-[color:var(--color-primary-600)]"
-                                />
-                                <span className="text-sm font-medium">
-                                    Restaurants
-                                </span>
-                            </Link>
-
-                            {/* Order by Categories - Expandable */}
-                            <button
-                                onClick={() =>
-                                    setMobileCategoriesOpen(
-                                        !mobileCategoriesOpen,
-                                    )
-                                }
-                                className="flex items-center justify-between w-full px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                            >
-                                <span className="flex items-center gap-3">
-                                    <Package
-                                        size={20}
-                                        className="text-[color:var(--color-primary-600)]"
-                                    />
-                                    <span className="text-sm font-medium">
-                                        Order by Categories
-                                    </span>
-                                </span>
-                                <ChevronRight
-                                    size={16}
-                                    className={`text-[color:var(--color-text-muted)] transition-transform ${
-                                        mobileCategoriesOpen ? "rotate-90" : ""
-                                    }`}
-                                />
-                            </button>
-
-                            {mobileCategoriesOpen && (
-                                <div className="ml-10 space-y-1">
-                                    {categories.length > 0 ? (
-                                        categories.map((cat) => (
-                                            <Link
-                                                key={cat.id}
-                                                href={`/restaurants?category=${cat.slug}`}
-                                                className="block px-3 py-2 rounded-lg text-sm text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                {cat.name}
-                                            </Link>
-                                        ))
-                                    ) : (
-                                        <p className="px-3 py-2 text-sm text-[color:var(--color-text-muted)]">
-                                            No categories available
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* For Restaurants - Only when NOT logged in */}
-                            {!user && (
-                                <>
-                                    <div className="border-t border-[color:var(--color-border-light)] pt-3 mt-3">
-                                        <p className="px-3 text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wider mb-2">
-                                            For Restaurants
-                                        </p>
-                                        <Link
-                                            href={route("restaurant.register")}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <Store
-                                                size={20}
-                                                className="text-[color:var(--color-primary-600)]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                Become Our Partner
-                                            </span>
-                                        </Link>
-                                        <Link
-                                            href={route("restaurant.login")}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <LogOut
-                                                size={20}
-                                                className="text-[color:var(--color-primary-600)]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                Restaurant Login
-                                            </span>
-                                        </Link>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* User Section */}
-                            <div className="border-t border-[color:var(--color-border-light)] pt-3 mt-3">
-                                {user ? (
-                                    isRestaurant ? (
-                                        <Link
-                                            href={route("restaurant.dashboard")}
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                        >
-                                            <Store
-                                                size={18}
-                                                className="text-[color:var(--color-primary-600)]"
-                                            />
-                                            <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                Restaurant Dashboard
-                                            </span>
-                                        </Link>
-                                    ) : isAdminUser ? (
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-3 px-3 py-2">
-                                                <div className="w-9 h-9 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
-                                                    {user.name
-                                                        .charAt(0)
-                                                        .toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                        {user.name}
-                                                    </p>
-                                                    <p className="text-xs text-[color:var(--color-text-muted)]">
-                                                        {user.email}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Link
-                                                href={route(
-                                                    "admin.dashboard",
-                                                )}
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                <LayoutDashboard
-                                                    size={18}
-                                                    className="text-[color:var(--color-text-muted)]"
-                                                />
-                                                <span className="text-sm font-medium">
-                                                    Admin Dashboard
-                                                </span>
-                                            </Link>
-                                            <button
-                                                type="button"
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-bg-secondary)] transition-colors w-full text-left"
-                                                onClick={() => {
-                                                    setMobileMenuOpen(false);
-                                                    handleLogout();
-                                                }}
-                                            >
-                                                <LogOut size={18} />
-                                                <span className="text-sm font-medium">
-                                                    Logout
-                                                </span>
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-3 px-3 py-2">
-                                                <div className="w-9 h-9 rounded-full bg-[color:var(--color-primary-600)] flex items-center justify-center text-white text-sm font-semibold">
-                                                    {user.name
-                                                        .charAt(0)
-                                                        .toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                        {user.name}
-                                                    </p>
-                                                    <p className="text-xs text-[color:var(--color-text-muted)]">
-                                                        {user.email}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Link
-                                                href={route(
-                                                    "customer.profile.index",
-                                                )}
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                <User
-                                                    size={18}
-                                                    className="text-[color:var(--color-text-muted)]"
-                                                />
-                                                <span className="text-sm font-medium">
-                                                    My Profile
-                                                </span>
-                                            </Link>
-                                            <Link
-                                                href={route(
-                                                    "customer.cart.index",
-                                                )}
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                <ShoppingCart
-                                                    size={18}
-                                                    className="text-[color:var(--color-text-muted)]"
-                                                />
-                                                <span className="text-sm font-medium">
-                                                    My Cart
-                                                    {cartCount > 0 &&
-                                                        ` (${cartCount})`}
-                                                </span>
-                                            </Link>
-                                            <Link
-                                                href={route(
-                                                    "customer.wishlist",
-                                                )}
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                <Heart
-                                                    size={18}
-                                                    className="text-[color:var(--color-text-muted)]"
-                                                />
-                                                <span className="text-sm font-medium">
-                                                    My Wishlist
-                                                </span>
-                                            </Link>
-                                            <Link
-                                                href={route(
-                                                    "customer.addresses.create",
-                                                )}
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                <MapPin
-                                                    size={18}
-                                                    className="text-[color:var(--color-text-muted)]"
-                                                />
-                                                <span className="text-sm font-medium">
-                                                    My Addresses
-                                                </span>
-                                            </Link>
-                                            <button
-                                                type="button"
-                                                className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-danger-600)] hover:bg-[color:var(--color-bg-secondary)] transition-colors w-full text-left"
-                                                onClick={() => {
-                                                    setMobileMenuOpen(false);
-                                                    handleLogout();
-                                                }}
-                                            >
-                                                <LogOut size={18} />
-                                                <span className="text-sm font-medium">
-                                                    Logout
-                                                </span>
-                                            </button>
-                                        </div>
-                                    )
-                                ) : (
-                                    <div className="flex items-center gap-3 px-3 pt-2">
-                                        <Link
-                                            href={route("login")}
-                                            className="flex-1"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                fullWidth
-                                            >
-                                                Login
-                                            </Button>
-                                        </Link>
-                                        <Link
-                                            href={route("register")}
-                                            className="flex-1"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            <Button
-                                                variant="primary"
-                                                size="sm"
-                                                fullWidth
-                                            >
-                                                Sign Up
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
+            <NavbarMobileMenu
+                open={mobileMenuOpen}
+                animating={menuAnimating}
+                onClose={() => setMobileMenuOpen(false)}
+                user={user}
+                isRestaurant={isRestaurant}
+                isAdmin={isAdminUser}
+                categories={categories}
+                categoriesOpen={mobileCategoriesOpen}
+                onToggleCategories={() =>
+                    setMobileCategoriesOpen(!mobileCategoriesOpen)
+                }
+                cartCount={cartCount}
+                onLogout={handleLogout}
+            />
         </>
     );
 }

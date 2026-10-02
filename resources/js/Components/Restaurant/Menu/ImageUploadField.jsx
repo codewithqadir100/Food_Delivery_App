@@ -1,8 +1,10 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 
+const SQUARE_FRAME =
+    "aspect-square w-full max-w-full overflow-hidden rounded-[var(--radius-lg)] sm:max-w-xs";
+
 export default function ImageUploadField({
-    value,
     onChange,
     error,
     label = "Image",
@@ -13,6 +15,8 @@ export default function ImageUploadField({
     const [isDragging, setIsDragging] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(preview);
     const fileInputRef = useRef(null);
+    const maxLabel =
+        maxSize >= 1024 ? `${Math.round(maxSize / 1024)}MB` : `${maxSize}KB`;
 
     const handleFileSelect = (file) => {
         if (!file) return;
@@ -21,7 +25,11 @@ export default function ImageUploadField({
             return;
         }
 
-        if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+        if (
+            !["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+                file.type,
+            )
+        ) {
             return;
         }
 
@@ -42,15 +50,6 @@ export default function ImageUploadField({
         }
     };
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = () => {
-        setIsDragging(false);
-    };
-
     const clearImage = () => {
         setPreviewUrl(null);
         onChange(null);
@@ -60,12 +59,12 @@ export default function ImageUploadField({
     };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-[var(--spacing-2)]">
             {label && (
                 <label className="block text-sm font-medium text-[color:var(--color-text-primary)]">
                     {label}
                     {required && (
-                        <span className="text-[color:var(--color-danger-600)] ml-1">
+                        <span className="ml-1 text-[color:var(--color-danger-600)]">
                             *
                         </span>
                     )}
@@ -73,60 +72,67 @@ export default function ImageUploadField({
             )}
 
             {previewUrl ? (
-                <div className="relative group">
+                <div className={`relative ${SQUARE_FRAME}`}>
                     <img
                         src={previewUrl}
-                        alt="Preview"
-                        className="w-full h-48 object-cover rounded-[var(--radius-md)] border border-[color:var(--color-border)]"
+                        alt="Item preview"
+                        className="h-full w-full object-cover"
                     />
                     <button
                         type="button"
                         onClick={clearImage}
-                        className="absolute top-2 right-2 p-2 rounded-[var(--radius-md)] bg-[color:var(--color-danger-600)] text-white opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-normal)]"
+                        aria-label="Remove image"
+                        className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-danger-600)] text-white shadow-[var(--shadow-sm)]"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="h-4 w-4" />
                     </button>
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute inset-0 rounded-[var(--radius-md)] bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-normal)] flex items-center justify-center"
+                        className="absolute bottom-2 left-2 inline-flex h-9 items-center gap-1 rounded-[var(--radius-md)] bg-[color:var(--color-bg-primary)] px-2 text-xs font-medium text-[color:var(--color-text-primary)] shadow-[var(--shadow-sm)]"
                     >
-                        <Upload className="w-6 h-6 text-white" />
+                        <Upload className="h-3.5 w-3.5" />
+                        Change
                     </button>
                 </div>
             ) : (
-                <div
+                <button
+                    type="button"
                     onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`
-                        border-2 border-dashed rounded-[var(--radius-md)] p-8 text-center cursor-pointer
-                        transition-all duration-[var(--transition-normal)]
-                        ${
-                            isDragging
-                                ? "border-[color:var(--color-primary-600)] bg-[color:var(--color-primary-50)]"
-                                : "border-[color:var(--color-border)] hover:border-[color:var(--color-primary-500)]"
-                        }
-                        ${error ? "border-[color:var(--color-danger-600)]" : ""}
-                    `}
+                    className={`${SQUARE_FRAME} flex cursor-pointer flex-col items-center justify-center border-2 border-dashed p-[var(--spacing-4)] text-center transition-colors duration-[var(--transition-normal)] ${
+                        error
+                            ? "border-[color:var(--color-danger-600)]"
+                            : isDragging
+                              ? "border-[color:var(--color-primary-600)] bg-[color:var(--color-primary-50)]"
+                              : "border-[color:var(--color-border)] hover:border-[color:var(--color-primary-500)]"
+                    }`}
                 >
                     <Upload
-                        className={`w-8 h-8 mx-auto mb-2 ${isDragging ? "text-[color:var(--color-primary-600)]" : "text-[color:var(--color-text-muted)]"}`}
+                        className={`mb-2 h-8 w-8 ${
+                            isDragging
+                                ? "text-[color:var(--color-primary-600)]"
+                                : "text-[color:var(--color-text-muted)]"
+                        }`}
                     />
-                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                        Drop your image here or click to select
-                    </p>
-                    <p className="text-xs text-[color:var(--color-text-muted)] mt-1">
-                        Supported: JPG, PNG (Max {maxSize}MB)
-                    </p>
-                </div>
+                    <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                        Drop a square image, or tap to choose
+                    </span>
+                    <span className="mt-1 text-xs text-[color:var(--color-text-muted)]">
+                        JPG, PNG, WEBP. Max {maxLabel}.
+                    </span>
+                </button>
             )}
 
             <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/jpg"
+                accept="image/jpeg,image/png,image/jpg,image/webp"
                 onChange={(e) => handleFileSelect(e.target.files?.[0])}
                 className="hidden"
             />

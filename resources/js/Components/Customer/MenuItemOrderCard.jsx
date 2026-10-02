@@ -1,88 +1,74 @@
-import { useState } from "react";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
-import Button from "@/Components/Common/Button";
+import { Plus } from "lucide-react";
+import ItemThumb from "@/Components/Common/ItemThumb";
+import QuantityStepper from "@/Components/Customer/QuantityStepper";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function MenuItemOrderCard({
     item,
+    quantity = 0,
     canOrder = true,
-    adding = false,
-    onAddToCart,
+    busy = false,
+    onAdd,
+    onChangeQuantity,
+    onRemove,
 }) {
-    const [quantity, setQuantity] = useState(1);
-
-    const decrease = () => setQuantity((qty) => Math.max(1, qty - 1));
-    const increase = () => setQuantity((qty) => Math.min(20, qty + 1));
+    const inCart = quantity > 0;
+    const disabled = !canOrder || busy;
 
     return (
-        <div className="rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] transition-shadow duration-[var(--transition-normal)] bg-[color:var(--color-bg-primary)] flex flex-col">
-            <div className="relative h-40 overflow-hidden bg-[color:var(--color-bg-secondary)]">
-                {item.image ? (
-                    <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-[color:var(--color-text-muted)] text-sm">
-                            No image
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            <div className="p-3 space-y-2 flex-1 flex flex-col">
-                <h3 className="font-semibold text-sm text-[color:var(--color-text-primary)] line-clamp-1">
+        <article className="flex items-start gap-[var(--spacing-4)] rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[color:var(--color-bg-secondary)] p-[var(--spacing-3)]">
+            <div className="min-w-0 flex-1 space-y-1">
+                <h3 className="text-base font-semibold text-[color:var(--color-text-primary)]">
                     {item.name}
                 </h3>
-
-                <p className="text-xs text-[color:var(--color-text-muted)] line-clamp-2 flex-1">
-                    {item.description}
-                </p>
-
-                <p className="font-bold text-[color:var(--color-primary-600)]">
+                <p className="text-base font-semibold text-[color:var(--color-primary-600)]">
                     {formatCurrency(item.price)}
                 </p>
+                {item.description ? (
+                    <p className="line-clamp-2 truncate text-xs leading-5 text-[color:var(--color-text-muted)]">
+                        {item.description}
+                    </p>
+                ) : null}
+            </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                    <div className="flex items-center rounded-[var(--radius-md)] border border-[color:var(--color-border-light)]">
+            <div className="relative shrink-0">
+                <ItemThumb src={item.image} alt={item.name} className="w-24" />
+                <div className="absolute bottom-2 right-2 z-10">
+                    {inCart ? (
+                        <>
+                            <div className="md:hidden">
+                                <QuantityStepper
+                                    quantity={quantity}
+                                    disabled={disabled}
+                                    onDecrease={() =>
+                                        onChangeQuantity?.(quantity - 1)
+                                    }
+                                    onIncrease={() =>
+                                        onChangeQuantity?.(quantity + 1)
+                                    }
+                                    onRemove={onRemove}
+                                />
+                            </div>
+                            <span
+                                className="hidden h-8 min-w-8 items-center justify-center rounded-full bg-[color:var(--color-gray-800)] px-2 text-sm font-semibold text-[color:var(--color-gray-0)] shadow-[var(--shadow-md)] md:flex"
+                                aria-label={`${quantity} in cart`}
+                            >
+                                {quantity}
+                            </span>
+                        </>
+                    ) : (
                         <button
                             type="button"
-                            onClick={decrease}
-                            disabled={!canOrder || adding}
-                            className="p-2 text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-bg-secondary)] disabled:opacity-50 transition-colors"
-                            aria-label="Decrease quantity"
+                            disabled={disabled}
+                            onClick={onAdd}
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] text-[color:var(--color-text-primary)] shadow-[var(--shadow-md)] transition-colors duration-[var(--transition-fast)] hover:bg-[color:var(--color-bg-tertiary)] disabled:opacity-50"
+                            aria-label={`Add ${item.name}`}
                         >
-                            <Minus size={14} />
+                            <Plus size={16} />
                         </button>
-                        <span className="w-8 text-center text-sm font-medium text-[color:var(--color-text-primary)]">
-                            {quantity}
-                        </span>
-                        <button
-                            type="button"
-                            onClick={increase}
-                            disabled={!canOrder || adding}
-                            className="p-2 text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-bg-secondary)] disabled:opacity-50 transition-colors"
-                            aria-label="Increase quantity"
-                        >
-                            <Plus size={14} />
-                        </button>
-                    </div>
-
-                    <Button
-                        size="sm"
-                        variant="primary"
-                        className="flex-1 flex items-center justify-center gap-1.5"
-                        disabled={!canOrder}
-                        loading={adding}
-                        onClick={() => onAddToCart?.(item, quantity)}
-                    >
-                        <ShoppingCart className="w-3.5 h-3.5" />
-                        <span>Add</span>
-                    </Button>
+                    )}
                 </div>
             </div>
-        </div>
+        </article>
     );
 }

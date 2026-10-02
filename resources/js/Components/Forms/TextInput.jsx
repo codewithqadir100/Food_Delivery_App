@@ -42,6 +42,7 @@ const TextInput = forwardRef(function TextInput(
                     ref={ref}
                     type={type}
                     placeholder={placeholder}
+                    required={required}
                     disabled={disabled}
                     className={`
             w-full

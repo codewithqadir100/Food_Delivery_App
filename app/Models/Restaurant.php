@@ -45,6 +45,7 @@ class Restaurant extends Model
         'is_open',
         'status',
         'restaurant_category_id',
+        'is_home_chef',
         'approved_since',
     ];
 
@@ -57,6 +58,7 @@ class Restaurant extends Model
     {
         return [
             'is_open' => 'boolean',
+            'is_home_chef' => 'boolean',
             'approved_since' => 'datetime',
         ];
     }
@@ -99,7 +101,7 @@ class Restaurant extends Model
     public function scopeVisibleToCustomers(Builder $query): Builder
     {
         return $query
-            ->where('status', self::STATUS_APPROVED)
+            ->where($query->getModel()->getTable().'.status', self::STATUS_APPROVED)
             ->whereHas('subscription', function (Builder $subscription) {
                 $subscription->whereNotNull('activated_at');
             });

@@ -5,6 +5,7 @@ export default function Card({
     padding = "md",
     shadow = true,
     className = "",
+    bodyClassName = "",
     ...props
 }) {
     const paddingSizes = {
@@ -37,7 +38,9 @@ export default function Card({
                 </div>
             )}
 
-            <div className={paddingSizes[padding]}>{children}</div>
+            <div className={`${paddingSizes[padding]} ${bodyClassName}`}>
+                {children}
+            </div>
 
             {footer && (
                 <div

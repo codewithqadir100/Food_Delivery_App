@@ -20,7 +20,7 @@ export default function EmptyState({
         {description}
       </p>
 
-      {action && <div className="w-full sm:w-auto">{action}</div>}
+      {action && <div className="flex w-full justify-center sm:w-auto">{action}</div>}
     </div>
   );
 }

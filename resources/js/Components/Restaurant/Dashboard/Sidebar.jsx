@@ -115,6 +115,7 @@ export default function Sidebar({
                         src={Logo}
                         alt="FoodHub"
                         className="h-8 w-auto shrink-0"
+                        loading="lazy"
                     />
                 </Link>
 

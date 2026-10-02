@@ -1,68 +1,70 @@
-import { router } from "@inertiajs/react";
-import Button from "@/Components/Common/Button";
 import Card from "@/Components/Common/Card";
 import Badge from "@/Components/Common/Badge";
 import { MapPin, Star, Motorbike } from "lucide-react";
 
 export default function RestaurantCard({ restaurant, user, onCardClick }) {
     const unavailable = restaurant.listing_availability === "unavailable";
-
-    const handleLoginClick = (e) => {
-        e.stopPropagation();
-        router.visit(route("login"));
-    };
+    const showDistance =
+        user?.role === "customer" && restaurant.distance_km !== null;
+    const showDeliveryCharge =
+        user?.role === "customer" && restaurant.delivery_charge !== null;
 
     return (
         <Card
-            key={restaurant.id}
             shadow={true}
             padding="none"
             className={`overflow-hidden transition-shadow ${
-                unavailable ? "cursor-default" : "hover:shadow-lg cursor-pointer"
+                unavailable
+                    ? "cursor-default"
+                    : "cursor-pointer hover:shadow-lg"
             }`}
             onClick={unavailable ? undefined : onCardClick}
         >
-            {/* Cover Image */}
-            <div className="aspect-video overflow-hidden bg-[color:var(--color-bg-tertiary)]">
+            <div className="relative aspect-video overflow-hidden bg-[color:var(--color-bg-tertiary)]">
                 {restaurant.cover_image_url ? (
                     <img
                         src={restaurant.cover_image_url}
                         alt={restaurant.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform"
+                        className={`h-full w-full object-cover ${
+                            unavailable
+                                ? ""
+                                : "transition-transform hover:scale-105"
+                        }`}
+                        loading="lazy"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="flex h-full w-full items-center justify-center">
                         <MapPin
                             size={48}
                             className="text-[color:var(--color-text-muted)]"
                         />
                     </div>
                 )}
-            </div>
 
-            {/* Content */}
-            <div className="p-[var(--spacing-4)] space-y-[var(--spacing-3)]">
-                {/* Name */}
-                <div className=" flex items-center justify-between gap-2">
-                    <div className="min-w-0 space-y-1">
-                        <h3 className="restaurant-card-title line-clamp-2">
-                            {restaurant.name}
-                        </h3>
+                {(unavailable || restaurant.is_featured) && (
+                    <div className="absolute left-3 top-3 flex flex-col items-start gap-1">
                         {unavailable && (
                             <Badge variant="warning" size="sm">
                                 Unavailable
                             </Badge>
                         )}
-                        {restaurant.is_featured && !unavailable && (
+                        {restaurant.is_featured && (
                             <Badge variant="primary" size="sm">
                                 Featured
                             </Badge>
                         )}
                     </div>
+                )}
+            </div>
 
-                    {/* Rating & Reviews */}
+            <div className="space-y-[var(--spacing-3)] p-[var(--spacing-4)]">
+                <div className="flex items-start justify-between gap-2">
+                    <h3 className="restaurant-card-title line-clamp-2 min-w-0">
+                        {restaurant.name}
+                    </h3>
+
                     {restaurant.rating ? (
-                        <div className="flex items-center gap-[var(--spacing-2)]">
+                        <div className="flex shrink-0 items-center gap-[var(--spacing-2)]">
                             <span className="restaurant-card-rating flex items-center gap-[var(--spacing-1)]">
                                 <Star
                                     size={14}
@@ -76,19 +78,16 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                             </span>
                         </div>
                     ) : (
-                        <span className="restaurant-card-review-count">
+                        <span className="restaurant-card-review-count shrink-0">
                             New
                         </span>
                     )}
                 </div>
 
-                <div className="flex !mt-[var(--spacing-1)] gap-[var(--spacing-2)] items-center">
-                    {/* Category */}
+                <div className="flex items-center gap-[var(--spacing-2)]">
                     <span className="restaurant-card-category">
                         {restaurant.category?.name || "Restaurant"}
                     </span>
-
-                    {/* Distance with Bike Icon */}
 
                     <div className="flex items-center gap-1">
                         <Motorbike
@@ -96,49 +95,17 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                             className="text-[color:var(--color-text-muted)]"
                         />
                         <span className="restaurant-card-distance">
-                            {user &&
-                            user.role === "customer" &&
-                            restaurant.distance_km !== null
+                            {showDistance
                                 ? `${restaurant.distance_km} km`
                                 : "--"}
                         </span>
                     </div>
 
-                    {/* Delivery Charges */}
-                    <p className="font-semibold restaurant-card-delivery-charges">
+                    <p className="restaurant-card-delivery-charges font-semibold">
                         Rs.{" "}
-                        {user &&
-                        user.role === "customer" &&
-                        restaurant.delivery_charge !== null
-                            ? restaurant.delivery_charge
-                            : "--"}
+                        {showDeliveryCharge ? restaurant.delivery_charge : "--"}
                     </p>
                 </div>
-
-                {/* View Menu / Login Button */}
-                {unavailable ? (
-                    <Button variant="secondary" size="md" fullWidth disabled>
-                        Unavailable
-                    </Button>
-                ) : user ? (
-                    <Button
-                        variant="primary"
-                        size="md"
-                        fullWidth
-                        onClick={onCardClick}
-                    >
-                        View Menu
-                    </Button>
-                ) : (
-                    <Button
-                        variant="primary"
-                        size="md"
-                        fullWidth
-                        onClick={handleLoginClick}
-                    >
-                        Login to Browse Menu
-                    </Button>
-                )}
             </div>
         </Card>
     );

@@ -63,7 +63,7 @@ class MenuItemController extends Controller
             'image' => [
                 'required',
                 'image',
-                'mimes:jpeg,png,jpg',
+                'mimes:jpeg,png,jpg,webp',
                 'max:2048',
             ],
         ]);
@@ -123,7 +123,7 @@ class MenuItemController extends Controller
             'image' => [
                 'nullable',
                 'image',
-                'mimes:jpeg,png,jpg',
+                'mimes:jpeg,png,jpg,webp',
                 'max:2048',
             ],
         ]);

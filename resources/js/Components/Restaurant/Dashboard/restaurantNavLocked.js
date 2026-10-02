@@ -7,7 +7,7 @@ export function isRestaurantNavLocked(key, { isApproved = false, onboardingCompl
         return !onboardingComplete;
     }
 
-    if (key === "orders" || key === "analytics" || key === "settings") {
+    if (key === "orders" || key === "analytics") {
         return !isApproved;
     }
 

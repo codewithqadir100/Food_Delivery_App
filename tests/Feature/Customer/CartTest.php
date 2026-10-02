@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\MenuItem;
 use App\Models\Restaurant;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 function customer(): User
 {
@@ -140,4 +141,79 @@ test('restaurant owners cannot access the customer cart', function () {
     $this->actingAs($owner)
         ->getJson(route('customer.cart.data'))
         ->assertForbidden();
+});
+
+test('a guest can add an item and still has it after login', function () {
+    $menuItem = MenuItem::factory()->create();
+    $user = customer();
+
+    $this->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 2,
+    ])->assertOk();
+
+    $this->post(route('login'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect('/');
+
+    $item = collect($this->getJson(route('customer.cart.data'))->json('data.items'))
+        ->firstWhere('menu_item_id', $menuItem->id);
+
+    expect($item)->not->toBeNull();
+    expect($item['quantity'])->toBe(2);
+});
+
+test('a guest cart survives registration', function () {
+    $menuItem = MenuItem::factory()->create();
+
+    $this->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 1,
+    ])->assertOk();
+
+    $this->post(route('register'), [
+        'name' => 'Ayesha Khan',
+        'email' => 'ayesha@example.com',
+        'phone' => '03001234567',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertRedirect(route('customer.addresses.create'));
+
+    $items = $this->getJson(route('customer.cart.data'))->json('data.items');
+
+    expect(collect($items)->pluck('menu_item_id'))->toContain($menuItem->id);
+});
+
+test('guest checkout shows a login step and returns to the same cart', function () {
+    $menuItem = MenuItem::factory()->create();
+    $user = customer();
+
+    $this->postJson(route('customer.cart.store'), [
+        'menu_item_id' => $menuItem->id,
+        'quantity' => 1,
+    ])->assertOk();
+
+    $this->get(route('customer.checkout.show', $menuItem->restaurant_id))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Customer/Checkout')
+            ->where('requires_login', true)
+            ->has('items', 1));
+
+    $this->get(route('customer.checkout.login', $menuItem->restaurant_id))
+        ->assertRedirect(route('login'));
+
+    $this->post(route('login'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('customer.checkout.show', $menuItem->restaurant_id));
+
+    expect(collect($this->getJson(route('customer.cart.data'))->json('data.items'))->pluck('menu_item_id'))
+        ->toContain($menuItem->id);
+});
+
+test('guests cannot place an order', function () {
+    $this->post(route('customer.checkout.store'))
+        ->assertRedirect(route('login'));
 });
