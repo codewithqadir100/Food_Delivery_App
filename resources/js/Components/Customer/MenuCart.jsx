@@ -155,7 +155,7 @@ export default function MenuCart({
                         )}
 
                         {suggestions.length > 0 && (
-                            <div className="mt-[var(--spacing-6)] border-t border-[color:var(--color-border-light)] pt-[var(--spacing-6)]">
+                            <div className="mt-[var(--spacing-6)] border-t border-[color:var(--color-border-light)] pt-[var(--spacing-6)] bg-[color:var(--color-bg-secondary)]">
                                 <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
                                     Add an extra
                                 </p>

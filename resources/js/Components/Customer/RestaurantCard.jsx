@@ -59,7 +59,7 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
 
             <div className="space-y-[var(--spacing-3)] p-[var(--spacing-4)]">
                 <div className="flex items-start justify-between gap-2">
-                    <h3 className="restaurant-card-title line-clamp-2 min-w-0">
+                    <h3 className="restaurant-card-title truncate min-w-20">
                         {restaurant.name}
                     </h3>
 

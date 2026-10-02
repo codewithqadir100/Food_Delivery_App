@@ -43,7 +43,7 @@ Route::get('/restaurants', function () {
 })->name('restaurants.index');
 
 Route::prefix('customer')->name('customer.')->group(function () {
-    Route::middleware(['auth', 'customer'])->group(function () {
+    Route::middleware(['auth', 'customer', 'verified'])->group(function () {
         Route::get('/checkout/delivery-fee', [CheckoutController::class, 'deliveryFee'])->name('checkout.delivery-fee');
     });
 
@@ -61,7 +61,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/checkout/{restaurant?}', [CheckoutController::class, 'show'])->name('checkout.show');
     });
 
-    Route::middleware(['auth', 'customer'])->group(function () {
+    Route::middleware(['auth', 'customer', 'verified'])->group(function () {
         Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
         Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
         Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');

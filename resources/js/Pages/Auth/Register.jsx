@@ -4,6 +4,7 @@ import Button from "@/Components/Common/Button";
 import TextInput from "@/Components/Forms/TextInput";
 import PasswordInput from "@/Components/Forms/PasswordInput";
 import Card from "@/Components/Common/Card";
+import GoogleAuthButton from "@/Components/Auth/GoogleAuthButton";
 import { User, Mail, Phone, UserPlus } from "lucide-react";
 
 export default function Register() {
@@ -35,6 +36,16 @@ export default function Register() {
                         <p className="text-sm text-[color:var(--color-text-secondary)]">
                             Join FoodHub and order delicious food
                         </p>
+                    </div>
+
+                    <GoogleAuthButton intent="customer" />
+
+                    <div className="flex items-center gap-3">
+                        <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
+                        <span className="text-xs text-[color:var(--color-text-muted)]">
+                            or
+                        </span>
+                        <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
                     </div>
 
                     <form onSubmit={submit} className="space-y-4">

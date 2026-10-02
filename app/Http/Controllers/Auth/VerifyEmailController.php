@@ -16,18 +16,20 @@ class VerifyEmailController extends Controller
     {
         $user = $request->user();
 
-        if (! $user instanceof User || ! $user->isRestaurantOwner()) {
+        if (! $user instanceof User || ! $user->canVerifyEmail()) {
             abort(403);
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('restaurant.dashboard');
+            return redirect()->route($user->whenAlreadyVerifiedRoute());
         }
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
 
-        return redirect()->route('restaurant.dashboard')->with('success', 'Email verified.');
+        return redirect()
+            ->route($user->afterEmailVerifiedRoute())
+            ->with('success', 'Email verified.');
     }
 }

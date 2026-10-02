@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import AuthLayout from "@/Layouts/AuthenticatedLayout";
 import Button from "@/Components/Common/Button";
 import TextInput from "@/Components/Forms/TextInput";
 import Checkbox from "@/Components/Forms/Checkbox";
 import FormLabel from "@/Components/Forms/FormLabel";
-import FormError from "@/Components/Forms/FormError";
 import Card from "@/Components/Common/Card";
 import Alert from "@/Components/Common/Alert";
+import GoogleAuthButton from "@/Components/Auth/GoogleAuthButton";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 
 export default function Login({ status }) {
+    const { flash = {} } = usePage().props;
     const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
@@ -32,11 +33,24 @@ export default function Login({ status }) {
             {status && (
                 <Alert type="success" message={status} className="mb-6" />
             )}
+            {flash.error && (
+                <Alert type="error" message={flash.error} className="mb-6" />
+            )}
 
             <Card padding="lg" className="mb-6">
                 <h2 className="text-2xl font-bold text-[color:var(--color-text-primary)] mb-6">
                     Welcome Back
                 </h2>
+
+                <GoogleAuthButton intent="customer" />
+
+                <div className="my-5 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
+                    <span className="text-xs text-[color:var(--color-text-muted)]">
+                        or
+                    </span>
+                    <div className="h-px flex-1 bg-[color:var(--color-border-light)]" />
+                </div>
 
                 <form onSubmit={submit} className="space-y-5">
                     {/* Email */}

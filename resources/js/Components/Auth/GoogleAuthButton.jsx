@@ -1,7 +1,12 @@
-export default function GoogleAuthButton() {
+export default function GoogleAuthButton({ intent = "restaurant" }) {
+    const href =
+        intent === "customer"
+            ? route("auth.google.redirect", { intent: "customer" })
+            : route("auth.google.redirect");
+
     return (
         <a
-            href={route("auth.google.redirect")}
+            href={href}
             className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--color-border-light)] bg-[color:var(--color-gray-100)] px-4 py-2.5 text-sm font-medium text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-gray-200)]"
         >
             <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">

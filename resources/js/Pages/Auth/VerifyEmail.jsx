@@ -5,7 +5,7 @@ import Button from "@/Components/Common/Button";
 import Alert from "@/Components/Common/Alert";
 import { Mail } from "lucide-react";
 
-export default function VerifyEmail({ status }) {
+export default function VerifyEmail({ status, description }) {
     const { post, processing } = useForm({});
 
     const resend = (e) => {
@@ -38,9 +38,7 @@ export default function VerifyEmail({ status }) {
                             Verify your email
                         </h2>
                         <p className="text-sm text-[color:var(--color-text-secondary)]">
-                            We sent a verification link to your email. Open it
-                            to continue restaurant onboarding. Profile, location,
-                            and menu stay locked until this is confirmed.
+                            {description}
                         </p>
                     </div>
 

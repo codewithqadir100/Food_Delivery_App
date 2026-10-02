@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\MenuItem;
-use App\Models\Restaurant;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -178,7 +177,7 @@ test('a guest cart survives registration', function () {
         'phone' => '03001234567',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ])->assertRedirect(route('customer.addresses.create'));
+    ])->assertRedirect(route('verification.notice'));
 
     $items = $this->getJson(route('customer.cart.data'))->json('data.items');
 

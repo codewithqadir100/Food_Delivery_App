@@ -10,6 +10,7 @@ use App\Http\Middleware\EnsureRestaurantExists;
 use App\Http\Middleware\EnsureRestaurantOwner;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -41,7 +42,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
-            if ($request->is('restaurant/*') || $request->is('verify-email') || $request->is('verify-email/*')) {
+            if ($request->is('verify-email/*')) {
+                $userId = $request->segment(2);
+                $user = ctype_digit((string) $userId)
+                    ? User::query()->find($userId)
+                    : null;
+
+                return route($user?->loginRouteName() ?? 'login');
+            }
+
+            if ($request->is('restaurant/*') || $request->is('verify-email')) {
                 return route('restaurant.login');
             }
 

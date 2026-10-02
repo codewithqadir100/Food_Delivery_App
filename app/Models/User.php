@@ -140,10 +140,36 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Order::class, 'customer_id');
     }
 
+    public function canVerifyEmail(): bool
+    {
+        return $this->isCustomer() || $this->isRestaurantOwner();
+    }
+
+    public function emailVerificationMessage(): string
+    {
+        if ($this->isCustomer()) {
+            return 'We sent a verification link to your email. Open it to finish creating your account. You can keep browsing, and ordering stays locked until this is confirmed.';
+        }
+
+        return 'We sent a verification link to your email. Open it to continue restaurant onboarding. Profile, location, and menu stay locked until this is confirmed.';
+    }
+
+    public function afterEmailVerifiedRoute(): string
+    {
+        return $this->isCustomer()
+            ? 'customer.addresses.create'
+            : 'restaurant.dashboard';
+    }
+
+    public function whenAlreadyVerifiedRoute(): string
+    {
+        return $this->isCustomer() ? 'home' : 'restaurant.dashboard';
+    }
+
     public function sendEmailVerificationNotification(): bool
     {
         return RateLimiter::attempt(
-            'restaurant-verification-email:'.$this->getKey(),
+            'email-verification:'.$this->getKey(),
             1,
             function (): bool {
                 $this->notify(new VerifyEmail);

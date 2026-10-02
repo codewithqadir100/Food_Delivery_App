@@ -106,3 +106,36 @@ test('a restaurant owner resets a password from the emailed link', function () {
 
     $this->assertAuthenticatedAs($owner);
 });
+
+test('a customer can reset a password and sign in', function () {
+    Notification::fake();
+
+    $customer = User::factory()->create([
+        'role' => User::ROLE_CUSTOMER,
+        'status' => User::STATUS_APPROVED,
+        'email' => 'reset-customer@example.com',
+    ]);
+
+    $this->post(route('password.email'), [
+        'email' => $customer->email,
+    ])->assertRedirect(route('password.request'));
+
+    Notification::assertSentTo($customer, ResetPassword::class, function (ResetPassword $notification) use ($customer) {
+        $this->post(route('password.store'), [
+            'token' => $notification->token,
+            'email' => $customer->email,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])->assertSessionHasNoErrors()
+            ->assertRedirect(route('login'));
+
+        return true;
+    });
+
+    $this->post(route('login'), [
+        'email' => $customer->email,
+        'password' => 'new-password',
+    ])->assertRedirect('/');
+
+    $this->assertAuthenticatedAs($customer);
+});

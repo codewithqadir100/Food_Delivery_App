@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\CustomerRegisterRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -31,8 +32,10 @@ class RegisteredUserController extends Controller
             'status' => User::STATUS_APPROVED,
         ]);
 
+        event(new Registered($user));
+
         Auth::login($user);
 
-        return redirect()->route('customer.addresses.create');
+        return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
     }
 }
