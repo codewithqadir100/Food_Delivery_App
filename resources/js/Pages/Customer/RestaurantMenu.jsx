@@ -8,6 +8,7 @@ import MenuCart from "@/Components/Customer/MenuCart";
 import Alert from "@/Components/Common/Alert";
 import Spinner from "@/Components/Common/Spinner";
 import axios from "axios";
+import { removeFavourite, saveFavourite } from "@/Utils/favourites";
 
 export default function RestaurantMenu({
     restaurant,
@@ -27,6 +28,10 @@ export default function RestaurantMenu({
     const [updatingCutlery, setUpdatingCutlery] = useState(false);
     const user = usePage().props.auth?.user ?? null;
     const canOrder = user === null || Boolean(user.is_customer);
+    const [wishlisted, setWishlisted] = useState(
+        Boolean(restaurant.is_wishlisted),
+    );
+    const [savingFavourite, setSavingFavourite] = useState(false);
 
     useEffect(() => {
         fetchMenu();
@@ -84,6 +89,42 @@ export default function RestaurantMenu({
             });
         } finally {
             setUpdatingFulfillment(false);
+        }
+    };
+
+    const handleFavourite = async () => {
+        if (!user?.is_customer) {
+            router.visit(route("login"));
+            return;
+        }
+
+        if (!user.email_verified) {
+            router.visit(route("verification.notice"));
+            return;
+        }
+
+        if (savingFavourite) {
+            return;
+        }
+
+        setSavingFavourite(true);
+
+        try {
+            const data = wishlisted
+                ? await removeFavourite(restaurant.id)
+                : await saveFavourite(restaurant.id);
+
+            setWishlisted(data.wishlisted);
+        } catch (error) {
+            setAlert({
+                type: "error",
+                title: "Error",
+                message:
+                    error.response?.data?.message ||
+                    "Could not update favourites.",
+            });
+        } finally {
+            setSavingFavourite(false);
         }
     };
 
@@ -321,6 +362,8 @@ export default function RestaurantMenu({
                         restaurant={menuData.restaurant}
                         deliveryCharge={delivery_charge}
                         distance={distance_km}
+                        wishlisted={wishlisted}
+                        onFavourite={handleFavourite}
                     />
 
                     <div

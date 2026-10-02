@@ -1,8 +1,14 @@
 import Card from "@/Components/Common/Card";
 import Badge from "@/Components/Common/Badge";
+import FavouriteButton from "@/Components/Customer/FavouriteButton";
 import { MapPin, Star, Motorbike } from "lucide-react";
 
-export default function RestaurantCard({ restaurant, user, onCardClick }) {
+export default function RestaurantCard({
+    restaurant,
+    user,
+    onCardClick,
+    onFavourite,
+}) {
     const unavailable = restaurant.listing_availability === "unavailable";
     const showDistance =
         user?.role === "customer" && restaurant.distance_km !== null;
@@ -39,6 +45,14 @@ export default function RestaurantCard({ restaurant, user, onCardClick }) {
                             className="text-[color:var(--color-text-muted)]"
                         />
                     </div>
+                )}
+
+                {onFavourite && (
+                    <FavouriteButton
+                        active={Boolean(restaurant.is_wishlisted)}
+                        onClick={onFavourite}
+                        className="absolute right-3 top-3"
+                    />
                 )}
 
                 {(unavailable || restaurant.is_featured) && (

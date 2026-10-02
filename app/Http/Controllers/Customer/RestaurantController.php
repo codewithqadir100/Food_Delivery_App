@@ -7,6 +7,7 @@ use App\Http\Resources\RestaurantResource;
 use App\Models\Restaurant;
 use App\Services\DeliveryCalculationService;
 use App\Services\RestaurantListingService;
+use App\Services\WishlistService;
 use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
@@ -14,6 +15,7 @@ class RestaurantController extends Controller
     public function __construct(
         private DeliveryCalculationService $deliveryService,
         private RestaurantListingService $listing,
+        private WishlistService $wishlists,
     ) {}
 
     public function index(Request $request)
@@ -33,6 +35,7 @@ class RestaurantController extends Controller
         $page = max(1, (int) $request->get('page', 1));
         $perPage = 12;
         $paginator = $this->listing->paginate($query, $customerAddress, $perPage, $page);
+        $this->wishlists->mark($paginator->getCollection(), $user);
         $total = $paginator->total();
 
         return response()->json([
@@ -103,6 +106,7 @@ class RestaurantController extends Controller
 
         $restaurant->distance_km = $distance_km;
         $restaurant->delivery_charge = $delivery_charge;
+        $this->wishlists->mark(collect([$restaurant]), $user);
 
         return response()->json([
             'data' => RestaurantResource::make($restaurant),
@@ -131,10 +135,11 @@ class RestaurantController extends Controller
 
         $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
 
+        $results = $this->listing->take($restaurants, $customerAddress, 12);
+        $this->wishlists->mark($results, $user);
+
         return response()->json([
-            'data' => RestaurantResource::collection(
-                $this->listing->take($restaurants, $customerAddress, 12)
-            ),
+            'data' => RestaurantResource::collection($results),
         ]);
     }
 }

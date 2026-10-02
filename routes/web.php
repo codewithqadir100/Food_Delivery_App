@@ -16,6 +16,7 @@ use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\RestaurantController;
 use App\Http\Controllers\Customer\RestaurantMenuController;
+use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\MenuCategoryController;
 use App\Http\Controllers\Restaurant\MenuController;
@@ -69,7 +70,9 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
         Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::get('/wishlist', [ProfileController::class, 'wishlist'])->name('wishlist');
+        Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+        Route::post('/wishlist/{restaurant}', [WishlistController::class, 'store'])->name('wishlist.store');
+        Route::delete('/wishlist/{restaurant}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
 
         Route::post('/checkout/{restaurant?}', [CheckoutController::class, 'store'])->name('checkout.store');
 

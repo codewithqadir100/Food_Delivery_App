@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Services\CartService;
 use App\Services\RestaurantOnboardingService;
+use App\Services\WishlistService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -61,6 +62,10 @@ class HandleInertiaRequests extends Middleware
 
                 'cart' => fn () => ($user === null || $user->isCustomer())
                     ? ['count' => app(CartService::class)->count()]
+                    : null,
+
+                'wishlist' => fn () => $user?->isCustomer()
+                    ? ['has_items' => app(WishlistService::class)->hasAny($user)]
                     : null,
 
                 'notifications_count' => fn () => $user?->isRestaurantOwner()

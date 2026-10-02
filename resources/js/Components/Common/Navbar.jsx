@@ -72,6 +72,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
     const isAdminUser = user?.role === "admin";
     const isCustomer = user?.role === "customer";
     const cartCount = auth?.cart?.count ?? 0;
+    const hasFavourites = Boolean(auth?.wishlist?.has_items);
     const restaurant = auth?.restaurant;
     const customer = auth?.customer;
 
@@ -515,12 +516,16 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                 href={route(
                                                     "customer.wishlist",
                                                 )}
-                                                className="p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
+                                                aria-label="Favourites"
+                                                className="relative p-2 rounded-lg hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                             >
                                                 <Heart
                                                     size={20}
                                                     className="text-[color:var(--color-text-secondary)]"
                                                 />
+                                                {hasFavourites && (
+                                                    <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-[color:var(--color-primary-500)] ring-2 ring-[color:var(--color-bg-primary)]" />
+                                                )}
                                             </Link>
 
                                             <div
@@ -917,6 +922,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                     setMobileCategoriesOpen(!mobileCategoriesOpen)
                 }
                 cartCount={cartCount}
+                hasFavourites={hasFavourites}
                 onLogout={handleLogout}
             />
         </>

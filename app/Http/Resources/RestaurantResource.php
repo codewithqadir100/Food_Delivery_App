@@ -36,6 +36,7 @@ class RestaurantResource extends JsonResource
             'delivery_charge' => $this->delivery_charge,
             'listing_availability' => $this->listing_availability ?? $this->listingAvailability(),
             'is_featured' => (bool) ($this->is_featured ?? $this->subscription?->plan?->isFeatured()),
+            'is_wishlisted' => (bool) ($this->is_wishlisted ?? false),
         ];
     }
 }

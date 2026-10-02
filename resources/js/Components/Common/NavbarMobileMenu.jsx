@@ -27,6 +27,7 @@ export default function NavbarMobileMenu({
     categoriesOpen,
     onToggleCategories,
     cartCount,
+    hasFavourites = false,
     onLogout,
 }) {
     if (!open && !animating) {
@@ -268,10 +269,15 @@ export default function NavbarMobileMenu({
                                         className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                         onClick={onClose}
                                     >
-                                        <Heart
-                                            size={18}
-                                            className="text-[color:var(--color-text-muted)]"
-                                        />
+                                        <span className="relative">
+                                            <Heart
+                                                size={18}
+                                                className="text-[color:var(--color-text-muted)]"
+                                            />
+                                            {hasFavourites && (
+                                                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[color:var(--color-primary-500)] ring-2 ring-[color:var(--color-bg-primary)]" />
+                                            )}
+                                        </span>
                                         <span className="text-sm font-medium">
                                             My Wishlist
                                         </span>

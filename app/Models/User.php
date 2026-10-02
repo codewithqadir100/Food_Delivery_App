@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -138,6 +139,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    public function wishlistedRestaurants(): BelongsToMany
+    {
+        return $this->belongsToMany(Restaurant::class, 'wishlists', 'customer_id', 'restaurant_id')
+            ->withTimestamps();
     }
 
     public function canVerifyEmail(): bool

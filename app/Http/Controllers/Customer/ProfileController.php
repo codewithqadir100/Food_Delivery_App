@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
@@ -35,13 +37,6 @@ class ProfileController extends Controller
         Auth::user()->update($validated);
 
         return redirect()->route('customer.profile.index')->with('success', 'Profile updated.');
-    }
-
-    public function wishlist(): Response
-    {
-        return Inertia::render('Customer/Wishlist', [
-            'items' => [],
-        ]);
     }
 
     public function addresses(): Response

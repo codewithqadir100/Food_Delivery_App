@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
-import { Head, router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import Spinner from "@/Components/Common/Spinner";
 import RestaurantCard from "@/Components/Customer/RestaurantCard";
 import RestaurantFilters from "@/Components/Customer/RestaurantFilters";
 import Pagination from "@/Components/Common/Pagination";
 import axios from "axios";
+import { removeFavourite, saveFavourite } from "@/Utils/favourites";
 
 export default function Restaurants({ categories = [], user = null }) {
+    const authUser = usePage().props.auth?.user ?? null;
     const [restaurants, setRestaurants] = useState([]);
+    const [favouriteId, setFavouriteId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({});
@@ -85,6 +88,40 @@ export default function Restaurants({ categories = [], user = null }) {
         router.visit(route("customer.restaurant.menu", restaurantId));
     };
 
+    const handleFavourite = async (restaurant) => {
+        if (!authUser?.is_customer) {
+            router.visit(route("login"));
+            return;
+        }
+
+        if (!authUser.email_verified) {
+            router.visit(route("verification.notice"));
+            return;
+        }
+
+        if (favouriteId !== null) {
+            return;
+        }
+
+        setFavouriteId(restaurant.id);
+
+        try {
+            const data = restaurant.is_wishlisted
+                ? await removeFavourite(restaurant.id)
+                : await saveFavourite(restaurant.id);
+
+            setRestaurants((current) =>
+                current.map((item) =>
+                    item.id === restaurant.id
+                        ? { ...item, is_wishlisted: data.wishlisted }
+                        : item,
+                ),
+            );
+        } finally {
+            setFavouriteId(null);
+        }
+    };
+
     const handlePaginationChange = (newPage) => {
         setFilters((prev) => ({
             ...prev,
@@ -146,6 +183,9 @@ export default function Restaurants({ categories = [], user = null }) {
                                         user={user}
                                         onCardClick={() =>
                                             handleRestaurantClick(restaurant.id)
+                                        }
+                                        onFavourite={() =>
+                                            handleFavourite(restaurant)
                                         }
                                     />
                                 ))}

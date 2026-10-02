@@ -310,3 +310,23 @@ input::-ms-clear {
 .toggle-option {
     transition: color var(--transition-normal);
 }
+
+@keyframes bounce-in {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.35);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+}
+
+.animate-bounce-in {
+    animation: bounce-in 0.45s ease;
+    transform-origin: center;
+}

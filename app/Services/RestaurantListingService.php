@@ -34,6 +34,11 @@ class RestaurantListingService
         return $this->decorate($query->limit($limit)->get(['restaurants.*']), $address);
     }
 
+    public function withDelivery(Collection $restaurants, ?CustomerAddress $address): Collection
+    {
+        return $this->decorate($restaurants, $address);
+    }
+
     private function constrain(Builder $query, ?CustomerAddress $address): void
     {
         $now = now()->format('Y-m-d H:i:s');

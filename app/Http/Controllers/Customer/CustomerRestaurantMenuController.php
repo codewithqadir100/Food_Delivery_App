@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Models\Restaurant;
 use App\Services\DeliveryCalculationService;
+use App\Services\WishlistService;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
@@ -14,7 +15,8 @@ class CustomerRestaurantMenuController extends Controller
     private const PER_KM_FEE = 50;
 
     public function __construct(
-        private DeliveryCalculationService $deliveryService
+        private DeliveryCalculationService $deliveryService,
+        private WishlistService $wishlists,
     ) {}
 
     public function show(Restaurant $restaurant)
@@ -51,6 +53,8 @@ class CustomerRestaurantMenuController extends Controller
                 self::PER_KM_FEE
             );
         }
+
+        $this->wishlists->mark(collect([$restaurant]), $user);
 
         return Inertia::render('Customer/RestaurantMenu', [
             'restaurant' => $restaurant,

@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link } from "@inertiajs/react";
-import { ChevronRight, Heart, Info, Star } from "lucide-react";
+import { ChevronRight, Info, Star } from "lucide-react";
+import FavouriteButton from "@/Components/Customer/FavouriteButton";
 import RestaurantInfoModal from "@/Components/Customer/RestaurantInfoModal";
 
 export default function RestaurantHeader({
     restaurant,
     deliveryCharge = null,
     distance = null,
+    wishlisted = false,
+    onFavourite,
 }) {
     const [infoOpen, setInfoOpen] = useState(false);
 
@@ -47,6 +50,8 @@ export default function RestaurantHeader({
                 <Cover restaurant={restaurant} />
                 <HeaderActions
                     onInfo={() => setInfoOpen(true)}
+                    wishlisted={wishlisted}
+                    onFavourite={onFavourite}
                     className="absolute right-[var(--spacing-3)] top-[var(--spacing-3)] flex"
                 />
                 <div className="absolute -bottom-12 left-[var(--spacing-4)] z-10">
@@ -69,6 +74,8 @@ export default function RestaurantHeader({
                             </h1>
                             <HeaderActions
                                 onInfo={() => setInfoOpen(true)}
+                                wishlisted={wishlisted}
+                                onFavourite={onFavourite}
                                 className="hidden shrink-0 md:flex"
                             />
                         </div>
@@ -136,11 +143,15 @@ function RestaurantLogo({ restaurant, className = "" }) {
     );
 }
 
-function HeaderActions({ onInfo, className = "" }) {
+function HeaderActions({ onInfo, wishlisted, onFavourite, className = "" }) {
     return (
         <div className={`items-center gap-[var(--spacing-2)] ${className}`}>
             <IconButton label="More info" icon={Info} onClick={onInfo} />
-            <IconButton label="Add to favourite" icon={Heart} />
+            <FavouriteButton
+                active={wishlisted}
+                onClick={onFavourite}
+                className="h-10 w-10"
+            />
         </div>
     );
 }
