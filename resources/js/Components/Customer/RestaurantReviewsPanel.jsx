@@ -6,6 +6,7 @@ import Button from "@/Components/Common/Button";
 import EmptyState from "@/Components/Common/EmptyState";
 import { StarRow } from "@/Components/Common/StarRating";
 import ReviewHelpfulButton from "@/Components/Customer/ReviewHelpfulButton";
+import ReviewResponse from "@/Components/Customer/ReviewResponse";
 import usePolledFeed from "@/Hooks/usePolledFeed";
 import {
     REVIEW_SORTS,
@@ -18,6 +19,7 @@ import {
 export default function RestaurantReviewsPanel({
     restaurantId,
     restaurantName,
+    restaurantLogo = null,
     initialSummary = null,
     initialReviews = [],
     initialSort = "top",
@@ -266,6 +268,21 @@ export default function RestaurantReviewsPanel({
                                     </p>
                                 )
                             )}
+                            <ReviewResponse
+                                review={review}
+                                restaurantName={restaurantName}
+                                restaurantLogo={restaurantLogo}
+                                viewer={viewer}
+                                onReplied={(updated) => {
+                                    setReviews((current) =>
+                                        current.map((item) =>
+                                            item.id === updated.id
+                                                ? { ...item, ...updated }
+                                                : item,
+                                        ),
+                                    );
+                                }}
+                            />
                         </article>
                     ))}
                 </div>

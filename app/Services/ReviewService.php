@@ -162,6 +162,8 @@ class ReviewService
             'customer_name' => $review->reviewerFirstName(),
             'rating' => $review->rating,
             'comment' => $review->comment,
+            'reply' => $review->reply,
+            'replied_at' => $review->replied_at?->toIso8601String(),
             'created_at' => $review->created_at?->toIso8601String(),
             'helpful_count' => (int) ($review->helpfuls_count ?? $review->helpfuls()->count()),
             'marked_helpful' => (bool) ($review->marked_helpful ?? false),
@@ -174,6 +176,16 @@ class ReviewService
         }
 
         return $payload;
+    }
+
+    public function reply(Review $review, string $reply): Review
+    {
+        $review->update([
+            'reply' => $reply,
+            'replied_at' => now(),
+        ]);
+
+        return $review->refresh();
     }
 
     /**

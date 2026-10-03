@@ -28,6 +28,7 @@ class RestaurantReviewController extends Controller
             'restaurant' => [
                 'id' => $restaurant->id,
                 'name' => $restaurant->name,
+                'logo_url' => $restaurant->logo_url,
             ],
             'summary' => $payload['summary'],
             'reviews' => $payload['reviews'],

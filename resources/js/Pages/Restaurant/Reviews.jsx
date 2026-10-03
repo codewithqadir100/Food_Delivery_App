@@ -15,6 +15,8 @@ export default function Reviews({ summary, reviews, sort, has_more = false }) {
                 <div className="mx-auto max-w-3xl">
                     <RestaurantReviewsPanel
                         restaurantId={record?.id}
+                        restaurantName={record?.name}
+                        restaurantLogo={record?.logo_url}
                         initialSummary={summary}
                         initialReviews={reviews}
                         initialSort={sort || "newest"}

@@ -166,13 +166,14 @@ export default function RestaurantHeader({
                 title={restaurant.name}
                 size="2xl"
             >
-                <RestaurantReviewsPanel
-                    restaurantId={restaurant.id}
-                    restaurantName={restaurant.name}
-                    feedRoute="customer.restaurants.reviews.feed"
-                    viewer="customer"
-                    enabled={reviewsOpen}
-                />
+                    <RestaurantReviewsPanel
+                        restaurantId={restaurant.id}
+                        restaurantName={restaurant.name}
+                        restaurantLogo={restaurant.logo_url || restaurant.logo}
+                        feedRoute="customer.restaurants.reviews.feed"
+                        viewer="customer"
+                        enabled={reviewsOpen}
+                    />
             </Modal>
         </header>
     );

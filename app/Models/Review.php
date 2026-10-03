@@ -16,12 +16,15 @@ class Review extends Model
         'restaurant_id',
         'rating',
         'comment',
+        'reply',
+        'replied_at',
     ];
 
     protected function casts(): array
     {
         return [
             'rating' => 'integer',
+            'replied_at' => 'datetime',
         ];
     }
 

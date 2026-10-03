@@ -13,4 +13,11 @@ class ReviewPolicy
     {
         return $user->isCustomer() && $user->id !== $review->customer_id;
     }
+
+    public function reply(User $user, Review $review): bool
+    {
+        return $user->isRestaurantOwner()
+            && $user->restaurant?->id === $review->restaurant_id
+            && filled($review->comment);
+    }
 }

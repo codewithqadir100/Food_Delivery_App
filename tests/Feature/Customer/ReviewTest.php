@@ -369,6 +369,58 @@ test('the menu spotlight shows ten written reviews and stays empty below that', 
         ->assertJsonMissing(['comment' => null]);
 });
 
+test('a restaurant can reply once to a written review and customers can read it', function () {
+    $restaurant = Restaurant::factory()->subscribed()->create(['name' => 'Food Taste']);
+    $written = deliveredReviewOrder($restaurant, reviewCustomer('Khurram Ali'));
+    $ratingOnly = deliveredReviewOrder($restaurant, reviewCustomer('Quiet Guest'));
+
+    $review = Review::query()->create([
+        'order_id' => $written->id,
+        'customer_id' => $written->customer_id,
+        'restaurant_id' => $restaurant->id,
+        'rating' => 5,
+        'comment' => 'Amazing aloo ka paratha',
+    ]);
+
+    $silent = Review::query()->create([
+        'order_id' => $ratingOnly->id,
+        'customer_id' => $ratingOnly->customer_id,
+        'restaurant_id' => $restaurant->id,
+        'rating' => 4,
+    ]);
+
+    $this->actingAs($restaurant->user)
+        ->postJson(route('restaurant.reviews.reply', $silent), ['reply' => 'Thanks'])
+        ->assertForbidden();
+
+    $this->actingAs($restaurant->user)
+        ->postJson(route('restaurant.reviews.reply', $review), ['reply' => '   '])
+        ->assertStatus(422);
+
+    $this->actingAs($restaurant->user)
+        ->postJson(route('restaurant.reviews.reply', $review), ['reply' => 'Thank you sir'])
+        ->assertOk()
+        ->assertJsonPath('review.reply', 'Thank you sir');
+
+    $this->actingAs($restaurant->user)
+        ->postJson(route('restaurant.reviews.reply', $review), ['reply' => 'Thank you again'])
+        ->assertOk()
+        ->assertJsonPath('review.reply', 'Thank you again');
+
+    expect($review->refresh()->replied_at)->not->toBeNull();
+
+    $other = Restaurant::factory()->subscribed()->create();
+
+    $this->actingAs($other->user)
+        ->postJson(route('restaurant.reviews.reply', $review), ['reply' => 'Nope'])
+        ->assertForbidden();
+
+    $this->getJson(route('customer.restaurants.reviews.feed', $restaurant))
+        ->assertOk()
+        ->assertJsonPath('reviews.0.reply', 'Thank you again')
+        ->assertJsonPath('reviews.0.customer_name', 'Khurram');
+});
+
 test('closed restaurants do not expose a reviews page', function () {
     $restaurant = Restaurant::factory()->subscribed()->closed()->create();
 

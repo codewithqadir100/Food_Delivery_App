@@ -139,6 +139,7 @@ Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant'
         Route::middleware('approved_restaurant')->group(function () {
             Route::get('/reviews/feed', [RestaurantReviewController::class, 'feed'])->name('reviews.feed');
             Route::get('/reviews', [RestaurantReviewController::class, 'index'])->name('reviews.index');
+            Route::post('/reviews/{review}/reply', [RestaurantReviewController::class, 'reply'])->name('reviews.reply');
             Route::get('/orders/feed', [RestaurantOrderController::class, 'feed'])->name('orders.feed');
             Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
             Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');

@@ -28,6 +28,7 @@ export default function RestaurantReviews({
                     <RestaurantReviewsPanel
                         restaurantId={restaurant.id}
                         restaurantName={restaurant.name}
+                        restaurantLogo={restaurant.logo_url}
                         initialSummary={summary}
                         initialReviews={reviews}
                         initialSort={sort}

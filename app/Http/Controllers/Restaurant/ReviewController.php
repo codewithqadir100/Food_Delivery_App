@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Restaurant\StoreReviewReplyRequest;
+use App\Models\Review;
 use App\Services\ReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,6 +32,22 @@ class ReviewController extends Controller
             'reviews' => $payload['reviews'],
             'sort' => $sort,
             'has_more' => $payload['has_more'],
+        ]);
+    }
+
+    public function reply(StoreReviewReplyRequest $request, Review $review): JsonResponse
+    {
+        $saved = $this->reviews->reply($review, $request->validated('reply'));
+        $saved->load([
+            'customer:id,name',
+            'order:id,order_number',
+        ]);
+        $saved->loadCount('helpfuls');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reply saved.',
+            'review' => $this->reviews->present($saved, true),
         ]);
     }
 
