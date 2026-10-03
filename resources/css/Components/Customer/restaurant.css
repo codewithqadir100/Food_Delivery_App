@@ -7,17 +7,30 @@
 .restaurant-card-title {
     font-size: var(--font-size-lg);
     font-weight: bold;
+    line-height: var(--line-height-tight);
     color: var(--color-text-primary);
 }
 
 .restaurant-card-rating {
-    font-size: var(--font-size-base);
-    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
     color: var(--color-text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.restaurant-card-rating svg {
+    display: block;
+    flex-shrink: 0;
 }
 
 .restaurant-card-review-count {
     font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    line-height: 1;
     color: var(--color-text-muted);
 }
 
@@ -34,6 +47,69 @@
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
     font-weight: 500;
+}
+
+.menu-review-spotlight {
+    background-color: var(--color-primary-50);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-5) var(--spacing-4);
+}
+
+.menu-review-spotlight-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+}
+
+.menu-review-spotlight-subtitle {
+    margin-top: var(--spacing-1);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    color: var(--color-text-muted);
+}
+
+.menu-review-spotlight-link {
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    color: var(--color-primary-600);
+    white-space: nowrap;
+}
+
+.menu-review-spotlight-link:hover {
+    text-decoration: underline;
+}
+
+.menu-review-card {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 16.5rem;
+}
+
+.menu-review-card-name {
+    overflow: hidden;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menu-review-card-comment {
+    display: -webkit-box;
+    height: calc(var(--font-size-sm) * var(--line-height-relaxed) * 3);
+    margin-top: var(--spacing-3);
+    overflow: hidden;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
 }
 
 .restaurant-card-delivery-charges {
@@ -58,6 +134,20 @@
 @media screen and (min-width: 1280px) {
     .restaurant-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media screen and (min-width: 640px) {
+    .menu-review-spotlight {
+        padding: var(--spacing-6);
+    }
+
+    .menu-review-spotlight-title {
+        font-size: var(--font-size-xl);
+    }
+
+    .menu-review-card {
+        width: 18rem;
     }
 }
 

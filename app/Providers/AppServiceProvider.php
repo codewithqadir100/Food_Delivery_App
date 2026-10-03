@@ -8,10 +8,12 @@ use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\Restaurant;
+use App\Models\Review;
 use App\Policies\MenuCategoryPolicy;
 use App\Policies\MenuItemPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\RestaurantPolicy;
+use App\Policies\ReviewPolicy;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -44,5 +46,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MenuItem::class, MenuItemPolicy::class);
         Gate::policy(MenuCategory::class, MenuCategoryPolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Review::class, ReviewPolicy::class);
     }
 }

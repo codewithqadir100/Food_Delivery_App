@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Customer;
 
 use App\Models\Restaurant;
 use App\Services\DeliveryCalculationService;
+use App\Services\ReviewService;
 use Illuminate\Routing\Controller;
 
 class RestaurantMenuController extends Controller
 {
+    public function __construct(private readonly ReviewService $reviews) {}
+
     public function show(Restaurant $restaurant)
     {
         $restaurant->loadMissing('subscription');
@@ -43,8 +46,8 @@ class RestaurantMenuController extends Controller
                     'logo' => $restaurant->logo_url,
                     'logo_url' => $restaurant->logo_url,
                     'cover_image_url' => $restaurant->cover_image_url,
-                    'rating' => $restaurant->rating,
-                    'review_count' => $restaurant->review_count ?? 0,
+                    'rating' => $restaurant->averageRating(),
+                    'review_count' => $restaurant->reviewCount(),
                     'category' => $restaurant->restaurantCategory?->name,
                     'description' => $restaurant->description,
                     'latitude' => $restaurant->latitude,
@@ -78,6 +81,7 @@ class RestaurantMenuController extends Controller
                         'is_available' => $item->is_available,
                     ];
                 })->values(),
+                'review_spotlight' => $this->reviews->spotlight($restaurant),
             ],
         ]);
     }

@@ -3,6 +3,7 @@ import { usePage } from "@inertiajs/react";
 import Navbar from "@/Components/Common/Navbar";
 import Footer from "@/Components/Common/Footer";
 import Alert from "@/Components/Common/Alert";
+import ReviewPrompt from "@/Components/Customer/ReviewPrompt";
 
 export default function AppLayout({ children, categories = [] }) {
     const { auth } = usePage().props;
@@ -42,6 +43,7 @@ export default function AppLayout({ children, categories = [] }) {
             </main>
 
             <Footer />
+            <ReviewPrompt />
 
             {notice?.message && (
                 <div className="fixed bottom-6 left-1/2 z-[var(--z-popover)] w-[min(24rem,calc(100%-2rem))] -translate-x-1/2">

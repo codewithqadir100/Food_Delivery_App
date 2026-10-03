@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\CustomerAddress;
 use App\Models\Plan;
 use App\Models\Restaurant;
+use App\Models\Review;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -85,6 +86,7 @@ class RestaurantListingService
     private function decorate(Collection $restaurants, ?CustomerAddress $address): Collection
     {
         $hasAddress = $this->hasCoordinates($address);
+        $this->attachRatings($restaurants);
 
         return $restaurants->map(function (Restaurant $restaurant) use ($address, $hasAddress) {
             $restaurant->listing_availability = $restaurant->listingAvailability();
@@ -109,6 +111,28 @@ class RestaurantListingService
 
             return $restaurant;
         })->values();
+    }
+
+    private function attachRatings(Collection $restaurants): void
+    {
+        if ($restaurants->isEmpty()) {
+            return;
+        }
+
+        $stats = Review::query()
+            ->selectRaw('restaurant_id, COUNT(*) as review_count, AVG(rating) as rating_avg')
+            ->whereIn('restaurant_id', $restaurants->modelKeys())
+            ->groupBy('restaurant_id')
+            ->get()
+            ->keyBy('restaurant_id');
+
+        foreach ($restaurants as $restaurant) {
+            $row = $stats->get($restaurant->id);
+            $restaurant->setAttribute('reviews_count', (int) ($row->review_count ?? 0));
+            $restaurant->setAttribute('reviews_avg_rating', $row->rating_avg ?? null);
+            $restaurant->syncOriginalAttribute('reviews_count');
+            $restaurant->syncOriginalAttribute('reviews_avg_rating');
+        }
     }
 
     private function hasCoordinates(?CustomerAddress $address): bool

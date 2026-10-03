@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -85,6 +86,8 @@ class Order extends Model
         'wants_cutlery',
         'cancellation_reason',
         'cancelled_by',
+        'review_prompt_dismissals',
+        'review_prompt_dismissed_at',
         'confirmed_at',
         'delivered_at',
         'cancelled_at',
@@ -100,6 +103,8 @@ class Order extends Model
             'confirmed_at' => 'datetime',
             'delivered_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'review_prompt_dismissals' => 'integer',
+            'review_prompt_dismissed_at' => 'datetime',
         ];
     }
 
@@ -137,6 +142,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
     }
 
     public function isTerminal(): bool

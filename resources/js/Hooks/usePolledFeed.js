@@ -37,10 +37,17 @@ export default function usePolledFeed(enabled, url, getParams, onData) {
 
         tick();
         const id = window.setInterval(tick, POLL_INTERVAL_MS);
+        const onVisible = () => {
+            if (!document.hidden) {
+                tick();
+            }
+        };
+        document.addEventListener("visibilitychange", onVisible);
 
         return () => {
             stopped = true;
             window.clearInterval(id);
+            document.removeEventListener("visibilitychange", onVisible);
         };
     }, [enabled, url]);
 }

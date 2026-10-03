@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CancelOrderRequest;
 use App\Models\Order;
+use App\Services\ReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
+    public function __construct(private readonly ReviewService $reviews) {}
+
     public function index(Request $request): Response
     {
         $orders = Order::query()
@@ -30,14 +33,15 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(Order $order): Response
+    public function show(Request $request, Order $order): Response
     {
         $this->authorize('view', $order);
 
-        $order->load(['items.menuItem', 'restaurant', 'address']);
+        $order->load(['items.menuItem', 'restaurant', 'address', 'review']);
 
         return Inertia::render('Customer/OrderDetail', [
             'order' => $order,
+            'can_review' => $this->reviews->canWrite($order, $request->user()),
         ]);
     }
 

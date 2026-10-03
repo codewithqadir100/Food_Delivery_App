@@ -6,6 +6,7 @@ namespace App\Policies;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Services\ReviewService;
 
 class OrderPolicy
 {
@@ -34,5 +35,10 @@ class OrderPolicy
         return $user->isCustomer()
             && $user->id === $order->customer_id
             && $order->canBeCancelledByCustomer();
+    }
+
+    public function review(User $user, Order $order): bool
+    {
+        return app(ReviewService::class)->canWrite($order, $user);
     }
 }

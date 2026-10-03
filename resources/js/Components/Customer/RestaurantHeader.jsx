@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { useCallback, useEffect, useState } from "react";
+import { Link, router } from "@inertiajs/react";
 import { ChevronRight, Info, Star } from "lucide-react";
 import FavouriteButton from "@/Components/Customer/FavouriteButton";
 import RestaurantInfoModal from "@/Components/Customer/RestaurantInfoModal";
+import RestaurantReviewsPanel from "@/Components/Customer/RestaurantReviewsPanel";
+import Modal from "@/Components/Common/Modal";
+import { formatRating, formatReviewCount } from "@/Utils/reviews";
 
 export default function RestaurantHeader({
     restaurant,
@@ -12,6 +15,60 @@ export default function RestaurantHeader({
     onFavourite,
 }) {
     const [infoOpen, setInfoOpen] = useState(false);
+    const [reviewsOpen, setReviewsOpen] = useState(false);
+    const [rating, setRating] = useState({
+        average: restaurant.rating,
+        count: restaurant.review_count ?? 0,
+    });
+
+    useEffect(() => {
+        setRating({
+            average: restaurant.rating,
+            count: restaurant.review_count ?? 0,
+        });
+    }, [restaurant.id, restaurant.rating, restaurant.review_count]);
+
+    useEffect(() => {
+        const onSubmitted = (event) => {
+            if (event.detail?.restaurantId !== restaurant.id || !event.detail.summary) {
+                return;
+            }
+
+            setRating({
+                average: event.detail.summary.average,
+                count: event.detail.summary.count,
+            });
+        };
+
+        window.addEventListener("review-submitted", onSubmitted);
+
+        return () => window.removeEventListener("review-submitted", onSubmitted);
+    }, [restaurant.id]);
+
+    const openReviews = useCallback(() => {
+        const desktop = window.matchMedia("(min-width: 768px)").matches;
+
+        if (!desktop) {
+            router.visit(route("customer.restaurants.reviews", restaurant.id));
+            return;
+        }
+
+        setReviewsOpen(true);
+    }, [restaurant.id]);
+
+    useEffect(() => {
+        const onOpen = (event) => {
+            if (event.detail?.restaurantId !== restaurant.id) {
+                return;
+            }
+
+            openReviews();
+        };
+
+        window.addEventListener("open-restaurant-reviews", onOpen);
+
+        return () => window.removeEventListener("open-restaurant-reviews", onOpen);
+    }, [openReviews, restaurant.id]);
 
     return (
         <header className="border-b border-[color:var(--color-border)] bg-[color:var(--color-bg-primary)]">
@@ -85,7 +142,11 @@ export default function RestaurantHeader({
                             </p>
                         )}
                         <div className="mt-[var(--spacing-2)]">
-                            <Rating restaurant={restaurant} />
+                            <Rating
+                                average={rating.average}
+                                count={rating.count}
+                                onSeeReviews={openReviews}
+                            />
                         </div>
                     </div>
                 </div>
@@ -98,6 +159,21 @@ export default function RestaurantHeader({
                 isOpen={infoOpen}
                 onClose={() => setInfoOpen(false)}
             />
+
+            <Modal
+                isOpen={reviewsOpen}
+                onClose={() => setReviewsOpen(false)}
+                title={restaurant.name}
+                size="2xl"
+            >
+                <RestaurantReviewsPanel
+                    restaurantId={restaurant.id}
+                    restaurantName={restaurant.name}
+                    feedRoute="customer.restaurants.reviews.feed"
+                    viewer="customer"
+                    enabled={reviewsOpen}
+                />
+            </Modal>
         </header>
     );
 }
@@ -169,30 +245,33 @@ function IconButton({ label, icon: Icon, onClick }) {
     );
 }
 
-function Rating({ restaurant }) {
-    const hasRating =
-        restaurant.rating !== null &&
-        restaurant.rating !== undefined &&
-        restaurant.rating !== "";
+function Rating({ average, count, onSeeReviews }) {
+    const label = formatRating(average);
+    const bucket = formatReviewCount(count);
 
-    if (!hasRating) {
+    if (!label || !bucket) {
         return null;
     }
 
     return (
-        <span className="inline-flex items-center gap-[var(--spacing-1)] text-sm">
-            <Star
-                size={16}
-                className="fill-[color:var(--color-warning-500)] text-[color:var(--color-warning-500)]"
-            />
-            <span className="font-medium text-[color:var(--color-text-primary)]">
-                {restaurant.rating}
-            </span>
-            {restaurant.review_count > 0 && (
-                <span className="text-[color:var(--color-text-muted)]">
-                    ({restaurant.review_count})
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span className="inline-flex items-center gap-1">
+                <Star
+                    size={16}
+                    className="fill-[color:var(--color-warning-500)] text-[color:var(--color-warning-500)]"
+                />
+                <span className="font-semibold text-[color:var(--color-text-primary)]">
+                    {label}/5
                 </span>
-            )}
-        </span>
+                <span className="text-[color:var(--color-text-muted)]">({bucket})</span>
+            </span>
+            <button
+                type="button"
+                onClick={onSeeReviews}
+                className="font-semibold text-[color:var(--color-primary-600)] hover:underline"
+            >
+                See reviews
+            </button>
+        </div>
     );
 }

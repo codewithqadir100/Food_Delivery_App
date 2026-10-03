@@ -2,6 +2,7 @@ import Card from "@/Components/Common/Card";
 import Badge from "@/Components/Common/Badge";
 import FavouriteButton from "@/Components/Customer/FavouriteButton";
 import { MapPin, Star, Motorbike } from "lucide-react";
+import { formatRating, formatReviewCount } from "@/Utils/reviews";
 
 export default function RestaurantCard({
     restaurant,
@@ -72,23 +73,24 @@ export default function RestaurantCard({
             </div>
 
             <div className="space-y-[var(--spacing-3)] p-[var(--spacing-4)]">
-                <div className="flex items-start justify-between gap-2">
-                    <h3 className="restaurant-card-title truncate min-w-20">
+                <div className="flex items-center justify-between gap-2">
+                    <h3 className="restaurant-card-title truncate min-w-0">
                         {restaurant.name}
                     </h3>
 
-                    {restaurant.rating ? (
-                        <div className="flex shrink-0 items-center gap-[var(--spacing-2)]">
-                            <span className="restaurant-card-rating flex items-center gap-[var(--spacing-1)]">
+                    {formatRating(restaurant.rating) && formatReviewCount(restaurant.review_count) ? (
+                        <div className="flex shrink-0 items-center gap-1">
+                            <span className="restaurant-card-rating">
                                 <Star
-                                    size={14}
-                                    fill="var(--color-primary-300)"
-                                    stroke="var(--color-primary-500)"
+                                    size={12}
+                                    aria-hidden="true"
+                                    fill="var(--color-warning-500)"
+                                    stroke="var(--color-warning-500)"
                                 />
-                                {restaurant.rating}
+                                {formatRating(restaurant.rating)}
                             </span>
                             <span className="restaurant-card-review-count">
-                                ({restaurant.review_count})
+                                ({formatReviewCount(restaurant.review_count)})
                             </span>
                         </div>
                     ) : (

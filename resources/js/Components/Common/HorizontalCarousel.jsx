@@ -5,6 +5,7 @@ export default function HorizontalCarousel({
     children,
     className = "",
     gapClassName = "gap-3",
+    snap = false,
 }) {
     const scrollerRef = useRef(null);
     const [canPrev, setCanPrev] = useState(false);
@@ -39,8 +40,14 @@ export default function HorizontalCarousel({
         const el = scrollerRef.current;
         if (!el) return;
 
+        const card = snap ? el.firstElementChild : null;
+        const gap = Number.parseFloat(getComputedStyle(el).columnGap) || 0;
+        const distance = card
+            ? card.getBoundingClientRect().width + gap
+            : Math.max(el.clientWidth * 0.85, 140);
+
         el.scrollBy({
-            left: direction * Math.max(el.clientWidth * 0.85, 140),
+            left: direction * distance,
             behavior: "smooth",
         });
     };
@@ -59,6 +66,10 @@ export default function HorizontalCarousel({
                 ref={scrollerRef}
                 className={`scrollbar-none flex overflow-x-auto scroll-smooth ${gapClassName} ${
                     canScroll ? "px-9" : ""
+                } ${
+                    snap
+                        ? `snap-x snap-mandatory [&>*]:snap-start ${canScroll ? "scroll-px-9" : ""}`
+                        : ""
                 }`}
             >
                 {children}

@@ -95,6 +95,33 @@ class Restaurant extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function averageRating(): ?float
+    {
+        if (! array_key_exists('reviews_avg_rating', $this->attributes)) {
+            $this->loadAvg('reviews', 'rating');
+        }
+
+        if ($this->reviews_avg_rating === null) {
+            return null;
+        }
+
+        return round((float) $this->reviews_avg_rating, 1);
+    }
+
+    public function reviewCount(): int
+    {
+        if (! array_key_exists('reviews_count', $this->attributes)) {
+            $this->loadCount('reviews');
+        }
+
+        return (int) $this->reviews_count;
+    }
+
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class);

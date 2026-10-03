@@ -8,6 +8,7 @@ import {
     ShoppingCart,
     BarChart3,
     CreditCard,
+    Star,
     MoreHorizontal,
     Settings,
     User,
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
 ];
 
 const MORE_OPTIONS = [
+    { label: "Reviews", icon: Star, href: "/restaurant/reviews", key: "reviews" },
     { label: "Help & Support", icon: HelpCircle, href: "#", key: "help" },
     { label: "Feedback", icon: MessageSquare, href: "#", key: "feedback" },
     {

@@ -3,8 +3,12 @@ import { Head, Link } from "@inertiajs/react";
 import { ArrowLeft, MapPin, Store } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import CancelOrderButton from "@/Components/Customer/CancelOrderButton";
+import ReviewPromptModal from "@/Components/Customer/ReviewPromptModal";
 import OrderCancellationNotice from "@/Components/Common/OrderCancellationNotice";
+import ItemThumb from "@/Components/Common/ItemThumb";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
+import { StarRow } from "@/Components/Common/StarRating";
+import Button from "@/Components/Common/Button";
 import useCustomerOrderUpdates from "@/Hooks/useCustomerOrderUpdates";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
@@ -12,15 +16,20 @@ import {
     CUSTOMER_CANCELLABLE_STATUSES,
     mergeOrderUpdates,
 } from "@/Utils/orderUpdates";
+import { canWriteReview } from "@/Utils/reviews";
 
-export default function OrderDetail({ order: initialOrder }) {
+export default function OrderDetail({ order: initialOrder, can_review = false }) {
     const [order, setOrder] = useState(initialOrder);
+    const [savedReview, setSavedReview] = useState(initialOrder.review ?? null);
+    const [reviewOpen, setReviewOpen] = useState(false);
     const address = order.address;
     const isPickup = order.fulfillment_type === "pickup";
     const canCancel = CUSTOMER_CANCELLABLE_STATUSES.includes(order.status);
+    const writable = can_review || canWriteReview(order);
 
     useEffect(() => {
         setOrder(initialOrder);
+        setSavedReview(initialOrder.review ?? null);
     }, [
         initialOrder.id,
         initialOrder.status,
@@ -122,9 +131,13 @@ export default function OrderDetail({ order: initialOrder }) {
                                 {order.items.map((item) => (
                                     <li
                                         key={item.id}
-                                        className="flex items-center justify-between py-3"
+                                        className="flex items-center gap-3 py-3"
                                     >
-                                        <div>
+                                        <ItemThumb
+                                            src={item.menu_item?.image_url}
+                                            alt={item.name}
+                                        />
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
                                                 {item.name}
                                             </p>
@@ -197,6 +210,53 @@ export default function OrderDetail({ order: initialOrder }) {
                             </div>
                         )}
                     </div>
+
+                    {(writable || savedReview) && (
+                        <div className="mt-4 rounded-[var(--radius-lg)] border border-[color:var(--color-border-light)] bg-[color:var(--color-bg-primary)] p-5 shadow-[var(--shadow-sm)]">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h2 className="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                                        {savedReview ? "Your review" : "How was your meal?"}
+                                    </h2>
+                                    {savedReview ? (
+                                        <div className="mt-2">
+                                            <StarRow value={savedReview.rating} />
+                                            {savedReview.comment && (
+                                                <p className="mt-2 text-sm text-[color:var(--color-text-secondary)]">
+                                                    {savedReview.comment}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">
+                                            A star helps the next person decide.
+                                        </p>
+                                    )}
+                                </div>
+                                {writable && (
+                                    <Button
+                                        variant="secondary"
+                                        className="w-full sm:w-auto"
+                                        onClick={() => setReviewOpen(true)}
+                                    >
+                                        {savedReview ? "Edit review" : "Add review"}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <ReviewPromptModal
+                        order={{
+                            ...order,
+                            restaurant_name: order.restaurant?.name,
+                            review: savedReview,
+                        }}
+                        isOpen={reviewOpen}
+                        intent="detail"
+                        onClose={() => setReviewOpen(false)}
+                        onSubmitted={(data) => setSavedReview(data.review)}
+                    />
                 </div>
             </AppLayout>
         </>

@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import RestaurantHeader from "@/Components/Customer/RestaurantHeader";
 import CategoryFilterTabs from "@/Components/Customer/CategoryFilterTabs";
 import MenuItemOrderCard from "@/Components/Customer/MenuItemOrderCard";
+import MenuReviewSpotlight from "@/Components/Customer/MenuReviewSpotlight";
 import MenuCart from "@/Components/Customer/MenuCart";
 import Alert from "@/Components/Common/Alert";
 import Spinner from "@/Components/Common/Spinner";
@@ -323,6 +324,7 @@ export default function RestaurantMenu({
             ),
         }))
         .filter((section) => section.items.length > 0);
+    const spotlightAfter = sections.length >= 3 ? 2 : sections.length - 1;
     const results = search
         ? menuData.items.filter((item) =>
               item.name.toLowerCase().includes(search),
@@ -396,22 +398,29 @@ export default function RestaurantMenu({
                                             No items available
                                         </p>
                                     ) : (
-                                        sections.map((section) => (
-                                            <section
-                                                key={section.id}
-                                                id={`menu-category-${section.id}`}
-                                                data-menu-section={section.id}
-                                                className="scroll-mt-[calc(var(--customer-nav-height)+var(--menu-filter-height))]"
-                                            >
-                                                <h2 className="mb-[var(--spacing-4)] text-lg sm:text-xl font-semibold text-[color:var(--color-text-primary)]">
-                                                    {section.name}
-                                                </h2>
-                                                <ItemGrid>
-                                                    {section.items.map((item) =>
-                                                        renderMenuItem(item),
-                                                    )}
-                                                </ItemGrid>
-                                            </section>
+                                        sections.map((section, index) => (
+                                            <Fragment key={section.id}>
+                                                <section
+                                                    id={`menu-category-${section.id}`}
+                                                    data-menu-section={section.id}
+                                                    className="scroll-mt-[calc(var(--customer-nav-height)+var(--menu-filter-height))]"
+                                                >
+                                                    <h2 className="mb-[var(--spacing-4)] text-lg sm:text-xl font-semibold text-[color:var(--color-text-primary)]">
+                                                        {section.name}
+                                                    </h2>
+                                                    <ItemGrid>
+                                                        {section.items.map((item) =>
+                                                            renderMenuItem(item),
+                                                        )}
+                                                    </ItemGrid>
+                                                </section>
+                                                {index === spotlightAfter && (
+                                                    <MenuReviewSpotlight
+                                                        restaurantId={menuData.restaurant.id}
+                                                        reviews={menuData.review_spotlight}
+                                                    />
+                                                )}
+                                            </Fragment>
                                         ))
                                     )}
                                 </div>

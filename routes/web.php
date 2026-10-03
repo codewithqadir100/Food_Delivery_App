@@ -16,6 +16,8 @@ use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\RestaurantController;
 use App\Http\Controllers\Customer\RestaurantMenuController;
+use App\Http\Controllers\Customer\RestaurantReviewController as CustomerRestaurantReviewController;
+use App\Http\Controllers\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\Restaurant\DashboardController;
 use App\Http\Controllers\Restaurant\MenuCategoryController;
@@ -25,6 +27,7 @@ use App\Http\Controllers\Restaurant\MenuItemFormPageController;
 use App\Http\Controllers\Restaurant\OrderController as RestaurantOrderController;
 use App\Http\Controllers\Restaurant\RestaurantProfileController;
 use App\Http\Controllers\Restaurant\RestaurantSettingsController;
+use App\Http\Controllers\Restaurant\ReviewController as RestaurantReviewController;
 use App\Http\Controllers\Restaurant\SubscriptionController;
 use App\Models\RestaurantCategory;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +37,9 @@ Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
 
+Route::get('/restaurants/{restaurant}/reviews/feed', [CustomerRestaurantReviewController::class, 'feed'])->name('customer.restaurants.reviews.feed');
+Route::get('/restaurants/{restaurant}/reviews', [CustomerRestaurantReviewController::class, 'show'])->name('customer.restaurants.reviews');
+Route::get('/reviews/{review}/helpful/login', [CustomerReviewController::class, 'loginForHelpful'])->name('customer.reviews.helpful.login');
 Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
 
 Route::get('/restaurants', function () {
@@ -80,6 +86,12 @@ Route::prefix('customer')->name('customer.')->group(function () {
 
         Route::post('/checkout/{restaurant?}', [CheckoutController::class, 'store'])->name('checkout.store');
 
+        Route::get('/reviews/prompt', [CustomerReviewController::class, 'prompt'])->name('reviews.prompt');
+        Route::post('/reviews/prompt/seen', [CustomerReviewController::class, 'seen'])->name('reviews.prompt.seen');
+        Route::post('/reviews/{review}/helpful', [CustomerReviewController::class, 'helpful'])->name('reviews.helpful');
+        Route::post('/orders/{order}/review', [CustomerReviewController::class, 'store'])->name('orders.review.store');
+        Route::post('/orders/{order}/review/skip', [CustomerReviewController::class, 'skip'])->name('orders.review.skip');
+
         Route::get('/orders/feed', [CustomerOrderController::class, 'feed'])->name('orders.feed');
         Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
         Route::patch('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('orders.cancel');
@@ -125,6 +137,8 @@ Route::middleware(['auth', 'restaurant_owner', 'verified'])->prefix('restaurant'
         Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
 
         Route::middleware('approved_restaurant')->group(function () {
+            Route::get('/reviews/feed', [RestaurantReviewController::class, 'feed'])->name('reviews.feed');
+            Route::get('/reviews', [RestaurantReviewController::class, 'index'])->name('reviews.index');
             Route::get('/orders/feed', [RestaurantOrderController::class, 'feed'])->name('orders.feed');
             Route::get('/orders', [RestaurantOrderController::class, 'index'])->name('orders.index');
             Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->name('orders.show');

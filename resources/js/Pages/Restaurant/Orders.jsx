@@ -111,7 +111,7 @@ export default function Orders({ orders, filters, stats, latest_order_id = 0 }) 
                 pageSubtitle="Track and manage incoming orders"
             >
                 <div className="space-y-6">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 min-[500px]:grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard
                             title="Pending Orders"
                             value={liveStats.pending}
@@ -135,7 +135,7 @@ export default function Orders({ orders, filters, stats, latest_order_id = 0 }) 
                     </div>
 
                     <DashboardCard title="All Orders">
-                        <div className="scrollbar-none-mobile flex items-center gap-2 overflow-x-auto pb-1 -mt-2 md:pb-4">
+                        <div className="scrollbar-none-mobile -mt-2 mb-[var(--spacing-4)] flex items-center gap-2 overflow-x-auto pb-1">
                             {STATUS_TABS.map((tab) => (
                                 <button
                                     key={tab.key}

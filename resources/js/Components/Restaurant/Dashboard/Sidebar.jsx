@@ -5,6 +5,7 @@ import {
     Menu,
     ShoppingCart,
     BarChart3,
+    Star,
     Settings,
     User,
     LogOut,
@@ -39,6 +40,12 @@ const MENU_ITEMS = [
         icon: ShoppingCart,
         href: "/restaurant/orders",
         key: "orders",
+    },
+    {
+        label: "Reviews",
+        icon: Star,
+        href: "/restaurant/reviews",
+        key: "reviews",
     },
     {
         label: "Analytics",
