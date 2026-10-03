@@ -64,7 +64,11 @@ export default function RestaurantCard({
                             </Badge>
                         )}
                         {restaurant.is_featured && (
-                            <Badge variant="primary" size="sm">
+                            <Badge
+                                variant="primary"
+                                size="sm"
+                                className="!bg-[color:var(--color-primary-600)] !text-white shadow-[var(--shadow-sm)]"
+                            >
                                 Featured
                             </Badge>
                         )}

@@ -113,9 +113,6 @@ export default function Footer() {
                                 </FooterLink>
                             </li>
                             <li>
-                                <FooterLink href="/blog">Blogs</FooterLink>
-                            </li>
-                            <li>
                                 <FooterLink href="/about">About Us</FooterLink>
                             </li>
                         </ul>

@@ -21,20 +21,16 @@ class RestaurantController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $categoryId = $request->get('category_id');
-
-        $query = Restaurant::query()
-            ->visibleToCustomers()
-            ->with(['restaurantCategory', 'subscription.plan']);
-
-        if ($categoryId) {
-            $query->where('restaurant_category_id', $categoryId);
-        }
-
         $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
         $page = max(1, (int) $request->get('page', 1));
         $perPage = 12;
-        $paginator = $this->listing->paginate($query, $customerAddress, $perPage, $page);
+        $paginator = $this->listing->paginate(
+            $this->listingQuery($request),
+            $customerAddress,
+            $perPage,
+            $page,
+            $this->filters($request),
+        );
         $this->wishlists->mark($paginator->getCollection(), $user);
         $total = $paginator->total();
 
@@ -115,31 +111,59 @@ class RestaurantController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->get('q', '');
-        $categoryId = $request->get('category_id');
         $user = auth()->user();
-
-        $restaurants = Restaurant::query()
-            ->visibleToCustomers()
-            ->where(function ($builder) use ($query) {
-                $builder->where('restaurants.name', 'LIKE', "%{$query}%")
-                    ->orWhereHas('restaurantCategory', function ($subQuery) use ($query) {
-                        $subQuery->where('name', 'LIKE', "%{$query}%");
-                    });
-            })
-            ->with(['restaurantCategory', 'subscription.plan']);
-
-        if ($categoryId) {
-            $restaurants->where('restaurant_category_id', $categoryId);
-        }
-
         $customerAddress = $user?->isCustomer() ? $user->primaryAddress : null;
-
-        $results = $this->listing->take($restaurants, $customerAddress, 12);
+        $results = $this->listing->take(
+            $this->listingQuery($request),
+            $customerAddress,
+            12,
+            $this->filters($request),
+        );
         $this->wishlists->mark($results, $user);
 
         return response()->json([
             'data' => RestaurantResource::collection($results),
         ]);
+    }
+
+    private function listingQuery(Request $request)
+    {
+        $query = Restaurant::query()
+            ->visibleToCustomers()
+            ->with(['restaurantCategory', 'subscription.plan']);
+
+        $term = trim((string) $request->get('q', ''));
+
+        if ($term !== '') {
+            $query->where(function ($builder) use ($term) {
+                $builder->where('restaurants.name', 'LIKE', "%{$term}%")
+                    ->orWhereHas('restaurantCategory', function ($subQuery) use ($term) {
+                        $subQuery->where('name', 'LIKE', "%{$term}%");
+                    });
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('restaurant_category_id', $request->integer('category_id'));
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array{featured: bool, home_chef: bool, min_rating: float|null, sort: string|null}
+     */
+    private function filters(Request $request): array
+    {
+        $sort = (string) $request->get('sort', '');
+
+        return [
+            'featured' => $request->boolean('featured'),
+            'home_chef' => $request->boolean('home_chef'),
+            'min_rating' => $request->filled('min_rating') ? (float) $request->get('min_rating') : null,
+            'sort' => in_array($sort, [RestaurantListingService::SORT_NEAREST, RestaurantListingService::SORT_TOP_RATED], true)
+                ? $sort
+                : null,
+        ];
     }
 }

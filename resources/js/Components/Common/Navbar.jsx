@@ -22,6 +22,7 @@ import Button from "./Button";
 import Modal from "./Modal";
 import NavbarMobileMenu from "./NavbarMobileMenu";
 import TextInput from "../Forms/TextInput";
+import NavbarSearch from "./NavbarSearch";
 
 function CartIconLink({ count, className = "" }) {
     return (
@@ -66,7 +67,8 @@ function RestaurantLogoMark({ src, className = "" }) {
 }
 
 export default function Navbar({ categories = [], RestaurantLogo }) {
-    const { auth } = usePage().props;
+    const { auth, nav_categories: navCategories = [] } = usePage().props;
+    const cuisineCategories = navCategories.length > 0 ? navCategories : categories;
     const user = auth?.user;
     const isRestaurant = user?.role === "restaurant_owner";
     const isAdminUser = user?.role === "admin";
@@ -820,9 +822,9 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                     </button>
 
                                     {categoryDropdown &&
-                                        categories.length > 0 && (
+                                        cuisineCategories.length > 0 && (
                                             <div className="absolute left-0 mt-2 w-56 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-xl shadow-lg overflow-hidden z-50">
-                                                {categories.map((cat) => (
+                                                {cuisineCategories.map((cat) => (
                                                     <Link
                                                         key={cat.id}
                                                         href={`/restaurants?category=${cat.slug}`}
@@ -841,7 +843,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             </div>
                                         )}
                                     {categoryDropdown &&
-                                        categories.length === 0 && (
+                                        cuisineCategories.length === 0 && (
                                             <div className="absolute left-0 mt-2 w-56 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-xl shadow-lg overflow-hidden z-50">
                                                 <p className="px-4 py-3 text-sm text-[color:var(--color-text-muted)]">
                                                     No categories available
@@ -851,23 +853,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                 </div>
                             </div>
 
-                            <form onSubmit={handleSearch} className="relative">
-                                <TextInput
-                                    type="text"
-                                    placeholder="Search restaurants..."
-                                    value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)
-                                    }
-                                    icon={
-                                        <Search
-                                            size={16}
-                                            className="text-[color:var(--color-text-muted)]"
-                                        />
-                                    }
-                                    className="w-64 lg:w-80 [&_input]:rounded-full [&_input]:bg-[color:var(--color-bg-secondary)] [&_input]:border-[color:var(--color-border-light)] [&_input]:py-2 [&_input]:text-sm"
-                                />
-                            </form>
+                            <NavbarSearch categories={cuisineCategories} />
                         </div>
                     </div>
                 </div>
@@ -933,7 +919,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                 user={user}
                 isRestaurant={isRestaurant}
                 isAdmin={isAdminUser}
-                categories={categories}
+                categories={cuisineCategories}
                 categoriesOpen={mobileCategoriesOpen}
                 onToggleCategories={() =>
                     setMobileCategoriesOpen(!mobileCategoriesOpen)

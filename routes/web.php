@@ -43,9 +43,13 @@ Route::get('/reviews/{review}/helpful/login', [CustomerReviewController::class, 
 Route::get('/restaurants/{restaurant}/menu', [CustomerRestaurantMenuController::class, 'show'])->name('customer.restaurant.menu');
 
 Route::get('/restaurants', function () {
+    $user = auth()->user();
+    $address = $user?->isCustomer() ? $user->primaryAddress : null;
+
     return Inertia::render('Customer/Restaurants', [
-        'categories' => RestaurantCategory::orderBy('name')->get(['id', 'name']),
-        'user' => auth()->user(),
+        'categories' => RestaurantCategory::orderBy('name')->get(['id', 'name', 'slug']),
+        'user' => $user,
+        'has_address' => $address?->latitude !== null && $address?->longitude !== null,
     ]);
 })->name('restaurants.index');
 

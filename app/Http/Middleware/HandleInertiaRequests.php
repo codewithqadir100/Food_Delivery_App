@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\RestaurantCategory;
 use App\Services\CartService;
 use App\Services\RestaurantOnboardingService;
 use App\Services\WishlistService;
@@ -72,6 +73,9 @@ class HandleInertiaRequests extends Middleware
                     ? $user->unreadNotifications()->count()
                     : null,
             ],
+            'nav_categories' => fn () => RestaurantCategory::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
