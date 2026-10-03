@@ -1,9 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Customer\CancelOrderRequest;
 use App\Models\Order;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -34,6 +38,56 @@ class OrderController extends Controller
 
         return Inertia::render('Customer/OrderDetail', [
             'order' => $order,
+        ]);
+    }
+
+    public function feed(Request $request): JsonResponse
+    {
+        $since = Order::statusFeedSince($request->query('since'));
+
+        $orders = collect();
+
+        if ($since) {
+            $orders = Order::query()
+                ->where('customer_id', Auth::id())
+                ->where('updated_at', '>=', $since)
+                ->orderByDesc('updated_at')
+                ->limit(20)
+                ->get()
+                ->map(fn (Order $order) => $order->statusSnapshot())
+                ->values();
+        }
+
+        return response()->json([
+            'orders' => $orders,
+            'server_time' => now()->toIso8601String(),
+        ]);
+    }
+
+    public function cancel(CancelOrderRequest $request, Order $order): JsonResponse
+    {
+        $this->authorize('cancel', $order);
+
+        $updated = Order::query()
+            ->whereKey($order->id)
+            ->where('customer_id', $request->user()->id)
+            ->whereIn('status', Order::CUSTOMER_CANCELLABLE_STATUSES)
+            ->update([
+                'status' => Order::STATUS_CANCELLED,
+                'cancelled_at' => now(),
+                'cancelled_by' => Order::CANCELLED_BY_CUSTOMER,
+                'cancellation_reason' => trim($request->validated('cancellation_reason')),
+                'updated_at' => now(),
+            ]);
+
+        abort_unless($updated === 1, 422, 'This order can no longer be cancelled.');
+
+        $order->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order cancelled.',
+            'data' => $order->statusSnapshot(),
         ]);
     }
 }

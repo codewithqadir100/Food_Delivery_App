@@ -1,20 +1,29 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class Order extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_PREPARING = 'preparing';
+
     public const STATUS_READY = 'ready';
+
     public const STATUS_OUT_FOR_DELIVERY = 'out_for_delivery';
+
     public const STATUS_DELIVERED = 'delivered';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /** Statuses that still count as "in progress" for a restaurant/customer. */
@@ -27,6 +36,7 @@ class Order extends Model
     ];
 
     public const FULFILLMENT_DELIVERY = 'delivery';
+
     public const FULFILLMENT_PICKUP = 'pickup';
 
     public const FULFILLMENTS = [
@@ -50,6 +60,16 @@ class Order extends Model
         self::STATUS_CANCELLED,
     ];
 
+    public const CANCELLED_BY_CUSTOMER = 'customer';
+
+    public const CANCELLED_BY_RESTAURANT = 'restaurant';
+
+    /** Customer may cancel only until the kitchen starts preparing. */
+    public const CUSTOMER_CANCELLABLE_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_CONFIRMED,
+    ];
+
     protected $fillable = [
         'order_number',
         'customer_id',
@@ -64,6 +84,7 @@ class Order extends Model
         'notes',
         'wants_cutlery',
         'cancellation_reason',
+        'cancelled_by',
         'confirmed_at',
         'delivered_at',
         'cancelled_at',
@@ -92,7 +113,7 @@ class Order extends Model
     public static function generateOrderNumber(): string
     {
         do {
-            $number = 'ORD-' . now()->format('ymd') . '-' . Str::upper(Str::random(5));
+            $number = 'ORD-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
         } while (self::where('order_number', $number)->exists());
 
         return $number;
@@ -125,7 +146,7 @@ class Order extends Model
 
     public function canTransitionTo(string $status): bool
     {
-        if ($this->isTerminal() || !in_array($status, self::STATUSES, true)) {
+        if ($this->isTerminal() || ! in_array($status, self::STATUSES, true)) {
             return false;
         }
 
@@ -147,5 +168,45 @@ class Order extends Model
     public function isActive(): bool
     {
         return in_array($this->status, self::ACTIVE_STATUSES, true);
+    }
+
+    public function canBeCancelledByCustomer(): bool
+    {
+        return in_array($this->status, self::CUSTOMER_CANCELLABLE_STATUSES, true);
+    }
+
+    /**
+     * Fields both dashboards need when an order's status changes.
+     *
+     * @return array<string, mixed>
+     */
+    public function statusSnapshot(): array
+    {
+        return [
+            'id' => $this->id,
+            'status' => $this->status,
+            'fulfillment_type' => $this->fulfillment_type ?? self::FULFILLMENT_DELIVERY,
+            'cancellation_reason' => $this->cancellation_reason,
+            'cancelled_by' => $this->cancelled_by,
+            'cancelled_at' => $this->cancelled_at,
+            'confirmed_at' => $this->confirmed_at,
+            'delivered_at' => $this->delivered_at,
+        ];
+    }
+
+    /**
+     * Polling cursor overlapped by 2 seconds so second-precision timestamps are not skipped.
+     */
+    public static function statusFeedSince(?string $since): ?Carbon
+    {
+        if (! is_string($since) || trim($since) === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($since)->subSeconds(2);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

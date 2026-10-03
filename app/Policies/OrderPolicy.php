@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Policies;
 
@@ -25,5 +27,12 @@ class OrderPolicy
         return $user->isRestaurantOwner()
             && $user->isApproved()
             && $user->id === $order->restaurant->user_id;
+    }
+
+    public function cancel(User $user, Order $order): bool
+    {
+        return $user->isCustomer()
+            && $user->id === $order->customer_id
+            && $order->canBeCancelledByCustomer();
     }
 }

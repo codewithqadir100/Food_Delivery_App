@@ -3,7 +3,20 @@ import EmptyState from '@/Components/Common/EmptyState';
 import OrderStatusBadge from '@/Components/Common/OrderStatusBadge';
 import OrderStatusSelect from '@/Components/Restaurant/Orders/OrderStatusSelect';
 import { fulfillmentLabel } from '@/Utils/fulfillment';
+import { CANCELLED_BY_CUSTOMER } from '@/Utils/orderUpdates';
 import { formatCurrency } from '@/Utils/formatCurrency';
+
+function CancelledByCustomer({ order }) {
+  if (order.status !== 'cancelled' || order.cancelled_by !== CANCELLED_BY_CUSTOMER) {
+    return null;
+  }
+
+  return (
+    <p className="mt-1 text-xs font-medium text-[color:var(--color-danger-700)]">
+      Cancelled by customer
+    </p>
+  );
+}
 
 export default function OrderTable({ orders = [], loading = false, onStatusUpdated }) {
   const openOrder = (orderId) => {
@@ -65,6 +78,7 @@ export default function OrderTable({ orders = [], loading = false, onStatusUpdat
                   </td>
                   <td className="px-4 py-4">
                     <OrderStatusBadge status={order.status} fulfillment={order.fulfillment_type} size="sm" />
+                    <CancelledByCustomer order={order} />
                   </td>
                   <td className="px-4 py-4 text-xs text-[color:var(--color-text-secondary)]">
                     {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -123,13 +137,16 @@ export default function OrderTable({ orders = [], loading = false, onStatusUpdat
                     {formatCurrency(order.total)}
                   </p>
                 </div>
-                <OrderStatusSelect
-                  orderId={order.id}
-                  status={order.status}
-                  fulfillment={order.fulfillment_type}
-                  onUpdated={onStatusUpdated}
-                  className="w-40"
-                />
+                <div className="w-40">
+                  <OrderStatusSelect
+                    orderId={order.id}
+                    status={order.status}
+                    fulfillment={order.fulfillment_type}
+                    onUpdated={onStatusUpdated}
+                    className="w-40"
+                  />
+                  <CancelledByCustomer order={order} />
+                </div>
               </div>
             </div>
           ))

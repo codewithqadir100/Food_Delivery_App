@@ -12,6 +12,7 @@ import {
 } from "@/Components/Restaurant/Dashboard";
 import OnboardingChecklist from "@/Components/Restaurant/Onboarding/OnboardingChecklist";
 import useIncomingOrders from "@/Hooks/useIncomingOrders";
+import { mergeOrderUpdates } from "@/Utils/orderUpdates";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function RestaurantDashboard({
@@ -44,15 +45,16 @@ export default function RestaurantDashboard({
             setLiveStats(payload.stats);
         }
 
-        const incoming = payload.orders ?? [];
-        if (incoming.length === 0) return;
-
         setLiveOrders((current) => {
-            const ids = new Set(current.map((order) => order.id));
-            const fresh = incoming.filter((order) => !ids.has(order.id));
+            const merged = mergeOrderUpdates(current, payload.updates);
+            const ids = new Set(merged.map((order) => order.id));
+            const fresh = (payload.orders ?? []).filter(
+                (order) => !ids.has(order.id),
+            );
+
             return fresh.length === 0
-                ? current
-                : [...fresh, ...current].slice(0, 5);
+                ? merged
+                : [...fresh, ...merged].slice(0, 5);
         });
     });
 

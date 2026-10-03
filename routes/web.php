@@ -80,7 +80,9 @@ Route::prefix('customer')->name('customer.')->group(function () {
 
         Route::post('/checkout/{restaurant?}', [CheckoutController::class, 'store'])->name('checkout.store');
 
+        Route::get('/orders/feed', [CustomerOrderController::class, 'feed'])->name('orders.feed');
         Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+        Route::patch('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('orders.cancel');
         Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
     });
 });

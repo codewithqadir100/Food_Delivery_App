@@ -1,14 +1,27 @@
+import { useEffect, useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import { ClipboardList, ChevronRight } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Button from "@/Components/Common/Button";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
+import useCustomerOrderUpdates from "@/Hooks/useCustomerOrderUpdates";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
+import { mergeOrderUpdates } from "@/Utils/orderUpdates";
 import EmptyState from "@/Components/Common/EmptyState";
 import Pagination from "@/Components/Common/Pagination";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 export default function History({ orders }) {
+    const [rows, setRows] = useState(orders.data);
+
+    useEffect(() => {
+        setRows(orders.data);
+    }, [orders]);
+
+    useCustomerOrderUpdates(rows.length > 0, (payload) => {
+        setRows((current) => mergeOrderUpdates(current, payload.orders));
+    });
+
     const handlePageChange = (page) => {
         router.get(
             route("customer.orders.index"),
@@ -42,7 +55,7 @@ export default function History({ orders }) {
                     ) : (
                         <>
                             <div className="space-y-3">
-                                {orders.data.map((order) => (
+                                {rows.map((order) => (
                                     <Link
                                         key={order.id}
                                         href={route(

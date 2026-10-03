@@ -27,6 +27,10 @@ export default function OrderStatusSelect({
 
     useEffect(() => {
         setCurrent(status);
+        if (TERMINAL_ORDER_STATUSES.includes(status)) {
+            setPendingStatus(null);
+            setReason("");
+        }
     }, [status]);
 
     const locked = TERMINAL_ORDER_STATUSES.includes(current);

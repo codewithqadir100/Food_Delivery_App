@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Head, Link } from "@inertiajs/react";
 import { ArrowLeft, Mail, MapPin, Phone, User, Utensils } from "lucide-react";
 import RestaurantLayout from "@/Layouts/RestaurantLayout";
 import Alert from "@/Components/Common/Alert";
+import OrderCancellationNotice from "@/Components/Common/OrderCancellationNotice";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
 import OrderStatusSelect from "@/Components/Restaurant/Orders/OrderStatusSelect";
 import ItemThumb from "@/Components/Common/ItemThumb";
+import useIncomingOrders from "@/Hooks/useIncomingOrders";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
+import { mergeOrderUpdates } from "@/Utils/orderUpdates";
 
 export default function OrderDetail({ order: initialOrder }) {
     const [order, setOrder] = useState(initialOrder);
     const [alert, setAlert] = useState(null);
+
+    useEffect(() => {
+        setOrder(initialOrder);
+    }, [
+        initialOrder.id,
+        initialOrder.status,
+        initialOrder.cancelled_by,
+        initialOrder.cancellation_reason,
+    ]);
     const address = order.address;
     const isPickup = order.fulfillment_type === "pickup";
+
+    useIncomingOrders(true, null, (payload) => {
+        const update = (payload.updates ?? []).find(
+            (item) => item.id === initialOrder.id,
+        );
+        if (!update) return;
+
+        setOrder((current) => mergeOrderUpdates([current], [update])[0]);
+    });
 
     return (
         <>
@@ -113,17 +134,10 @@ export default function OrderDetail({ order: initialOrder }) {
                             </div>
                         </div>
 
-                        {order.status === "cancelled" &&
-                            order.cancellation_reason && (
-                                <div className="p-5 border-b border-[color:var(--color-border-light)] bg-[color:var(--color-danger-50)]">
-                                    <p className="text-sm text-[color:var(--color-danger-700)]">
-                                        <span className="font-semibold">
-                                            Cancellation reason:
-                                        </span>{" "}
-                                        {order.cancellation_reason}
-                                    </p>
-                                </div>
-                            )}
+                        <OrderCancellationNotice
+                            order={order}
+                            viewer="restaurant"
+                        />
 
                         <div className="p-5">
                             <h2 className="text-sm font-semibold text-[color:var(--color-text-primary)] mb-3">
@@ -223,6 +237,7 @@ export default function OrderDetail({ order: initialOrder }) {
                                     setOrder((current) => ({
                                         ...current,
                                         status: updated.status,
+                                        cancelled_by: updated.cancelled_by,
                                         cancellation_reason:
                                             updated.cancellation_reason,
                                         confirmed_at: updated.confirmed_at,

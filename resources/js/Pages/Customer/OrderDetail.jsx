@@ -1,13 +1,41 @@
+import { useEffect, useState } from "react";
 import { Head, Link } from "@inertiajs/react";
 import { ArrowLeft, MapPin, Store } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
+import CancelOrderButton from "@/Components/Customer/CancelOrderButton";
+import OrderCancellationNotice from "@/Components/Common/OrderCancellationNotice";
 import OrderStatusBadge from "@/Components/Common/OrderStatusBadge";
+import useCustomerOrderUpdates from "@/Hooks/useCustomerOrderUpdates";
 import { fulfillmentLabel } from "@/Utils/fulfillment";
 import { formatCurrency } from "@/Utils/formatCurrency";
+import {
+    CUSTOMER_CANCELLABLE_STATUSES,
+    mergeOrderUpdates,
+} from "@/Utils/orderUpdates";
 
-export default function OrderDetail({ order }) {
+export default function OrderDetail({ order: initialOrder }) {
+    const [order, setOrder] = useState(initialOrder);
     const address = order.address;
     const isPickup = order.fulfillment_type === "pickup";
+    const canCancel = CUSTOMER_CANCELLABLE_STATUSES.includes(order.status);
+
+    useEffect(() => {
+        setOrder(initialOrder);
+    }, [
+        initialOrder.id,
+        initialOrder.status,
+        initialOrder.cancelled_by,
+        initialOrder.cancellation_reason,
+    ]);
+
+    useCustomerOrderUpdates(true, (payload) => {
+        const update = (payload.orders ?? []).find(
+            (item) => item.id === initialOrder.id,
+        );
+        if (!update) return;
+
+        setOrder((current) => mergeOrderUpdates([current], [update])[0]);
+    });
 
     return (
         <>
@@ -84,17 +112,7 @@ export default function OrderDetail({ order }) {
                             </div>
                         </div>
 
-                        {order.status === "cancelled" &&
-                            order.cancellation_reason && (
-                                <div className="p-5 border-b border-[color:var(--color-border-light)] bg-[color:var(--color-danger-50)]">
-                                    <p className="text-sm text-[color:var(--color-danger-700)]">
-                                        <span className="font-semibold">
-                                            Cancellation reason:
-                                        </span>{" "}
-                                        {order.cancellation_reason}
-                                    </p>
-                                </div>
-                            )}
+                        <OrderCancellationNotice order={order} viewer="customer" />
 
                         <div className="p-5">
                             <h2 className="text-sm font-semibold text-[color:var(--color-text-primary)] mb-3">
@@ -160,6 +178,24 @@ export default function OrderDetail({ order }) {
                                 </span>
                             </div>
                         </div>
+
+                        {canCancel && (
+                            <div className="flex flex-col items-stretch gap-3 border-t border-[color:var(--color-border-light)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-sm text-[color:var(--color-text-secondary)]">
+                                    You can cancel until the restaurant starts
+                                    preparing.
+                                </p>
+                                <CancelOrderButton
+                                    orderId={order.id}
+                                    onCancelled={(updated) =>
+                                        setOrder((current) => ({
+                                            ...current,
+                                            ...updated,
+                                        }))
+                                    }
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </AppLayout>

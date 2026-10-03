@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Restaurant;
 
@@ -14,9 +16,7 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly RestaurantOrderStatsService $stats)
-    {
-    }
+    public function __construct(private readonly RestaurantOrderStatsService $stats) {}
 
     public function index(Request $request): Response
     {
@@ -60,21 +60,42 @@ class OrderController extends Controller
 
         abort_unless($restaurant, 404);
 
-        $afterId = max(0, (int) $request->query('after_id', 0));
+        $orders = collect();
 
-        $orders = $restaurant->orders()
-            ->with('customer:id,name')
-            ->withCount('items')
-            ->where('id', '>', $afterId)
-            ->orderByDesc('id')
-            ->limit(20)
-            ->get()
-            ->map(fn (Order $order) => $this->serializeListOrder($order))
-            ->values();
+        if ($request->has('after_id')) {
+            $afterId = max(0, (int) $request->query('after_id', 0));
+
+            $orders = $restaurant->orders()
+                ->with('customer:id,name')
+                ->withCount('items')
+                ->where('id', '>', $afterId)
+                ->orderByDesc('id')
+                ->limit(20)
+                ->get()
+                ->map(fn (Order $order) => $this->serializeListOrder($order))
+                ->values();
+        }
+
+        $updates = collect();
+        $since = Order::statusFeedSince($request->query('since'));
+
+        if ($since) {
+            $updates = $restaurant->orders()
+                ->with('customer:id,name')
+                ->withCount('items')
+                ->where('updated_at', '>=', $since)
+                ->orderByDesc('updated_at')
+                ->limit(20)
+                ->get()
+                ->map(fn (Order $order) => $this->serializeListOrder($order))
+                ->values();
+        }
 
         return response()->json([
             'orders' => $orders,
+            'updates' => $updates,
             'stats' => $this->stats->buildStats($restaurant),
+            'server_time' => now()->toIso8601String(),
         ]);
     }
 
@@ -106,6 +127,7 @@ class OrderController extends Controller
             $updates['delivered_at'] = now();
         } elseif ($status === Order::STATUS_CANCELLED) {
             $updates['cancelled_at'] = now();
+            $updates['cancelled_by'] = Order::CANCELLED_BY_RESTAURANT;
             $updates['cancellation_reason'] = $request->validated('cancellation_reason');
         }
 
@@ -127,7 +149,7 @@ class OrderController extends Controller
     {
         $header = $request->header('X-Inertia-Partial-Data');
 
-        if (!is_string($header) || $header === '') {
+        if (! is_string($header) || $header === '') {
             return null;
         }
 
@@ -136,16 +158,12 @@ class OrderController extends Controller
 
     private function serializeListOrder(Order $order): array
     {
-        return [
-            'id' => $order->id,
+        return array_merge($order->statusSnapshot(), [
             'order_number' => $order->order_number,
             'customer_name' => $order->customer?->name ?? '—',
             'items_count' => (int) $order->items_count,
             'total' => $order->total,
-            'status' => $order->status,
-            'fulfillment_type' => $order->fulfillment_type ?? Order::FULFILLMENT_DELIVERY,
             'created_at' => $order->created_at,
-        ];
+        ]);
     }
-
 }

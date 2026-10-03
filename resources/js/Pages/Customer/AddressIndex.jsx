@@ -48,6 +48,7 @@ export default function AddressIndex({ addresses = [] }) {
                         {addresses.length > 0 && (
                             <Button
                                 icon={Plus}
+                                className="w-full sm:w-auto"
                                 onClick={() =>
                                     router.visit(
                                         route("customer.addresses.create"),
@@ -75,6 +76,7 @@ export default function AddressIndex({ addresses = [] }) {
                                 action={
                                     <Button
                                         icon={Plus}
+                                        className="w-full sm:w-auto"
                                         onClick={() =>
                                             router.visit(
                                                 route(
@@ -91,15 +93,15 @@ export default function AddressIndex({ addresses = [] }) {
                     ) : (
                         <div className="flex flex-col gap-[var(--spacing-4)]">
                             {addresses.map((address) => (
-                                <Card key={address.id} padding="lg">
-                                    <div className="flex flex-col gap-[var(--spacing-4)] sm:flex-row sm:items-start sm:justify-between">
-                                        <div className="flex min-w-0 gap-[var(--spacing-3)]">
+                                <Card key={address.id} padding="none">
+                                    <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+                                        <div className="flex min-w-0 gap-3">
                                             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary-50)] text-[color:var(--color-primary-600)]">
                                                 <MapPin size={18} />
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <h2 className="text-base font-semibold text-[color:var(--color-text-primary)]">
+                                                    <h2 className="break-words text-base font-semibold text-[color:var(--color-text-primary)]">
                                                         {
                                                             address.street_address
                                                         }
@@ -113,7 +115,7 @@ export default function AddressIndex({ addresses = [] }) {
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">
+                                                <p className="mt-1 break-words text-sm text-[color:var(--color-text-secondary)]">
                                                     {address.area_name},{" "}
                                                     {address.city_name}
                                                 </p>
@@ -125,10 +127,11 @@ export default function AddressIndex({ addresses = [] }) {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex shrink-0 gap-2 sm:pt-1">
+                                        <div className="grid grid-cols-2 gap-2 border-t border-[color:var(--color-border-light)] pt-4 sm:flex sm:w-auto sm:shrink-0 sm:border-0 sm:pt-1">
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
+                                                className="w-full sm:w-auto"
                                                 onClick={() =>
                                                     router.visit(
                                                         route(
@@ -143,6 +146,7 @@ export default function AddressIndex({ addresses = [] }) {
                                             <Button
                                                 variant="danger"
                                                 size="sm"
+                                                className="w-full sm:w-auto"
                                                 onClick={() =>
                                                     setPendingDelete(address)
                                                 }
@@ -167,9 +171,10 @@ export default function AddressIndex({ addresses = [] }) {
                     title="Remove this address?"
                     size="sm"
                     footer={
-                        <div className="flex justify-end gap-2">
+                        <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
                             <Button
                                 variant="secondary"
+                                className="w-full sm:w-auto"
                                 disabled={deleting}
                                 onClick={() => setPendingDelete(null)}
                             >
@@ -177,6 +182,7 @@ export default function AddressIndex({ addresses = [] }) {
                             </Button>
                             <Button
                                 variant="danger"
+                                className="w-full sm:w-auto"
                                 loading={deleting}
                                 onClick={remove}
                             >

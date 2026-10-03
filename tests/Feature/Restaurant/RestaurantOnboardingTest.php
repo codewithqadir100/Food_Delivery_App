@@ -98,6 +98,29 @@ test('profile shows approved since as a date only after the restaurant is approv
         ->assertInertia(fn (Assert $page) => $page->where('restaurant.approved_since', '2026-09-26'));
 });
 
+test('profile fills approved since from the created date when an approved restaurant is missing it', function () {
+    $restaurant = Restaurant::factory()->create([
+        'status' => Restaurant::STATUS_APPROVED,
+        'approved_since' => null,
+    ]);
+    $restaurant->user->update([
+        'role' => User::ROLE_RESTAURANT_OWNER,
+        'status' => User::STATUS_APPROVED,
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($restaurant->user->fresh())
+        ->get(route('restaurant.profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where(
+            'restaurant.approved_since',
+            $restaurant->created_at->toDateString(),
+        ));
+
+    expect($restaurant->fresh()->approved_since?->toDateString())
+        ->toBe($restaurant->created_at->toDateString());
+});
+
 test('onboarding checklist follows saved profile location category and item records', function () {
     $restaurant = Restaurant::factory()->create([
         'status' => Restaurant::STATUS_PENDING,

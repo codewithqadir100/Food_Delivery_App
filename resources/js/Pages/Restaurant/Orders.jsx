@@ -9,6 +9,7 @@ import {
 } from "@/Components/Restaurant/Dashboard";
 import Pagination from "@/Components/Common/Pagination";
 import useIncomingOrders from "@/Hooks/useIncomingOrders";
+import { mergeOrderUpdates } from "@/Utils/orderUpdates";
 import { formatCurrency } from "@/Utils/formatCurrency";
 
 const STATUS_TABS = [
@@ -40,16 +41,18 @@ export default function Orders({ orders, filters, stats, latest_order_id = 0 }) 
             setLiveStats(payload.stats);
         }
 
-        const incoming = (payload.orders ?? []).filter(
-            (order) => activeStatus === "all" || order.status === activeStatus,
-        );
-
-        if (incoming.length === 0) return;
-
         setRows((current) => {
-            const ids = new Set(current.map((order) => order.id));
-            const fresh = incoming.filter((order) => !ids.has(order.id));
-            return fresh.length === 0 ? current : [...fresh, ...current];
+            const merged = mergeOrderUpdates(current, payload.updates, {
+                status: activeStatus,
+            });
+            const ids = new Set(merged.map((order) => order.id));
+            const fresh = (payload.orders ?? []).filter(
+                (order) =>
+                    !ids.has(order.id) &&
+                    (activeStatus === "all" || order.status === activeStatus),
+            );
+
+            return fresh.length === 0 ? merged : [...fresh, ...merged];
         });
     });
 
@@ -82,7 +85,12 @@ export default function Orders({ orders, filters, stats, latest_order_id = 0 }) 
             setRows((current) =>
                 current.map((order) =>
                     order.id === updated.id
-                        ? { ...order, status: updated.status }
+                        ? {
+                              ...order,
+                              status: updated.status,
+                              cancelled_by: updated.cancelled_by,
+                              cancellation_reason: updated.cancellation_reason,
+                          }
                         : order,
                 ),
             );

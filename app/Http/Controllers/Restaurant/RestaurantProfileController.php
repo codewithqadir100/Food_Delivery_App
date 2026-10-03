@@ -29,6 +29,12 @@ class RestaurantProfileController extends Controller
 
         $this->authorize('view', $restaurant);
 
+        if ($restaurant->isApproved() && $restaurant->approved_since === null) {
+            $restaurant->update([
+                'approved_since' => $restaurant->created_at ?? now(),
+            ]);
+        }
+
         $restaurantPayload = $restaurant->toArray();
         $restaurantPayload['approved_since'] = $restaurant->isApproved() && $restaurant->approved_since
             ? $restaurant->approved_since->toDateString()
