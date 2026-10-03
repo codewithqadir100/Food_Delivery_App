@@ -154,7 +154,7 @@ export default function MobileNav({
                     />
 
                     {/* Popover Menu Floating Right Above Bottom Nav */}
-                    <div className="md:hidden fixed bottom-20 right-4 z-[var(--z-popover)] w-52 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-[var(--radius-lg)] shadow-[var(--shadow-xl)] p-1.5 flex flex-col gap-0.5">
+                    <div className="md:hidden fixed bottom-20 right-4 z-[var(--z-modal)] w-52 bg-[color:var(--color-bg-primary)] border border-[color:var(--color-border-light)] rounded-[var(--radius-lg)] shadow-[var(--shadow-xl)] p-1.5 flex flex-col gap-0.5">
                         {MORE_OPTIONS.map((item) => {
                             const Icon = item.icon;
                             const active = isActive(item.key);

@@ -48,7 +48,7 @@ class CheckoutController extends Controller
         $requiresLogin = $user === null;
         $addresses = $requiresLogin
             ? collect()
-            : $user->addresses()->orderByDesc('is_primary')->orderByDesc('created_at')->get();
+            : $user->addresses()->orderByDesc('is_primary')->orderBy('created_at')->orderBy('id')->get();
         $items = $this->cart->getItems($restaurant->id);
         $subtotal = $this->cart->getSubtotal($restaurant->id);
 

@@ -19,6 +19,8 @@ class StoreAddressRequest extends FormRequest
             'city_name' => 'required|string|max:100',
             'area_name' => 'required|string|max:500',
             'street_address' => 'required|string|min:5|max:500',
+            'return_to' => 'nullable|in:checkout',
+            'restaurant_id' => 'nullable|integer',
         ];
     }
 

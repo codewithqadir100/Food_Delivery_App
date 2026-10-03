@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { MapPin, Plus } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
+import Badge from "@/Components/Common/Badge";
 import ItemThumb from "@/Components/Common/ItemThumb";
 import Button from "@/Components/Common/Button";
 import TextArea from "@/Components/Forms/TextArea";
@@ -30,7 +31,12 @@ export default function Checkout({
         notes: "",
     });
 
+    const { flash = {} } = usePage().props;
     const [alert, setAlert] = useState(null);
+    const addAddressHref = route("customer.addresses.create", {
+        return_to: "checkout",
+        restaurant_id: restaurant.id,
+    });
     const [deliveryEstimate, setDeliveryEstimate] = useState({
         fee: delivery_fee,
         error: delivery_error,
@@ -97,11 +103,6 @@ export default function Checkout({
         });
     };
 
-    const formatAddress = (address) =>
-        [address.street_address, address.area_name, address.city_name]
-            .filter(Boolean)
-            .join(", ");
-
     return (
         <>
             <Head title="Checkout" />
@@ -129,6 +130,12 @@ export default function Checkout({
                             </>
                         )}
                     </p>
+
+                    {flash.success && (
+                        <div className="mb-4">
+                            <Alert type="success" message={flash.success} />
+                        </div>
+                    )}
 
                     {alert && (
                         <div className="mb-4">
@@ -238,9 +245,7 @@ export default function Checkout({
                                             Delivery Address
                                         </h2>
                                         <Link
-                                            href={route(
-                                                "customer.addresses.create",
-                                            )}
+                                            href={addAddressHref}
                                             className="text-sm font-medium text-[color:var(--color-primary-600)] flex items-center gap-1 hover:underline"
                                         >
                                             <Plus size={14} />
@@ -252,9 +257,7 @@ export default function Checkout({
                                         <p className="text-sm text-[color:var(--color-text-muted)]">
                                             You have no saved addresses.{" "}
                                             <Link
-                                                href={route(
-                                                    "customer.addresses.create",
-                                                )}
+                                                href={addAddressHref}
                                                 className="text-[color:var(--color-primary-600)] hover:underline"
                                             >
                                                 Add one now
@@ -290,22 +293,30 @@ export default function Checkout({
                                                         }
                                                         className="mt-1"
                                                     />
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex flex-wrap items-center gap-2">
                                                             <MapPin
                                                                 size={14}
                                                                 className="text-[color:var(--color-primary-600)]"
                                                             />
                                                             <span className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                                                                {address.is_primary
-                                                                    ? "Primary Address"
-                                                                    : "Address"}
+                                                                {
+                                                                    address.street_address
+                                                                }
                                                             </span>
-                                                        </div>
-                                                        <p className="text-sm text-[color:var(--color-text-secondary)] mt-1">
-                                                            {formatAddress(
-                                                                address,
+                                                            {address.is_primary && (
+                                                                <Badge
+                                                                    variant="success"
+                                                                    size="sm"
+                                                                >
+                                                                    Primary
+                                                                </Badge>
                                                             )}
+                                                        </div>
+                                                        <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">
+                                                            {address.area_name}
+                                                            ,{" "}
+                                                            {address.city_name}
                                                         </p>
                                                     </div>
                                                 </label>

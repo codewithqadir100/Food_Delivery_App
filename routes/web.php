@@ -63,13 +63,17 @@ Route::prefix('customer')->name('customer.')->group(function () {
     });
 
     Route::middleware(['auth', 'customer', 'verified'])->group(function () {
-        Route::get('/addresses', [AddressController::class, 'create'])->name('addresses.create');
+        Route::get('/addresses', [AddressController::class, 'index'])->name('addresses.index');
+        Route::get('/addresses/create', [AddressController::class, 'create'])->name('addresses.create');
         Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
         Route::post('addresses/skip', [AddressController::class, 'skip'])->name('addresses.skip');
+        Route::get('/addresses/{address}/edit', [AddressController::class, 'edit'])->name('addresses.edit');
+        Route::patch('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
+        Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
 
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
-        Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
         Route::post('/wishlist/{restaurant}', [WishlistController::class, 'store'])->name('wishlist.store');
         Route::delete('/wishlist/{restaurant}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');

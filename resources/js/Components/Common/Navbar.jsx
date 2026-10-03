@@ -314,6 +314,23 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                             Add Address
                                         </span>
                                     </Link>
+                                ) : isCustomer && location ? (
+                                    <Link
+                                        href={route(
+                                            "customer.addresses.index",
+                                        )}
+                                        className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-[color:var(--color-bg-secondary)]"
+                                        title="My addresses"
+                                    >
+                                        <MapPin
+                                            size={18}
+                                            className="text-[color:var(--color-primary-600)]"
+                                        />
+
+                                        <span className="max-w-[180px] truncate text-sm font-medium text-[color:var(--color-text-primary)]">
+                                            {location}
+                                        </span>
+                                    </Link>
                                 ) : !isAdminUser && location ? (
                                     <div className="flex items-center gap-2 px-3 py-2">
                                         <MapPin
@@ -634,7 +651,7 @@ export default function Navbar({ categories = [], RestaurantLogo }) {
                                                             </Link>
                                                             <Link
                                                                 href={route(
-                                                                    "customer.addresses.create",
+                                                                    "customer.addresses.index",
                                                                 )}
                                                                 className={
                                                                     dropdownItemClass

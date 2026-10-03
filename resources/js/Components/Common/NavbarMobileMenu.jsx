@@ -283,7 +283,7 @@ export default function NavbarMobileMenu({
                                         </span>
                                     </Link>
                                     <Link
-                                        href={route("customer.addresses.create")}
+                                        href={route("customer.addresses.index")}
                                         className="flex items-center gap-3 px-3 py-3 rounded-lg text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-bg-secondary)] transition-colors"
                                         onClick={onClose}
                                     >

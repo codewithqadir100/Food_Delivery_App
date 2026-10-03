@@ -1,4 +1,4 @@
-import { Head, useForm } from "@inertiajs/react";
+import { Head, router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import AppLayout from "@/Layouts/AppLayout";
 import Alert from "@/Components/Common/Alert";
@@ -7,16 +7,23 @@ import TextInput from "@/Components/Forms/TextInput";
 import ReadOnlyTextInput from "@/Components/Forms/ReadOnlyTextInput";
 import Button from "@/Components/Common/Button";
 
-export default function Addresses({ address }) {
+export default function Addresses({
+    address = null,
+    hasAddresses = false,
+    returnTo = null,
+}) {
     const initialData = {
         latitude: address?.latitude ?? null,
         longitude: address?.longitude ?? null,
         city_name: address?.city_name ?? "",
         area_name: address?.area_name ?? "",
         street_address: address?.street_address ?? "",
+        return_to: returnTo?.type ?? "",
+        restaurant_id: returnTo?.restaurant_id ?? "",
     };
 
-    const { data, setData, post, processing, errors } = useForm(initialData);
+    const { data, setData, post, patch, processing, errors } =
+        useForm(initialData);
     const [lastSavedData, setLastSavedData] = useState(initialData);
     const [skipping, setSkipping] = useState(false);
     const [alert, setAlert] = useState(null);
@@ -36,27 +43,10 @@ export default function Addresses({ address }) {
 
         setAlert(null);
 
-        post(route("customer.addresses.store"), {
+        const options = {
             preserveScroll: true,
-            onSuccess: () => {
-                setLastSavedData({
-                    latitude: data.latitude,
-                    longitude: data.longitude,
-                    city_name: data.city_name,
-                    area_name: data.area_name,
-                    street_address: data.street_address,
-                });
-
-                setAlert({
-                    type: "success",
-                    title: address ? "Address Updated" : "Address Saved",
-                    message: address
-                        ? "Your delivery address has been updated successfully."
-                        : "Your delivery address has been saved successfully.",
-                });
-            },
-            onError: (errors) => {
-                if (Object.keys(errors).length === 0) {
+            onError: (formErrors) => {
+                if (Object.keys(formErrors).length === 0) {
                     setAlert({
                         type: "error",
                         title: "Something Went Wrong",
@@ -65,7 +55,31 @@ export default function Addresses({ address }) {
                     });
                 }
             },
-        });
+        };
+
+        if (address) {
+            patch(route("customer.addresses.update", address.id), options);
+            return;
+        }
+
+        post(route("customer.addresses.store"), options);
+    };
+
+    const leaveForm = () => {
+        if (!hasAddresses) {
+            setSkipping(true);
+            post(route("customer.addresses.skip"));
+            return;
+        }
+
+        if (returnTo?.type === "checkout" && returnTo.restaurant_id) {
+            router.visit(
+                route("customer.checkout.show", returnTo.restaurant_id),
+            );
+            return;
+        }
+
+        router.visit(route("customer.addresses.index"));
     };
 
     const hasLocation =
@@ -98,22 +112,25 @@ export default function Addresses({ address }) {
 
     return (
         <>
-            <Head
-                title={address ? "Delivery Address" : "Add Delivery Address"}
-            />
+            <Head title={address ? "Edit Address" : "Add Delivery Address"} />
 
             <AppLayout>
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-6">
                         <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
                             {address
-                                ? "Delivery Address"
-                                : "Add Delivery Address"}
+                                ? "Edit Address"
+                                : hasAddresses
+                                  ? "Add Another Address"
+                                  : "Add Delivery Address"}
                         </h1>
 
                         <p className="mt-1 text-sm text-[color:var(--color-text-muted)]">
-                            Select your delivery location and add your complete
-                            address.
+                            {address
+                                ? "Update the pin or street details for this address."
+                                : hasAddresses
+                                  ? "This address will be available at checkout. Your first address stays primary."
+                                  : "Your first address becomes primary and is used to find nearby restaurants."}
                         </p>
                     </div>
 
@@ -226,17 +243,12 @@ export default function Addresses({ address }) {
                                         variant="secondary"
                                         disabled={processing || skipping}
                                         loading={skipping}
-                                        onClick={() => {
-                                            setSkipping(true);
-                                            post(
-                                                route(
-                                                    "customer.addresses.skip",
-                                                ),
-                                            );
-                                        }}
+                                        onClick={leaveForm}
                                         fullWidth
                                     >
-                                        {address ? "Cancel" : "Skip for Now"}
+                                        {hasAddresses
+                                            ? "Cancel"
+                                            : "Skip for Now"}
                                     </Button>
                                 </div>
                             </div>

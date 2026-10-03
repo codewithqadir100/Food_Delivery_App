@@ -5,44 +5,42 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Customer\UpdateCustomerPasswordRequest;
+use App\Http\Requests\Customer\UpdateCustomerProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $user = $request->user();
+
         return Inertia::render('Customer/Profile', [
-            'user' => Auth::user(),
+            'profile' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'email_verified' => $user->hasVerifiedEmail(),
+            ],
         ]);
     }
 
-    public function edit(): Response
+    public function update(UpdateCustomerProfileRequest $request): RedirectResponse
     {
-        return Inertia::render('Customer/ProfileEdit', [
-            'user' => Auth::user(),
-        ]);
+        $request->user()->update($request->safe()->only(['name', 'phone']));
+
+        return back()->with('success', 'Profile updated.');
     }
 
-    public function update(Request $request): RedirectResponse
+    public function updatePassword(UpdateCustomerPasswordRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
+        $request->user()->update([
+            'password' => $request->validated('password'),
         ]);
 
-        Auth::user()->update($validated);
-
-        return redirect()->route('customer.profile.index')->with('success', 'Profile updated.');
-    }
-
-    public function addresses(): Response
-    {
-        return Inertia::render('Customer/Addresses', [
-            'addresses' => [],
-        ]);
+        return back()->with('success', 'Password updated.');
     }
 }
